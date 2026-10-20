@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T22:57:58+00:00",
+  "date_utc": "2026-10-20T23:45:10+00:00",
   "statut": "ok",
   "resume": {
     "recherche « Rennes mairie »": "ok — [{\"label\": \"Place de la Mairie 35000 Rennes\", \"lon\": -1.679255, \"lat\": 48.110964}, {\"label\": \"Allée Sainte-Marie 35700 R",
@@ -12,7 +12,7 @@
     {
       "service": "recherche « Rennes mairie »",
       "http": 200,
-      "duree_s": 1.51,
+      "duree_s": 1.02,
       "lu": [
         {
           "label": "Place de la Mairie 35000 Rennes",
@@ -31,7 +31,7 @@
     {
       "service": "recherche « Bédoin »",
       "http": 200,
-      "duree_s": 0.83,
+      "duree_s": 0.51,
       "lu": [
         {
           "label": "Bédoin",
@@ -45,7 +45,7 @@
     {
       "service": "adresse du pied (rue Gambetta)",
       "http": 200,
-      "duree_s": 1.1,
+      "duree_s": 0.65,
       "lu": "3 Rue Gambetta 35000 Rennes",
       "ok": true,
       "extrait": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-1.674645,48.110916]},\"properties\":{\"type\":\"housenumber\",\"name\":\"3 Rue Gambetta\",\"label\":\"3 Rue Gambetta 35000 Rennes\",\"street\":\"Rue Gambetta\",\"postcode\":\"35000\",\"citycode\":\"35238\",\"city\":\"Rennes\",\"oldcitycode\":null,\"oldcity\":null,\"context\":\"35, Ille-et-Vilaine, Bretagne\",\"importance\":0.6908,\"housenumber\":\"3\",\"id\":\"35238_3480_00003\",\"banId\":\"a6764df1-9a07-4375-b23d-5494a19e75d6\",\"x\":352299.77,\"y\":6789244.43,\"distance\":10,\"score\":0.999,\"_type\":\"address\"}}]}"
@@ -53,7 +53,7 @@
     {
       "service": "itinéraire car",
       "http": 200,
-      "duree_s": 0.99,
+      "duree_s": 0.73,
       "lu": {
         "distance_m": 1336.2,
         "duree_min": 5.9766666666666675
@@ -64,13 +64,13 @@
     {
       "service": "itinéraire pedestrian",
       "http": 200,
-      "duree_s": 1.04,
+      "duree_s": 0.49,
       "lu": {
         "distance_m": 519.7,
         "duree_min": 8.675
       },
       "ok": true,
-      "extrait": "{\"resource\":\"bdtopo-osrm\",\"resourceVersion\":\"2026-10-16\",\"start\":\"-1.680243,48.111293\",\"end\":\"-1.674536,48.110965\",\"profile\":\"pedestrian\",\"optimization\":\"fastest\",\"geometry\":{\"coordinates\":[[-1.680243,48.111293],[-1.680221,48.11094],[-1.679224,48.110959],[-1.678906,48.110976],[-1.678339,48.110987],[-1.67826,48.11099],[-1.677821,48.111001],[-1.677441,48.110997],[-1.677112,48.110916],[-1.676627,48.110801],[-1.676543,48.110844],[-1.676464,48.11087],[-1.676413,48.11088],[-1.676233,48.11092],[-1.676237,48.111065],[-1.675531,48.11121],[-1.675164,48.111283],[-1.67478,48.111363],[-1.674536,48.110965]]"
+      "extrait": "{\"resource\":\"bdtopo-osrm\",\"resourceVersion\":\"2026-10-20\",\"start\":\"-1.680243,48.111293\",\"end\":\"-1.674536,48.110965\",\"profile\":\"pedestrian\",\"optimization\":\"fastest\",\"geometry\":{\"coordinates\":[[-1.680243,48.111293],[-1.680221,48.11094],[-1.679224,48.110959],[-1.678906,48.110976],[-1.678339,48.110987],[-1.67826,48.11099],[-1.677821,48.111001],[-1.677441,48.110997],[-1.677112,48.110916],[-1.676627,48.110801],[-1.676543,48.110844],[-1.676464,48.11087],[-1.676413,48.11088],[-1.676233,48.11092],[-1.676237,48.111065],[-1.675531,48.11121],[-1.675164,48.111283],[-1.67478,48.111363],[-1.674536,48.110965]]"
     }
   ]
 }
