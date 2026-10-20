@@ -1,52 +1,59 @@
 {
-  "date_utc": "2026-10-20T17:04:21+00:00",
+  "date_utc": "2026-10-20T23:06:10+00:00",
   "statut": "ok",
-  "zone": "48.075,-1.745,48.150,-1.615",
+  "zones": [
+    "48.075,-1.745,48.150,-1.615",
+    "47.190,-1.770,47.250,-1.520"
+  ],
   "resume": {
-    "noeuds": 15598,
-    "aretes": 21893,
-    "points_altitude": 95950,
-    "points_valides_pct": 100.0,
+    "noeuds": 70649,
+    "aretes": 95644,
+    "points_altitude": 396913,
+    "points_valides_pct": 100,
     "aretes_sans_altitude": 0,
-    "taille_ko": 1215,
-    "duree_s": 123
+    "taille_ko": 5400,
+    "duree_s": 503
   },
   "wfs": {
-    "requetes": 23,
+    "requetes": 98,
     "codes_http": {
-      "200": 23
+      "200": 98
     },
     "erreurs": [],
-    "nb_objets": 22484,
+    "nb_objets": 74639,
     "ordre_bbox": "lat,lon EPSG:4326",
     "axes_inverses": false,
     "natures": {
-      "Route à 1 chaussée": 14448,
-      "Sentier": 4465,
-      "Route à 2 chaussées": 1250,
-      "Rond-point": 1103,
-      "Route empierrée": 470,
-      "Chemin": 258,
-      "Bretelle": 226,
-      "Type autoroutier": 217,
-      "Escalier": 47
+      "Route à 1 chaussée": 47938,
+      "Sentier": 12538,
+      "Rond-point": 5426,
+      "Route empierrée": 3478,
+      "Chemin": 2552,
+      "Route à 2 chaussées": 1723,
+      "Type autoroutier": 434,
+      "Escalier": 295,
+      "Bretelle": 248,
+      "Bac ou liaison maritime": 7
     },
-    "troncons_retenus": 21893,
-    "exclus_acces": 100,
+    "troncons_retenus": 73751,
+    "exclus_acces": 174,
     "valeurs_acces": {
-      "prive=False / acces_pieton=None": 19317,
-      "prive=False / acces_pieton=Libre": 2389,
-      "prive=None / acces_pieton=None": 140,
-      "prive=True / acces_pieton=None": 94,
-      "prive=True / acces_pieton=Libre": 6,
-      "prive=None / acces_pieton=Libre": 47
+      "prive=False / acces_pieton=None": 76423,
+      "prive=False / acces_pieton=Libre": 7357,
+      "prive=None / acces_pieton=None": 10782,
+      "prive=True / acces_pieton=None": 133,
+      "prive=True / acces_pieton=Libre": 35,
+      "prive=None / acces_pieton=Libre": 1082,
+      "prive=False / acces_pieton=Restreint aux ayants droit": 3,
+      "prive=True / acces_pieton=Restreint aux ayants droit": 2,
+      "prive=None / acces_pieton=Restreint aux ayants droit": 1
     },
-    "duree_s": 18.7
+    "duree_s": 95.6
   },
   "alti": {
-    "requetes": 20,
+    "requetes": 81,
     "codes_http": {
-      "200": 20
+      "200": 81
     }
   }
 }
