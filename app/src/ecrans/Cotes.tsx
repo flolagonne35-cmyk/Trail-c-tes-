@@ -10,7 +10,8 @@ import type { Position } from "../calcul/geo.ts";
 import { adresseDe, rechercherLieux, type Lieu } from "../calcul/geoservices.ts";
 import { dureeLisible, tempsTrajets } from "../calcul/trajets.ts";
 import { EnTete, nombre, Puce } from "../composants/communs.tsx";
-import { CarteCotes } from "../composants/graphiques.tsx";
+import { Carte, couleurPente } from "../composants/Carte.tsx";
+import { zoomAjuste } from "../calcul/tuiles.ts";
 import { C, S } from "../theme.ts";
 
 const PENTES = [5, 8, 10];
@@ -177,8 +178,27 @@ export function EcranCotes({ cotes, toutes, position, sourcePosition, filtres, s
         ))}
       </View>
 
-      <View style={{ marginTop: 12, borderRadius: 16, overflow: "hidden" }}>
-        <CarteCotes position={position} cotes={affichees} rayonM={cotes.length ? filtres.rayonM : Infinity} />
+      <View style={{ marginTop: 12 }}>
+        <Carte hauteur={320} centre={position} position={position} rayonM={cotes.length ? filtres.rayonM : undefined}
+               zoom={zoomAjuste([position, ...affichees.slice(0, 10).map((c) => ({ lat: c.lat, lon: c.lon }))], 360, 320, 11, 16)}
+               cle={`${position.lat},${position.lon},${affichees.map((c) => c.id).join("-")}`}
+               traces={affichees.map((c) => ({ id: c.id, couleur: couleurPente(c.pente_moy_pct),
+                                               points: c.geometrie.map(([lon, lat]) => ({ lat, lon })) }))}
+               marqueurs={affichees.slice(0, 15).map((c, i) => ({
+                 id: String(c.id), position: { lat: c.lat, lon: c.lon }, texte: String(i + 1),
+                 couleur: i === 0 ? C.encre : couleurPente(c.pente_moy_pct),
+                 label: `Côte ${i + 1}, ${Math.round(c.longueur_m)} mètres à ${c.pente_moy_pct} %`,
+                 onPress: () => onChoisir(c, i + 1),
+               }))} />
+        <View style={{ flexDirection: "row", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
+          {[[C.monteeDouce, "< 7 %"], [C.montee, "7 – 10 %"], [C.monteeFonce, "≥ 10 %"]].map(([couleur, texte]) => (
+            <View key={texte} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <View style={{ width: 16, height: 5, borderRadius: 3, backgroundColor: couleur }} />
+              <Text style={S.petit}>{texte}</Text>
+            </View>
+          ))}
+          <Text style={S.petit}>· touchez un numéro pour ouvrir la côte</Text>
+        </View>
       </View>
 
       {!cotes.length && (

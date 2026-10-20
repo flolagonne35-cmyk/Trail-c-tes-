@@ -10,6 +10,7 @@ export const C = {
   blanc: "#FFFFFF",
   aire: "#EFEADF",
   montee: "#D9541E",
+  monteeDouce: "#E39A2D",
   monteeFonce: "#8A2F08",
   monteeClair: "#FBE3D6",
   descente: "#2F6F9F",

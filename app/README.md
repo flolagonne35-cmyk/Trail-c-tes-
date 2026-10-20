@@ -21,7 +21,8 @@ npm run typecheck
 - **Côtes** : « Me localiser » ou recherche d'une ville / d'une adresse (géocodage IGN, avec
   suggestions) ; filtres pente, type de voie et rayon ; carte schématique ; pour chaque côte,
   l'adresse du pied (géocodage inverse) et le temps estimé en voiture et en courant. Sans côte
-  dans le rayon, les 5 plus proches sont proposées.
+  dans le rayon, les 5 plus proches sont proposées. Vraie carte Plan IGN (glisser, + / −,
+  recentrer) avec les côtes tracées et numérotées ; toucher un numéro ouvre la côte.
 - **Détail** : adresse précise et GPS du départ, temps pour y aller en voiture et à pied
   (itinéraires IGN), en courant (à votre allure) et à vélo ; profil, pente tous les 50 m, séance
   de répétitions, ouverture dans l'appli de cartes, export GPX vers la montre.
@@ -37,6 +38,13 @@ depuis la distance (marqués « ≈ »).
 `assets/data/cotes.json` et `assets/data/parcours_demo.json` sont produits par
 `python scripts/exporter_app.py` (à la racine du dépôt) à partir des résultats des scripts
 (`resultats/`). Pour l'instant : la zone de Rennes et un parcours de démonstration.
+
+## Version de test sans réseau
+
+`EXPO_PUBLIC_TUILES_LOCALES=1 npx expo export --platform web` : la carte lit les tuiles dans
+`tuiles/<z>/<x>/<y>.png` à côté de la page (zooms 11 à 15, téléchargées par
+`scripts/telecharger_tuiles.py`, workflow « Tuiles Plan IGN »). Sans cette variable, les tuiles
+viennent en direct du WMTS de la Géoplateforme (jusqu'au zoom 18).
 
 ## Code
 

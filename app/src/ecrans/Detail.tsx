@@ -12,6 +12,8 @@ import { coutMinetti } from "../calcul/nutrition.ts";
 import { BAREME, pointsRepetition } from "../calcul/points.ts";
 import { Ajusteur, EnTete, nombre, Tuiles } from "../composants/communs.tsx";
 import { BarresPentes, ProfilCote } from "../composants/graphiques.tsx";
+import { Carte, couleurPente } from "../composants/Carte.tsx";
+import { centreDe, zoomAjuste } from "../calcul/tuiles.ts";
 import { partagerFichier } from "../fichiers.ts";
 import { C, S } from "../theme.ts";
 
@@ -27,6 +29,7 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour 
   cote: CoteProche; rang: number; allurePlat: number; depart: Position; nomDepart: string; retour: () => void;
 }) {
   const pied = { lat: cote.lat, lon: cote.lon };
+  const trace = cote.geometrie.length ? cote.geometrie.map(([lon, lat]) => ({ lat, lon })) : [pied];
   const [adresse, setAdresse] = useState<string | null | undefined>(cote.adresse || undefined);
   const [trajets, setTrajets] = useState<TempsTrajet[]>(() => tempsTrajets(depart, pied, allurePlat));
   const [calcul, setCalcul] = useState(true);
@@ -59,6 +62,15 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour 
               sousTitre={[cote.nom, cote.revetement, cote.technicite, "altitudes IGN au mètre"].filter(Boolean).join(" · ")} />
       <Tuiles valeurs={[["D+", `${nombre(cote.dplus_m)} m`], ["Pente max", `${nombre(cote.pente_max_pct)} %`],
                         ["Rythme*", `≈ ${nombre(Math.max(1, Math.round(minutes)))} min`]]} />
+
+      <View style={{ marginTop: 14 }}>
+        <Carte hauteur={240} cle={`cote-${cote.id}`} centre={centreDe(trace)} zoom={zoomAjuste(trace, 360, 240, 12, 17)}
+               position={depart} traces={[{ id: cote.id, points: trace, couleur: couleurPente(cote.pente_moy_pct), epaisseur: 6 }]}
+               marqueurs={[
+                 { id: "d", position: trace[0], texte: "D", couleur: C.descente, label: "Départ, pied de la côte" },
+                 { id: "a", position: trace[trace.length - 1], texte: "A", couleur: C.encre, label: "Arrivée, sommet" },
+               ]} />
+      </View>
 
       <View style={[S.carte, { gap: 6 }]}>
         <Text style={[S.surtitre, { fontSize: 12 }]}>Départ de la côte</Text>

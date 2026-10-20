@@ -4,7 +4,6 @@ import { Platform, Text, View } from "react-native";
 import Svg, { Circle, G, Path, Polyline, Rect, Text as SvgText } from "react-native-svg";
 
 import type { CoteProche } from "../calcul/cotes.ts";
-import { projection, type Position } from "../calcul/geo.ts";
 import type { Parcours } from "../calcul/profil.ts";
 import { C, COULEUR_TYPE } from "../theme.ts";
 
@@ -110,47 +109,6 @@ export function BarresPentes({ pentes, longueur, seuilRaide = 12 }: { pentes: nu
       })}
       <SvgText x={2} y={108} fontSize={11} fill={C.gris} fontFamily={POLICE}>0 m</SvgText>
       <SvgText x={L - 2} y={108} fontSize={11} fill={C.gris} textAnchor="end" fontFamily={POLICE}>{Math.round(longueur)} m</SvgText>
-    </Svg>
-  );
-}
-
-export function CarteCotes({ position, cotes, rayonM, selection }: {
-  position: Position; cotes: CoteProche[]; rayonM: number; selection?: number;
-}) {
-  const W = 350;
-  const H = 190;
-  const proj = projection(position.lat, position.lon);
-  // zoom sur les côtes affichées (le cercle du rayon n'est dessiné que s'il tient dans le cadre)
-  const etendue = Math.min(rayonM, Math.max(500, ...cotes.map((c) => c.distance_m)) * 1.15);
-  const echelle = (H / 2 - 14) / etendue;
-  const vers = (lat: number, lon: number) => {
-    const [x, y] = proj.xy(lat, lon);
-    return [W / 2 + x * echelle, H / 2 - y * echelle];
-  };
-  return (
-    <Svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H}
-         accessibilityLabel={`Carte schématique : votre position au centre et ${cotes.length} côtes dans un rayon de ${rayonM / 1000} km`}>
-      <Rect width={W} height={H} fill={C.carte} />
-      {rayonM * echelle <= W / 2 && (
-        <Circle cx={W / 2} cy={H / 2} r={rayonM * echelle} fill="none" stroke={C.encre} strokeWidth={1.5} strokeDasharray="4 4" />
-      )}
-      <SvgText x={W - 8} y={H - 8} fontSize={10} fill={C.gris} textAnchor="end" fontFamily={POLICE}>
-        {etendue >= 1000 ? `${(etendue / 1000).toFixed(1).replace(".", ",")} km` : `${Math.round(etendue)} m`} du centre au bord
-      </SvgText>
-      {cotes.map((c) => (
-        <Polyline key={c.id} points={c.geometrie.map(([lon, lat]) => vers(lat, lon).join(",")).join(" ")}
-                  fill="none" stroke={c.id === selection ? C.monteeFonce : C.montee} strokeWidth={3} strokeLinecap="round" />
-      ))}
-      <Circle cx={W / 2} cy={H / 2} r={9} fill={C.descente} stroke={C.blanc} strokeWidth={3} />
-      {cotes.slice(0, 9).map((c, i) => {
-        const [x, y] = vers(c.lat, c.lon);
-        return (
-          <G key={c.id}>
-            <Circle cx={x} cy={y} r={11} fill={i === 0 ? C.monteeFonce : C.montee} stroke={C.blanc} strokeWidth={2} />
-            <SvgText x={x} y={y + 4} fontSize={11} fontWeight="700" fill={C.blanc} textAnchor="middle" fontFamily={POLICE}>{i + 1}</SvgText>
-          </G>
-        );
-      })}
     </Svg>
   );
 }

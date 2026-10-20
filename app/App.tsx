@@ -2,7 +2,7 @@
 
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -49,7 +49,16 @@ function Contenu() {
     enregistrerProfil(p).catch(() => undefined);
   };
 
+  // chaque demande de position porte un numéro : un lieu choisi entre-temps l'emporte
+  const demande = useRef(0);
+  const choisirLieu = useCallback((p: Position, label: string) => {
+    demande.current += 1;
+    setPosition(p);
+    setSourcePosition(label);
+  }, []);
   const localiser = useCallback(async () => {
+    const numero = ++demande.current;
+    const aJour = () => numero === demande.current;
     setSourcePosition("localisation…");
     // certains navigateurs ne répondent jamais à la demande : on abandonne après 8 s
     const delai = <T,>(p: Promise<T>) =>
@@ -57,14 +66,15 @@ function Contenu() {
     try {
       const { status } = await delai(Location.requestForegroundPermissionsAsync());
       if (status !== "granted") {
-        setSourcePosition("localisation refusée : cherchez une ville ou une adresse");
+        if (aJour()) setSourcePosition("localisation refusée : cherchez une ville ou une adresse");
         return;
       }
       const p = await delai(Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
+      if (!aJour()) return;
       setPosition({ lat: p.coords.latitude, lon: p.coords.longitude });
       setSourcePosition(`ma position (± ${Math.round(p.coords.accuracy ?? 0)} m)`);
     } catch {
-      setSourcePosition("position indisponible : cherchez une ville ou une adresse");
+      if (aJour()) setSourcePosition("position indisponible : cherchez une ville ou une adresse");
     }
   }, []);
 
@@ -97,7 +107,7 @@ function Contenu() {
     ecran = <EcranCotes cotes={proches} toutes={COTES} position={position} sourcePosition={sourcePosition} filtres={filtres}
                         setFiltres={setFiltres} onChoisir={(cote, rang) => setDetail({ cote, rang })}
                         allurePlat={ALLURE_PLAT_MIN_KM} onLocaliser={localiser}
-                        onLieu={(l) => { setPosition({ lat: l.lat, lon: l.lon }); setSourcePosition(l.label); }}
+                        onLieu={(l) => choisirLieu({ lat: l.lat, lon: l.lon }, l.label)}
                         source={(cotesExportees as { source: string }).source.includes("sqlite") ? "base précalculée" : "zone de Rennes"} />;
   }
   return (
