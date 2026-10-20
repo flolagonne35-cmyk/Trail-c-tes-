@@ -1,3 +1,4 @@
+import json
 import sys
 from pathlib import Path
 
@@ -51,3 +52,26 @@ def test_adresses_completees_une_fois(tmp_path):
     assert completer_adresses(con, faux, pause=0) == (n - 1, 1)
     assert completer_adresses(con, faux, pause=0) == (1, 0)  # seule la côte en échec est reprise
     assert con.execute("SELECT COUNT(*) FROM cotes WHERE adresse LIKE '%Rue d''essai%'").fetchone()[0] == n
+
+
+def test_reseau_app_demo(tmp_path):
+    """Réseau pour les boucles : graphe connexe, D+ dans les deux sens, format compact."""
+    import exporter_reseau as er
+    sortie = tmp_path / "reseau.json"
+    assert er.main(["--demo", "--sortie", str(sortie), "--rapport", str(tmp_path / "r.json")]) == 0
+    r = json.loads(sortie.read_text())
+    assert r["types"][0] == "route" and r["trafics"] == ["calme", "modéré", "passant"]
+    n = len(r["noeuds"])
+    assert n > 50 and len(r["aretes"]) > n
+    for a, b, longueur, plus, moins, t, s, nom, inter in r["aretes"]:
+        assert 0 <= a < n and 0 <= b < n and longueur > 0 and plus >= 0 and moins >= 0 and len(inter) % 2 == 0
+    # le relief fictif a une colline : certaines arêtes montent
+    assert max(a[3] for a in r["aretes"]) > 2
+
+
+def test_douglas_peucker_et_denivele():
+    import numpy as np
+    import exporter_reseau as er
+    xy = np.array([[0, 0], [10, 0.5], [20, 0], [30, 10], [40, 20]], float)
+    assert er.douglas_peucker(xy, 1).tolist() == [0, 2, 4]
+    assert er.denivele(np.array([0, 1, 0, 1, 5, 4.5, 2])) == (5.0, 3.0)

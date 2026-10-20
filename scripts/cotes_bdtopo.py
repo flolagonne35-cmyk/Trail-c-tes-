@@ -45,7 +45,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from trailcotes.bdtopo import (  # noqa: E402
-    COUCHE, Reseau, StatsWfs, Troncon, Voie, axes_inverses, chainer,
+    COUCHE, TRAFICS, Reseau, StatsWfs, Troncon, Voie, axes_inverses, chainer,
     echantillonner, lire_troncons, troncons_wfs,
 )
 from trailcotes.geo import Projection  # noqa: E402
@@ -90,6 +90,7 @@ class Cote:
     source_revetement: str = ""
     surface_osm: str = ""
     technicite: str = ""
+    trafic: str = "calme"  # le plus exposé des tronçons de la côte
     couverture_osm_pct: int = 0
     profil_d: list = field(repr=False, default_factory=list)
     profil_z: list = field(repr=False, default_factory=list)
@@ -137,6 +138,7 @@ def cotes_de_voie(voie: Voie, troncons: list[Troncon], proj: Projection, reseau:
             lat_depart=round(float(lat[0]), 6), lon_depart=round(float(lon[0]), 6),
             lat_arrivee=round(float(lat[-1]), 6), lon_arrivee=round(float(lon[-1]), 6),
             pentes_50m=pentes,
+            trafic=max((troncons[t].trafic for t in set(voie.troncon[sel].tolist())), key=TRAFICS.index),
             profil_d=[round(float(v), 1) for v in dd],
             profil_z=[round(float(v), 2) for v in zz],
             lonlat=[[round(float(o), 6), round(float(a_), 6)] for o, a_ in zip(lon, lat)],

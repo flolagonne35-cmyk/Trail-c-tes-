@@ -46,6 +46,7 @@ class Troncon:
     xy: np.ndarray
     longueur: float
     importance: int = 6  # BD TOPO : 1 (grand axe) à 6 (desserte, chemin)
+    trafic: str = "calme"  # calme, modéré ou passant (voir `trafic`)
 
 
 @dataclass
@@ -157,6 +158,33 @@ def _est_ouvrage(position) -> bool:
         return False
 
 
+# niveau de trafic, du plus calme au plus exposé (pour un coureur)
+TRAFICS = ("calme", "modéré", "passant")
+
+
+def _nombre(valeur) -> float:
+    try:
+        return float(str(valeur).strip())
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def trafic(p: dict, type_voie: str) -> str:
+    """Exposition au trafic d'après la BD TOPO (importance 1 à 6, vitesse moyenne des voitures,
+    nombre de voies). Les chemins, sentiers, pistes cyclables et voies vertes sont calmes ;
+    une route importante (1 à 3), rapide (≥ 60 km/h) ou large (≥ 3 voies) est passante."""
+    if type_voie in ("chemin", "sentier", "piste cyclable") or p.get("itineraire_vert") is True:
+        return "calme"
+    importance = _importance(p.get("importance"))
+    vitesse = _nombre(p.get("vitesse_moyenne_vl"))
+    voies = _nombre(p.get("nombre_de_voies"))
+    if importance <= 3 or vitesse >= 60 or voies >= 3:
+        return "passant"
+    if importance == 4 or vitesse >= 40:
+        return "modéré"
+    return "calme"
+
+
 # nom complet d'abord (« Rue Gambetta »), l'abréviation historique (« R GAMBETTA ») en dernier
 CHAMPS_NOM = ("nom_collaboratif_gauche", "nom_collaboratif_droite", "nom_voie_ban_gauche",
               "nom_voie_ban_droite", "nom_1_gauche", "nom_1_droite")
@@ -208,7 +236,8 @@ def lire_troncons(features: list[dict], proj: Projection, inverse: bool, stats: 
                 id=f"{p.get('cleabs') or f.get('id')}" + (f"#{n}" if n else ""),
                 nature=nature, type_voie=type_voie, nom=nom,
                 ouvrage=_est_ouvrage(p.get("position_par_rapport_au_sol")),
-                xy=xy, longueur=longueur, importance=_importance(p.get("importance"))))
+                xy=xy, longueur=longueur, importance=_importance(p.get("importance")),
+                trafic=trafic(p, type_voie)))
     stats.natures = dict(natures.most_common())
     stats.troncons_retenus = len(troncons)
     return troncons

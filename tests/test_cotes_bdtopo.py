@@ -200,3 +200,16 @@ def test_cote_sur_reseau_non_relie_au_centre():
     reseau.accrocher(0, 0)
     cotes = cb.cotes_de_voie(voie, ts, geo.Projection(48, -1.7), reseau, cb.parser_arguments([]))
     assert cotes and all(c.distance_m >= 5000 for c in cotes)
+
+
+def test_trafic_bdtopo():
+    from trailcotes.bdtopo import trafic
+    assert trafic({"importance": "6", "vitesse_moyenne_vl": 0}, "sentier") == "calme"
+    assert trafic({"importance": "2", "vitesse_moyenne_vl": 30}, "chemin") == "calme"
+    assert trafic({"importance": "5", "vitesse_moyenne_vl": 30, "nombre_de_voies": 2}, "route") == "calme"
+    assert trafic({"importance": "4", "vitesse_moyenne_vl": 30}, "route") == "modéré"
+    assert trafic({"importance": "5", "vitesse_moyenne_vl": 45}, "route") == "modéré"
+    assert trafic({"importance": "3", "vitesse_moyenne_vl": 40}, "route") == "passant"
+    assert trafic({"importance": "5", "vitesse_moyenne_vl": 70}, "route") == "passant"
+    assert trafic({"importance": "5", "nombre_de_voies": 4}, "route") == "passant"
+    assert trafic({"importance": "2", "itineraire_vert": True}, "route") == "calme"

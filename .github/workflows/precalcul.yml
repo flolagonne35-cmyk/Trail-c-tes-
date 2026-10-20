@@ -5,7 +5,7 @@ on:
     inputs:
       zone:
         description: "lat_min,lon_min,lat_max,lon_max"
-        default: "48.085,-1.715,48.140,-1.640"
+        default: "48.075,-1.745,48.150,-1.615"
       nom:
         description: "Nom de la base (resultats/base/<nom>.sqlite)"
         default: "rennes"
@@ -18,12 +18,16 @@ on:
       paralleles:
         description: "Requêtes altimétriques simultanées"
         default: "1"
+      pente_min:
+        description: "Pente moyenne minimale d'une côte (%)"
+        default: "4"
   push:
     paths:
       - ".github/workflows/precalcul.yml"
       - "scripts/precalcul.py"
       - "trailcotes/base.py"
       - "trailcotes/adresses.py"
+      - "trailcotes/bdtopo.py"
       - "scripts/cotes_bdtopo.py"
 
 permissions:
@@ -38,11 +42,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     env:
-      ZONE: ${{ inputs.zone || '48.085,-1.715,48.140,-1.640' }}
+      ZONE: ${{ inputs.zone || '48.075,-1.745,48.150,-1.615' }}
       BASE: resultats/base/${{ inputs.nom || 'rennes' }}.sqlite
       MAX_TUILES: ${{ inputs.max_tuiles || '0' }}
       TAILLE_LOT: ${{ inputs.taille_lot || '5000' }}
       PARALLELES: ${{ inputs.paralleles || '1' }}
+      PENTE_MIN: ${{ inputs.pente_min || '4' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -55,7 +60,7 @@ jobs:
         run: |
           set +e
           python scripts/precalcul.py --zone "$ZONE" --base "$BASE" --max-tuiles "$MAX_TUILES" \
-            --taille-lot "$TAILLE_LOT" --paralleles "$PARALLELES"
+            --taille-lot "$TAILLE_LOT" --paralleles "$PARALLELES" --pente-min "$PENTE_MIN"
           echo "code=$?" >> "$GITHUB_OUTPUT"
       - name: Résumé
         if: always()

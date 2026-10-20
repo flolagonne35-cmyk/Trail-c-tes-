@@ -1,0 +1,52 @@
+name: Réseau pour les boucles (BD TOPO + altitudes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      zone:
+        description: "lat_min,lon_min,lat_max,lon_max"
+        default: "48.075,-1.745,48.150,-1.615"
+  push:
+    paths:
+      - "scripts/exporter_reseau.py"
+      - ".github/workflows/reseau.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reseau
+  cancel-in-progress: false
+
+jobs:
+  reseau:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      ZONE: ${{ inputs.zone || '48.075,-1.745,48.150,-1.615' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Réseau de la zone
+        run: python scripts/exporter_reseau.py --zone "$ZONE" --sortie app/assets/data/reseau.json
+      - name: Résumé
+        if: always()
+        run: |
+          python -c "import json; r=json.load(open('resultats/reseau/rapport.json')); print(json.dumps(r['resume'], ensure_ascii=False))" >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Enregistrer
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resultats/reseau app/assets/data/reseau.json || true
+          git diff --cached --quiet && exit 0
+          git commit -m "Réseau pour les boucles (run ${{ github.run_id }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

@@ -14,6 +14,27 @@ non géré), ne te contente pas de le signaler comme « limite connue » :
    meilleure alternative. Ne demande à l'utilisateur que si le choix change vraiment le résultat
    (par exemple une licence qui impose des obligations).
 
+## Règle : penser comme le meilleur développeur d'appli, traileur de haut niveau
+
+Chaque fonction est pensée et livrée comme dans une appli de sport professionnelle, utilisée par
+des coureurs exigeants partout en France :
+
+1. **Se renseigner avant de coder** : comment la chose fonctionne vraiment (science du sport,
+   format de fichier, service, règle des stores). Citer la source dans le code ou la doc
+   (ex. recommandations nutrition ACSM / ISSN).
+2. **Chaque réglage s'explique** dans l'appli : à quoi il sert, sur quoi il agit, valeurs
+   conseillées. Jamais un chiffre sans contexte.
+3. **Vérifier de bout en bout avant de livrer** : tests hors réseau, puis la version web au
+   format téléphone (Playwright) en cliquant **chaque bouton** de chaque écran
+   (`scripts/audit_boutons.js` ou équivalent), sans erreur de page. Captures relues.
+4. **Penser au coureur sur le terrain** : sans réseau, montre GPS (export GPX), sécurité (routes
+   fréquentées, ponts et tunnels qui faussent les pentes), données personnelles qui restent sur
+   le téléphone sauf accord explicite.
+5. **Penser à l'échelle nationale** : précalcul par département, base géographique, l'appli ne
+   charge que le rayon utile.
+6. **Dire à l'utilisateur ce qu'il doit faire lui-même** (comptes développeur, stores, juridique)
+   et tenir à jour `docs/feuille-de-route.md`.
+
 ## Projet
 
 - Scripts dans `scripts/`, tests hors réseau dans `tests/` (`pytest -q`), résultats écrits par

@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS cotes (
     alt_depart_m REAL, alt_arrivee_m REAL,
     type_voie TEXT, nature TEXT, nom TEXT, revetement TEXT, source_revetement TEXT, technicite TEXT,
     pentes_50m TEXT, profil TEXT, geometrie TEXT, tuile TEXT,
-    adresse TEXT                     -- adresse du pied (géocodage inverse), NULL tant qu'elle n'est pas cherchée
+    adresse TEXT,                    -- adresse du pied (géocodage inverse), NULL tant qu'elle n'est pas cherchée
+    trafic TEXT                      -- calme, modéré ou passant (BD TOPO)
 );
 CREATE INDEX IF NOT EXISTS cotes_position ON cotes (lat_depart, lon_depart);
 CREATE TABLE IF NOT EXISTS tuiles (
@@ -37,6 +38,8 @@ def ouvrir(chemin: str | Path) -> sqlite3.Connection:
     colonnes = {r[1] for r in con.execute("PRAGMA table_info(cotes)")}
     if "adresse" not in colonnes:  # bases créées avant l'ajout des adresses
         con.execute("ALTER TABLE cotes ADD COLUMN adresse TEXT")
+    if "trafic" not in colonnes:
+        con.execute("ALTER TABLE cotes ADD COLUMN trafic TEXT")
     return con
 
 
@@ -57,12 +60,13 @@ def enregistrer_tuile(con, ident: str, lat: float, lon: float, statut: str, cote
     con.executemany(
         """INSERT OR IGNORE INTO cotes (cle, lat_depart, lon_depart, lat_arrivee, lon_arrivee, longueur_m,
            pente_moy_pct, pente_max_pct, dplus_m, alt_depart_m, alt_arrivee_m, type_voie, nature, nom, revetement,
-           source_revetement, technicite, pentes_50m, profil, geometrie, tuile)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           source_revetement, technicite, pentes_50m, profil, geometrie, tuile, trafic)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         [(cle_cote(c), c.lat_depart, c.lon_depart, c.lat_arrivee, c.lon_arrivee, c.longueur_m, c.pente_moy_pct,
           c.pente_max_pct, c.dplus_m, c.alt_depart_m, c.alt_arrivee_m, c.type_voie, c.nature, c.nom, c.revetement,
           c.source_revetement, c.technicite, json.dumps(c.pentes_50m),
-          json.dumps({"d_m": c.profil_d, "z_m": c.profil_z}), json.dumps(c.lonlat), ident) for c in cotes])
+          json.dumps({"d_m": c.profil_d, "z_m": c.profil_z}), json.dumps(c.lonlat), ident,
+          getattr(c, "trafic", None)) for c in cotes])
     ajoutees = con.total_changes - avant
     con.execute("INSERT OR REPLACE INTO tuiles VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (ident, lat, lon, statut, ajoutees, points_alti, round(duree_s, 1),
