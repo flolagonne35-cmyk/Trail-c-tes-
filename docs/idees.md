@@ -7,11 +7,11 @@ points de vigilance.
 
 | Idée | Où | Remarque |
 |---|---|---|
-| Avatar à créer en entrant dans l'appli (femme / homme, coupe, couleurs, tenue, casquette, bâtons de trail) | onglet **Moi**, au premier lancement | dessin SVG, profil gardé sur le téléphone |
+| Avatar à créer en entrant dans l'appli (femme / homme, coupe, couleurs, tenue, casquette, bâtons de trail) | au premier lancement, puis Profil → « Personnaliser » | dessin SVG en couches (corpulence, taille, yeux, tenue, équipement…), tout facultatif |
 | Points selon la distance, le dénivelé et les répétitions de côtes | `src/calcul/points.ts` | barème ci-dessous, à ajuster |
 | Points seulement après la création du compte | idem | toute sortie datée avant est refusée |
-| Preuve par capture Strava / Garmin | onglet Moi → « Capture Strava / Garmin » | saisie date / km / D+, points **en attente** de validation |
-| Temps de passage estimés, route comme trail (Mathieu) | onglet Nutrition → « Temps de passage » | tous les 1 km (≤ 15 km) ou 5 km, allure ajustée à la pente |
+| Preuve par capture Strava / Garmin | onglet Profil → « Capture d'écran Strava / Garmin » | saisie date / km / D+, points **en attente** de validation |
+| Temps de passage estimés, route comme trail (Mathieu) | onglet Course → vue « Passages » | tous les 1 km (≤ 15 km) ou 5 km, allure ajustée à la pente |
 | Séances en côte | détail d'une côte → « Séance de côtes » | répétitions, durée, D+, points prévus |
 
 ### Barème actuel

@@ -77,27 +77,82 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
   );
 }
 
-export type Onglet = "parcours" | "nutrition" | "cotes" | "moi";
+export type Onglet = "accueil" | "cotes" | "course" | "profil";
 
-const ICONES: Record<Onglet, ReactNode> = {
-  parcours: <Path d="M3 18l6-9 4 5 3-4 5 8z" />,
+export const ICONES = {
+  accueil: <Path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />,
+  cotes: <><Path d="M3 19l6-9 4 5 3-4 5 8z" /><Circle cx={16.5} cy={5.5} r={1.5} /></>,
+  course: <><Path d="M5 21V4" /><Path d="M5 4h11l-2 4 2 4H5" /></>,
+  profil: <><Circle cx={12} cy={8} r={4} /><Path d="M4 21c1-4 4-6 8-6s7 2 8 6" /></>,
+  recherche: <><Circle cx={11} cy={11} r={6.5} /><Path d="M16 16l5 5" /></>,
+  filtres: <Path d="M4 6h16M7 12h10M10 18h4" />,
+  plus: <Path d="M12 5v14M5 12h14" />,
+  gpx: <><Path d="M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7z" /><Path d="M14 3v4h4M9 14l2 2 4-4" /></>,
   nutrition: <Path d="M7 3v8a3 3 0 0 0 6 0V3M10 11v10M17 3c-2 2-3 5-3 8h3v10" />,
-  cotes: <><Path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z" /><Circle cx={12} cy={11} r={2} /></>,
-  moi: <><Circle cx={12} cy={8} r={4} /><Path d="M4 21c1-4 4-6 8-6s7 2 8 6" /></>,
-};
-const NOMS: Record<Onglet, string> = { parcours: "Parcours", nutrition: "Nutrition", cotes: "Côtes", moi: "Moi" };
+  chrono: <><Circle cx={12} cy={13} r={8} /><Path d="M12 9v4l3 2M10 2h4" /></>,
+  trophee: <><Path d="M8 4h8v5a4 4 0 0 1-8 0z" /><Path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4" /></>,
+  fleche: <Path d="M9 6l6 6-6 6" />,
+  position: <><Circle cx={12} cy={12} r={7} /><Circle cx={12} cy={12} r={2.5} /><Path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></>,
+} as const;
+
+export function Icone({ nom, couleur = C.encre, taille = 22 }: { nom: keyof typeof ICONES; couleur?: string; taille?: number }) {
+  return (
+    <Svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke={couleur} strokeWidth={2}
+         strokeLinecap="round" strokeLinejoin="round">{ICONES[nom]}</Svg>
+  );
+}
+
+const NOMS: Record<Onglet, string> = { accueil: "Accueil", cotes: "Côtes", course: "Course", profil: "Profil" };
+
+/** Titre de section, avec une action facultative à droite. */
+export function Section({ titre, action, onAction, children }: {
+  titre: string; action?: string; onAction?: () => void; children?: ReactNode;
+}) {
+  return (
+    <View style={{ marginTop: 22, gap: 10 }}>
+      <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
+        <Text style={S.h2} accessibilityRole="header">{titre}</Text>
+        {action && onAction && (
+          <Pressable onPress={onAction} accessibilityRole="button" hitSlop={10}>
+            <Text style={{ fontSize: 14, fontWeight: "700", color: C.montee }}>{action}</Text>
+          </Pressable>
+        )}
+      </View>
+      {children}
+    </View>
+  );
+}
+
+/** Choix exclusif en ligne (sous-onglets d'un écran). */
+export function Segments<T extends string>({ options, valeur, onChange }: {
+  options: [T, string][]; valeur: T; onChange: (v: T) => void;
+}) {
+  return (
+    <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.sable, borderRadius: 14, padding: 4 }}>
+      {options.map(([v, nom]) => {
+        const actif = v === valeur;
+        return (
+          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="tab" accessibilityState={{ selected: actif }}
+                     style={{ flex: 1, minHeight: 40, borderRadius: 11, alignItems: "center", justifyContent: "center",
+                              backgroundColor: actif ? C.blanc : "transparent" }}>
+            <Text style={{ fontSize: 14, fontWeight: actif ? "700" : "600", color: actif ? C.encre : C.gris }}>{nom}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 export function Navigation({ actif, onChange, basSur }: { actif: Onglet; onChange: (o: Onglet) => void; basSur: number }) {
   return (
     <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.blanc, paddingTop: 8,
                                                paddingHorizontal: 12, paddingBottom: Math.max(16, basSur) }}>
       {(Object.keys(NOMS) as Onglet[]).map((o) => {
-        const couleur = o === actif ? C.encre : C.gris;
+        const couleur = o === actif ? C.montee : C.gris;
         return (
           <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" accessibilityState={{ selected: o === actif }}
                      style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, minHeight: 44 }}>
-            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={couleur} strokeWidth={2}
-                 strokeLinecap="round" strokeLinejoin="round">{ICONES[o]}</Svg>
+            <Icone nom={o} couleur={couleur} />
             <Text style={{ fontSize: 12, color: couleur, fontWeight: o === actif ? "700" : "400" }}>{NOMS[o]}</Text>
           </Pressable>
         );

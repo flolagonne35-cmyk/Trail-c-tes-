@@ -1,7 +1,7 @@
 # Trail-côtes — application
 
-Application Expo (React Native, TypeScript) qui reprend les 4 écrans de la maquette :
-parcours segmenté, nutrition et ravitos, côtes à proximité, détail d'une côte.
+Application Expo (React Native, TypeScript) : côtes à proximité mesurées sur les altitudes IGN,
+préparation de course (profil, temps de passage, nutrition), avatar et points.
 
 ```bash
 cd app
@@ -11,22 +11,35 @@ npm test                # calculs, comparés aux résultats des scripts Python
 npm run typecheck
 ```
 
-## Ce que fait chaque écran
+## Organisation
 
-- **Parcours** : import d'un GPX ; altitudes IGN (RGE ALTI) demandées au service de la
-  Géoplateforme, repli sur les altitudes du GPX si le service ne répond pas ; segmentation
-  montée / descente / plat avec difficulté et description.
-- **Nutrition** : objectif de temps, ravitaillements, glucides / eau / sodium par heure ajustables,
-  température ; quantités par tronçon (gels, eau, pastilles) ; partage du plan.
-- **Côtes** : « Me localiser » ou recherche d'une ville / d'une adresse (géocodage IGN, avec
-  suggestions) ; filtres pente, type de voie et rayon ; carte schématique ; pour chaque côte,
-  l'adresse du pied (géocodage inverse) et le temps estimé en voiture et en courant. Sans côte
-  dans le rayon, les 5 plus proches sont proposées. Vraie carte Plan IGN (glisser, + / −,
-  recentrer) avec les côtes tracées et numérotées ; toucher un numéro ouvre la côte.
-- **Détail** : adresse précise et GPS du départ, temps pour y aller en voiture et à pied
-  (itinéraires IGN), en courant (à votre allure) et à vélo ; profil, pente tous les 50 m, séance
-  de répétitions, ouverture dans l'appli de cartes, export GPX vers la montre.
-- **Moi** : avatar, points, sorties (GPX vérifié ou capture en attente), classement.
+Quatre onglets, chacun avec un seul rôle :
+
+- **Accueil** : mon coureur et mes points, les trois actions (trouver une côte, préparer une
+  course, ajouter une sortie), les 3 côtes les plus proches, ma semaine.
+- **Côtes** : un point de départ (ma position, ou une ville / une adresse), un résumé des filtres
+  et un bouton *Filtres* (panneau pente, distance, type de voie, avec le nombre de côtes en direct),
+  puis *Carte* (Plan IGN, côtes tracées et numérotées) ou *Liste*. Chaque côte : adresse du pied,
+  temps estimé en voiture et en courant.
+  - Recherche plein écran : **toutes les communes de France** (35 000, par nom ou code postal,
+    sans accents ni réseau — « Coueron » trouve Couëron) ; adresses précises par le géocodage IGN
+    quand le réseau répond ; ma position, lieux récents, zones déjà calculées.
+  - Hors des zones calculées (côte la plus proche à plus de 30 km), l'écran le dit et propose
+    la zone la plus proche au lieu d'une carte vide.
+- **Course** : vide tant qu'aucun parcours n'est importé (GPX, ou l'exemple de l'Alpe d'Huez),
+  puis trois vues : *Parcours* (profil, montées / descentes / plats), *Passages* (temps estimés selon
+  la pente) et *Nutrition* (ravitos, eau, glucides, sodium par tronçon). Altitudes IGN RGE ALTI,
+  repli sur celles du GPX si le service ne répond pas.
+- **Profil** : avatar, points, ajout d'une sortie (GPX vérifié ou capture en attente), sorties,
+  classement, barème.
+- **Détail d'une côte** : adresse et GPS du départ, temps pour y aller (itinéraires IGN), profil,
+  pente tous les 50 m, séance de répétitions, ouverture dans l'appli de cartes, export GPX.
+
+Au premier lancement : présentation, puis création du coureur — silhouette, corpulence, taille,
+peau, yeux (forme et couleur), sourcils, expression, barbe, taches de rousseur, coupe et couleur
+de cheveux, haut / bas / chaussures et leurs couleurs, casquette / bandeau / buff / bonnet,
+gilet d'hydratation ou ceinture, lunettes, montre, bâtons, dossard. Tout est facultatif
+(« Au hasard » ou « Plus tard ») et modifiable ensuite depuis le Profil.
 
 Services utilisés depuis le téléphone (publics, sans clé) : géocodage `data.geopf.fr/geocodage`
 et itinéraires `data.geopf.fr/navigation/itineraire`. Leur format est vérifié à chaque passage

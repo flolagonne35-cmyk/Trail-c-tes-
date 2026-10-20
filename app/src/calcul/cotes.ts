@@ -44,3 +44,18 @@ export function dureeMontee(cote: Cote, allurePlatMinKm: number, cout: (i: numbe
   const ratio = cout(cote.pente_moy_pct / 100) / cout(0);
   return (cote.longueur_m / 1000) * allurePlatMinKm * ratio;
 }
+
+/** Au-delà de cette distance de la côte la plus proche, la zone n'est pas encore calculée. */
+export const RAYON_COUVERTURE_M = 30000;
+
+/** Distance à la côte calculée la plus proche (tous filtres confondus). */
+export function distanceCouverture(cotes: Cote[], position: Position): number {
+  return cotes.reduce((m, c) => Math.min(m, distanceM(position, { lat: c.lat, lon: c.lon })), Infinity);
+}
+
+/** Résumé lisible des filtres actifs : « ≤ 5 km · pente ≥ 5 % · route, chemin ». */
+export function resumeFiltres(f: Filtres): string {
+  const types = (["route", "chemin", "sentier"] as TypeVoie[]).filter((t) => f.types.includes(t));
+  return [`≤ ${f.rayonM / 1000} km`, `pente ≥ ${f.penteMin} %`, types.length === 3 ? "toutes voies" : types.join(", ") || "aucune voie"]
+    .join(" · ");
+}

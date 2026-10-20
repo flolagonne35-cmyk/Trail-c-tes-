@@ -192,7 +192,7 @@ Il :
 6. ✅ Segmentation GPX et plan nutrition (scripts et application).
 7. ✅ Précalcul par tuiles dans une base SQLite (Rennes) ; 🚧 à étendre à l'Ille-et-Vilaine puis
    à la France (≈ 620 points/s en POST JSON).
-8. ✅ Application Expo (4 écrans + « Moi ») sur la base de Rennes ; 🚧 tester sur téléphone.
+8. ✅ Application Expo (Accueil, Côtes, Course, Profil ; recherche dans toutes les communes de France) sur la base de Rennes ; 🚧 tester sur téléphone.
 9. ✅ Avatar, points vérifiés par GPX (répétitions de côtes comptées), captures en attente,
    temps de passage, séances de côtes ; 🚧 serveur pour le classement (voir `docs/idees.md`).
 

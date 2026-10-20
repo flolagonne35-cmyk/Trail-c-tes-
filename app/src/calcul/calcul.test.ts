@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { analyserGpx } from "./parcours.ts";
 import { lireGpx, ecrireGpx } from "./gpx.ts";
 import { construirePlan, coutMinetti, lireObjectif, PREFERENCES_DEFAUT } from "./nutrition.ts";
-import { cotesProches, type Cote } from "./cotes.ts";
+import { cotesProches, distanceCouverture, RAYON_COUVERTURE_M, resumeFiltres, type Cote } from "./cotes.ts";
 import { lisser, pentesParTranche } from "./profil.ts";
 import { distanceM } from "./geo.ts";
 
@@ -90,6 +90,20 @@ test("côtes proches : filtres et tri par distance", () => {
   assert.deepEqual(tout.map((c) => c.id), [2, 1]);
   assert.deepEqual(cotesProches(cotes, pos, { rayonM: 5000, penteMin: 8, types: ["route", "sentier"] }).map((c) => c.id), [2]);
   assert.ok(Math.abs(distanceM(pos, { lat: 48.1213, lon: -1.68 }) - 1112) < 2);
+});
+
+test("couverture : Couëron est hors de la zone calculée autour de Rennes", () => {
+  const base: Omit<Cote, "id" | "lat" | "lon"> = { longueur_m: 300, pente_moy_pct: 6, pente_max_pct: 9, dplus_m: 20,
+    alt_depart_m: 0, alt_arrivee_m: 20, type_voie: "route", nom: "", revetement: "", technicite: "", pentes_50m: [],
+    profil: { d: [], z: [] }, geometrie: [] };
+  const cotes: Cote[] = [{ ...base, id: 1, lat: 48.12, lon: -1.68 }, { ...base, id: 2, lat: 48.09, lon: -1.65 }];
+  assert.ok(distanceCouverture(cotes, { lat: 48.1113, lon: -1.68 }) < RAYON_COUVERTURE_M);
+  assert.ok(distanceCouverture(cotes, { lat: 47.2391, lon: -1.7472 }) > 90000);
+  assert.equal(distanceCouverture([], { lat: 0, lon: 0 }), Infinity);
+  assert.equal(resumeFiltres({ rayonM: 5000, penteMin: 5, types: ["route", "piste cyclable", "chemin"] }),
+               "≤ 5 km · pente ≥ 5 % · route, chemin");
+  assert.equal(resumeFiltres({ rayonM: 10000, penteMin: 8, types: ["route", "chemin", "sentier"] }),
+               "≤ 10 km · pente ≥ 8 % · toutes voies");
 });
 
 test("temps de passage : objectif tenu, côte plus lente que la descente", async () => {
