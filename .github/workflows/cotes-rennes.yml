@@ -34,13 +34,15 @@ jobs:
       matrix:
         include:
           - nom: grille
-            script: scripts/cotes_rennes.py
             sortie: resultats/rennes
           - nom: bdtopo
-            script: scripts/cotes_bdtopo.py
             sortie: resultats/rennes_cotes
+          - nom: validation
+            sortie: resultats/validation resultats/parcours_ventoux
     env:
       SORTIE: ${{ matrix.sortie }}
+      RAYON: ${{ inputs.rayon || '2000' }}
+      PENTE_MIN: ${{ inputs.pente_min || '5' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -55,14 +57,22 @@ jobs:
       - name: Tests (données fictives, sans réseau)
         run: pytest -q
 
-      - name: Analyse autour de Rennes
+      - name: Analyse
         id: analyse
         run: |
           set +e
-          python ${{ matrix.script }} \
-            --rayon "${{ inputs.rayon || '2000' }}" \
-            --pente-min "${{ inputs.pente_min || '5' }}" \
-            --sortie "$SORTIE" 2> >(tee erreurs.log >&2)
+          {
+            case "${{ matrix.nom }}" in
+              grille) python scripts/cotes_rennes.py --rayon "$RAYON" --pente-min "$PENTE_MIN" --sortie resultats/rennes ;;
+              bdtopo) python scripts/cotes_bdtopo.py --rayon "$RAYON" --pente-min "$PENTE_MIN" --sortie resultats/rennes_cotes ;;
+              validation)
+                # montées de référence, puis segmentation et plan nutrition sur la trace du Ventoux
+                python scripts/valider_cotes.py --sortie resultats/validation \
+                && python scripts/segmenter_gpx.py resultats/validation/ventoux_bedoin.gpx --sortie resultats/parcours_ventoux \
+                && python scripts/plan_nutrition.py resultats/parcours_ventoux/parcours.json \
+                     --objectif 2h45 --ravito "15:Chalet Reynard" --temperature 22 ;;
+            esac
+          } 2> >(tee erreurs.log >&2)
           code=$?
           echo "code=$code" >> "$GITHUB_OUTPUT"
           exit $code
@@ -72,42 +82,43 @@ jobs:
         run: |
           python - <<'EOF'
           import json, os, pathlib
-          p = pathlib.Path(os.environ["SORTIE"]) / "rapport.json"
           out = open(os.environ["GITHUB_STEP_SUMMARY"], "a")
           nom = "${{ matrix.nom }}"
-          if not p.exists():
-              print("::error::rapport.json absent : le script a planté avant la fin (voir le log)")
+          rapports = [p for d in os.environ["SORTIE"].split() for p in sorted(pathlib.Path(d).glob("rapport*.json"))]
+          if not rapports:
+              print("::error::aucun rapport : le script a planté avant la fin (voir le log)")
               out.write(f"## {nom}\n\nLe script a planté avant d'écrire le rapport.\n")
               raise SystemExit
-          r = json.loads(p.read_text())
-          out.write(f"## {nom} — statut `{r['statut']}`\n\n")
-          for k, v in (r.get("resume") or {}).items():
-              out.write(f"- {k} : **{v}**\n")
-          for service in ("wfs", "api"):
-              s = r.get(service) or {}
-              if s:
-                  out.write(f"- {service} : codes HTTP `{s.get('codes_http')}`, durée {s.get('duree_s')} s\n")
-              for e in (s.get("erreurs") or [])[:10]:
-                  print(f"::warning title={service}::{e[:200]}")
-          if (r.get("api") or {}).get("points_nodata"):
-              print(f"::warning title=api::{r['api']['points_nodata']} points sans donnée (-99999)")
-          if r.get("top"):
-              out.write("\n| n° | à | longueur | pente moy | max | D+ | voie | revêtement | technicité | nom |\n|---|---|---|---|---|---|---|---|---|---|\n")
-              for c in r["top"]:
-                  out.write(f"| {c['id']} | {c['distance_m']} m | {c['longueur_m']} m | {c['pente_moy_pct']} % "
-                            f"| {c['pente_max_pct']} % | +{c['dplus_m']} m | {c['type_voie']} | {c.get('revetement', '')} "
-                            f"| {c.get('technicite', '')} | {c['nom']} |\n")
-          if (r.get("wfs") or {}).get("exemple_proprietes"):
-              out.write("\nExemple de propriétés BD TOPO :\n\n```json\n"
-                        + json.dumps(r["wfs"]["exemple_proprietes"], ensure_ascii=False, indent=1)[:3000] + "\n```\n")
+          for p in rapports:
+            r = json.loads(p.read_text())
+            out.write(f"## {nom} : {p} — statut `{r['statut']}`\n\n")
+            for k, v in (r.get("resume") or {}).items():
+                out.write(f"- {k} : **{v}**\n")
+            for service in ("wfs", "api"):
+                s = r.get(service) or {}
+                if s:
+                    out.write(f"- {service} : codes HTTP `{s.get('codes_http')}`, durée {s.get('duree_s')} s\n")
+                for e in (s.get("erreurs") or [])[:10]:
+                    print(f"::warning title={service}::{e[:200]}")
+            if (r.get("api") or {}).get("points_nodata"):
+                print(f"::warning title=api::{r['api']['points_nodata']} points sans donnée (-99999)")
+            if r.get("top"):
+                out.write("\n| n° | à | longueur | pente moy | max | D+ | voie | revêtement | technicité | nom |\n|---|---|---|---|---|---|---|---|---|---|\n")
+                for c in r["top"]:
+                    out.write(f"| {c['id']} | {c['distance_m']} m | {c['longueur_m']} m | {c['pente_moy_pct']} % "
+                              f"| {c['pente_max_pct']} % | +{c['dplus_m']} m | {c['type_voie']} | {c.get('revetement', '')} "
+                              f"| {c.get('technicite', '')} | {c['nom']} |\n")
+            if (r.get("wfs") or {}).get("exemple_proprietes"):
+                out.write("\nExemple de propriétés BD TOPO :\n\n```json\n"
+                          + json.dumps(r["wfs"]["exemple_proprietes"], ensure_ascii=False, indent=1)[:3000] + "\n```\n")
           EOF
 
       - name: Enregistrer les résultats dans le dépôt
-        if: always() && hashFiles(format('{0}/rapport.json', matrix.sortie)) != ''
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$SORTIE"
+          for d in $SORTIE; do [ -d "$d" ] && git add "$d"; done
           if git diff --cached --quiet; then
             echo "Aucun changement dans les résultats."
             exit 0
@@ -129,9 +140,10 @@ jobs:
           {
             echo "Le run [${{ github.run_id }}]($lien) a échoué (code script : \`${{ steps.analyse.outputs.code }}\`)."
             echo
-            if [ -f "$SORTIE/rapport.json" ]; then
+            premier=$(echo $SORTIE | cut -d' ' -f1)
+            if [ -f "$premier/rapport.json" ]; then
               echo '```json'
-              python -c "import json;r=json.load(open('$SORTIE/rapport.json'));print(json.dumps({'statut':r['statut'],'resume':r.get('resume')}|{s:{k:(r.get(s) or {}).get(k) for k in ('codes_http','erreurs')} for s in ('wfs','api')},ensure_ascii=False,indent=2)[:6000])"
+              python -c "import json;r=json.load(open('$premier/rapport.json'));print(json.dumps({'statut':r['statut'],'resume':r.get('resume')}|{s:{k:(r.get(s) or {}).get(k) for k in ('codes_http','erreurs')} for s in ('wfs','api')},ensure_ascii=False,indent=2)[:6000])"
               echo '```'
             elif [ -s erreurs.log ]; then
               echo '```'; tail -n 40 erreurs.log; echo '```'

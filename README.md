@@ -16,8 +16,12 @@ Pas de scraping, pas de synchronisation Garmin (API fermée) : les parcours arri
 ## Structure du dépôt
 
 ```
+trailcotes/                       code partagé : ign (altitudes), bdtopo (réseau), profil, osm, geo, gpx
 scripts/cotes_rennes.py           grille autour d'un point → altitudes IGN → lissage → pente → zones pentues
 scripts/cotes_bdtopo.py           chemins BD TOPO → profils IGN tous les 10 m → côtes (longueur, pente, D+)
+scripts/valider_cotes.py          validation sur des montées de référence (Ventoux, Alpe d'Huez) + débit de l'API
+scripts/segmenter_gpx.py          GPX → segments montée / descente / plat (fonctionnalité 1)
+scripts/plan_nutrition.py         segments + objectif + ravitos → eau, glucides, sodium par tronçon (fonctionnalité 2)
 tests/                            tests sans réseau (relief fictif, formats de réponse de l'API)
 resultats/rennes/, rennes_cotes/  sorties du dernier run GitHub Actions (CSV, GeoJSON, PNG, rapport JSON)
 .github/workflows/cotes-rennes.yml  run automatique sur Rennes + signalement des erreurs
@@ -111,6 +115,33 @@ Options : `--sans-osm`, `--sans-fond`.
 Limites restantes : racines et cailloux ne sont décrits que là où OSM a `smoothness` ou
 `sac_scale` ; Overpass est une API publique à usage raisonnable, l'application devra utiliser
 son propre extrait OSM (Geofabrik) plutôt que l'interroger à chaque requête.
+
+## Validation sur des montées de référence
+
+Faute de côtes relevées sur le terrain, `valider_cotes.py` compare le calcul aux chiffres publiés
+de deux ascensions connues (Mont Ventoux par Bédoin : 21,5 km, 1 610 m, 7,5 % ; Alpe d'Huez :
+13,8 km, 1 120 m, 8,1 %). Il suit la route BD TOPO au plus court entre départ et arrivée, calcule
+le profil IGN et signale « à examiner » au-delà de 5 % d'écart sur la longueur ou le dénivelé.
+Il mesure aussi le débit de l'API altimétrique (GET / POST, lots de 150 à 5 000 points).
+
+## Segmentation GPX et plan nutrition
+
+```bash
+python scripts/segmenter_gpx.py parcours.gpx --sortie resultats/mon_parcours
+python scripts/plan_nutrition.py resultats/mon_parcours/parcours.json --objectif 38h \
+    --ravito "31:Les Contamines" --ravito "50:Les Chapieux" --temperature 22
+```
+
+- **Segments** : pente sur 200 m glissants ; au-delà de ±3 % montée ou descente, sinon plat ;
+  morceaux de moins de 300 m fusionnés avec leur voisin. Pour chaque segment : distance, D+, D−,
+  pente moyenne et max (sur 50 m), difficulté (facile → très difficile, relevée pour une montée
+  de plus de 600 m ou un passage très raide) et description (« Régulière, raide en fin »).
+  Altitudes IGN, repli sur celles du GPX si le service ne répond pas.
+- **Nutrition** : temps de passage par le coût énergétique de la course en pente (Minetti 2002 :
+  10 % ≈ 1,7 × le plat, −10 % ≈ 0,6 ×), recalé sur l'objectif ; débits horaires réglables
+  (70 g de glucides, 500 ml d'eau, 600 mg de sodium par défaut), eau et sodium +10 % par 5 °C
+  au-dessus de 15 °C ; conversion en gels, barres, litres et pastilles. Sorties `plan.csv`,
+  `plan.json`, `plan.md`.
 
 ## GitHub Actions
 

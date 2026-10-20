@@ -4,8 +4,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import cotes_rennes as cr  # noqa: E402
+from trailcotes import ign  # noqa: E402
 
 
 def test_pente_plan_incline():
@@ -24,16 +26,16 @@ def test_lissage_ignore_les_nan():
 
 
 def test_parser_formats_api():
-    stats = cr.StatsApi()
+    stats = ign.StatsApi()
     objets = {"elevations": [{"lon": -1.68, "lat": 48.11, "z": 42.5, "acc": "1 m"},
                              {"lon": -1.67, "lat": 48.12, "z": -99999, "acc": "-"}]}
-    assert cr._parser_reponse(objets, 2, stats) == [42.5, -99999.0]
+    assert ign._parser_reponse(objets, 2, stats) == [42.5, -99999.0]
     assert stats.precisions == {"1 m": 1, "-": 1}
-    assert cr._parser_reponse({"elevations": [10, 11]}, 2, stats) == [10.0, 11.0]
+    assert ign._parser_reponse({"elevations": [10, 11]}, 2, stats) == [10.0, 11.0]
     with pytest.raises(ValueError):
-        cr._parser_reponse({"elevations": [10]}, 2, stats)
+        ign._parser_reponse({"elevations": [10]}, 2, stats)
     with pytest.raises(ValueError):
-        cr._parser_reponse({"error": "boom"}, 2, stats)
+        ign._parser_reponse({"error": "boom"}, 2, stats)
 
 
 def test_demo_bout_en_bout(tmp_path):
