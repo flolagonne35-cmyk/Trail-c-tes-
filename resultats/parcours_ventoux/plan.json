@@ -1,0 +1,31 @@
+{
+  "parcours": "Alpe d'Huez par Le Bourg-d'Oisans",
+  "objectif_h": 2.75,
+  "par_heure": {
+    "glucides_g": 70,
+    "eau_ml": 500,
+    "sodium_mg": 600
+  },
+  "temperature_c": 22.0,
+  "troncons": [
+    {
+      "n": 1,
+      "de": "Départ",
+      "a": "Arrivée",
+      "km_debut": 0.0,
+      "km_fin": 12.8,
+      "dplus_m": 1093,
+      "duree_h": 2.75,
+      "passage_h": 2.75,
+      "passage": "2 h 45",
+      "glucides_g": 192,
+      "eau_ml": 1567,
+      "sodium_mg": 1881,
+      "gels": 8,
+      "barres": 0,
+      "eau_l": 1.75,
+      "pastilles_sel": 6,
+      "resume": "8 gels · 1,75 L d'eau · 6 pastilles sel"
+    }
+  ]
+}

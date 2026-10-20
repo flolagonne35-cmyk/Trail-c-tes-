@@ -1,0 +1,73 @@
+{
+  "date_utc": "2026-10-20T15:03:06+00:00",
+  "statut": "repli_gpx",
+  "parametres": {
+    "gpx": "resultats/validation/alpe_d_huez.gpx",
+    "altitudes": "ign",
+    "pas": 10,
+    "lissage": 30,
+    "seuil": 3,
+    "fenetre": 200,
+    "longueur_min": 300,
+    "ressource": "ign_rge_alti_wld",
+    "taille_lot": 150,
+    "pause": 0.25,
+    "essais": 4
+  },
+  "resume": {
+    "Parcours": "12.84 km, D+ 1096 m, D− 5 m",
+    "Altitudes": "GPX (repli : service IGN indisponible)",
+    "Segments": 2,
+    "Montées / descentes / plats": "1/0/1"
+  },
+  "segments": [
+    {
+      "n": 1,
+      "type": "plat",
+      "km_debut": 0.0,
+      "km_fin": 0.7,
+      "distance_km": 0.7,
+      "dplus_m": 6,
+      "dmoins_m": 1,
+      "pente_moy_pct": 0.8,
+      "pente_max_pct": 2.8,
+      "alt_debut_m": 718,
+      "alt_fin_m": 723,
+      "difficulte": "facile",
+      "description": "Roulant, relancer"
+    },
+    {
+      "n": 2,
+      "type": "montée",
+      "km_debut": 0.7,
+      "km_fin": 12.84,
+      "distance_km": 12.14,
+      "dplus_m": 1089,
+      "dmoins_m": 5,
+      "pente_moy_pct": 8.9,
+      "pente_max_pct": 20.5,
+      "alt_debut_m": 723,
+      "alt_fin_m": 1808,
+      "difficulte": "très difficile",
+      "description": "Irrégulière"
+    }
+  ],
+  "api": {
+    "ressource": "ign_rge_alti_wld",
+    "requetes": 9,
+    "requetes_ok": 9,
+    "reessais": 0,
+    "lots_en_echec": 0,
+    "points_demandes": 1285,
+    "points_nodata": 1285,
+    "duree_s": 6.7,
+    "codes_http": {
+      "200": 9
+    },
+    "precisions": {
+      "Variable suivant la source de mesure": 1285
+    },
+    "erreurs": [],
+    "exemple_reponse": "{\"elevations\": [{\"lon\": 45.060598, \"lat\": 6.038667, \"z\": -99999.0, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 45.060522, \"lat\": 6.0386, \"z\": -99999.0, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 45.060469, \"lat\": 6.038497, \"z\": -99999.0, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 45.060423, \"lat\": 6.038388, \"z\": -99999.0, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 45.060381, \"lat\": 6.038275, \"z\": -99999.0, \"acc\": \"Variable suivant la source de m"
+  }
+}
