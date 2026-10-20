@@ -1,0 +1,47 @@
+{
+  "date_utc": "2026-10-20T14:24:31+00:00",
+  "statut": "ok",
+  "source": "IGN Géoplateforme, ressource ign_rge_alti_wld",
+  "parametres": {
+    "lat": 48.1113,
+    "lon": -1.68,
+    "rayon": 2000.0,
+    "pas": 20.0,
+    "lissage": 30,
+    "pente_min": 5.0,
+    "surface_min": 2000,
+    "ressource": "ign_rge_alti_wld",
+    "taille_lot": 150,
+    "pause": 0.25,
+    "essais": 4,
+    "max_echec": 0.05,
+    "demo": false
+  },
+  "grille": {
+    "lignes": 201,
+    "colonnes": 201
+  },
+  "points_valides_pct": 100.0,
+  "altitude_min_m": 22.15,
+  "altitude_max_m": 66.32,
+  "pente_p95_pct": 5.8,
+  "nb_zones": 36,
+  "api": {
+    "ressource": "ign_rge_alti_wld",
+    "requetes": 270,
+    "requetes_ok": 270,
+    "reessais": 0,
+    "lots_en_echec": 0,
+    "points_demandes": 40401,
+    "points_nodata": 0,
+    "duree_s": 217.8,
+    "codes_http": {
+      "200": 270
+    },
+    "precisions": {
+      "Variable suivant la source de mesure": 40401
+    },
+    "erreurs": [],
+    "exemple_reponse": "{\"elevations\": [{\"lon\": -1.706938, \"lat\": 48.129286, \"z\": 63.38, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.706669, \"lat\": 48.129286, \"z\": 64.38, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.7064, \"lat\": 48.129286, \"z\": 63.74, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.70613, \"lat\": 48.129286, \"z\": 63.48, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.705861, \"lat\": 48.129286, \"z\": 63.88, \"acc\": \"Variable suivant la source de mesure\"}, {\""
+  }
+}
