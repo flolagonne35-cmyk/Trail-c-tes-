@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T15:05:00+00:00",
+  "date_utc": "2026-10-20T15:09:38+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme, ressource ign_rge_alti_wld",
   "parametres": {
@@ -11,7 +11,8 @@
     "pente_min": 5.0,
     "surface_min": 2000,
     "ressource": "ign_rge_alti_wld",
-    "taille_lot": 150,
+    "taille_lot": 5000,
+    "methode": "POST_JSON",
     "pause": 0.25,
     "essais": 4,
     "max_echec": 0.05,
@@ -30,19 +31,20 @@
     "Points valides": "100.00 %",
     "Altitudes": "22.1 → 66.3 m",
     "Zones pentues": 36,
-    "Requêtes altimétrie": "270 (OK 270, réessais 0)"
+    "Requêtes altimétrie": "9 (OK 9, réessais 0)"
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
-    "requetes": 270,
-    "requetes_ok": 270,
+    "requetes": 9,
+    "requetes_ok": 9,
     "reessais": 0,
     "lots_en_echec": 0,
+    "replis_get": 0,
     "points_demandes": 40401,
     "points_nodata": 0,
-    "duree_s": 183.4,
+    "duree_s": 37.4,
     "codes_http": {
-      "200": 270
+      "200": 9
     },
     "precisions": {
       "Variable suivant la source de mesure": 40401
