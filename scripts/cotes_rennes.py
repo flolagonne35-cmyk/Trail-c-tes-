@@ -342,6 +342,12 @@ def analyser(args: argparse.Namespace) -> int:
         "altitude_max_m": None if taux_valide == 0 else round(float(np.nanmax(z_brut)), 2),
         "pente_p95_pct": None if taux_valide == 0 else round(float(np.nanpercentile(pente, 95)), 1),
         "nb_zones": len(zones),
+        "resume": {
+            "Points valides": f"{100 * taux_valide:.2f} %",
+            "Altitudes": f"{np.nanmin(z_brut):.1f} → {np.nanmax(z_brut):.1f} m" if taux_valide else "—",
+            "Zones pentues": len(zones),
+            "Requêtes altimétrie": f"{stats.requetes} (OK {stats.requetes_ok}, réessais {stats.reessais})",
+        },
         "api": None if args.demo else asdict(stats),
     }
     (sortie / "rapport.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2) + "\n")
