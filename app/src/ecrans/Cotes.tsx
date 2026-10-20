@@ -40,6 +40,7 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
 }) {
   const [f, setF] = useState(filtres);
   const n = useMemo(() => cotesProches(toutes, position, f).length, [toutes, position, f]);
+  const parDefaut = JSON.stringify(f) === JSON.stringify(FILTRES_DEFAUT);
   const basculer = (t: TypeVoie) => {
     const groupe: TypeVoie[] = t === "route" ? ["route", "piste cyclable"] : [t]; // pistes cyclables avec les routes
     setF({ ...f, types: f.types.includes(t) ? f.types.filter((x) => !groupe.includes(x)) : [...f.types, ...groupe] });
@@ -52,8 +53,8 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
                   contentContainerStyle={{ padding: 20, gap: 18 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={[S.h2, { flex: 1, fontSize: 20 }]} accessibilityRole="header">Filtres</Text>
-          <Pressable onPress={() => setF(FILTRES_DEFAUT)} accessibilityRole="button" hitSlop={10}>
-            <Text style={{ fontSize: 14, fontWeight: "700", color: C.montee }}>Réinitialiser</Text>
+          <Pressable onPress={() => setF(FILTRES_DEFAUT)} disabled={parDefaut} aria-disabled={parDefaut} accessibilityRole="button" hitSlop={10}>
+            <Text style={{ fontSize: 14, fontWeight: "700", color: parDefaut ? C.gris : C.montee }}>Réinitialiser</Text>
           </Pressable>
         </View>
         <View style={{ gap: 8 }}>

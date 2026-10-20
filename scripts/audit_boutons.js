@@ -104,11 +104,20 @@ async function nouvellePage(nav) {
       page.on("popup", () => effets.push("lien ouvert"));
       let statut = "ok";
       try {
-        if (!(await el.isVisible())) { await el.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {}); }
+        await el.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {});
         const avant = await page.evaluate(() => document.body.innerHTML);
         const desactive = (await el.getAttribute("aria-disabled")) === "true" || (await el.isDisabled());
         const dejaActif = (await el.getAttribute("aria-selected")) === "true"; // onglet ou choix déjà sélectionné
         if (desactive) throw new Error("désactivé");
+        // sous un panneau ouvert (menu, formulaire) : volontairement inaccessible
+        const masque = await el.evaluate((e) => {
+          const r = e.getBoundingClientRect();
+          const x = r.left + r.width / 2, y = r.top + r.height / 2;
+          if (y < 0 || y > innerHeight) return true; // resté hors écran : son défilement est bloqué par un panneau
+          const dessus = document.elementFromPoint(x, y);
+          return !!dessus && !e.contains(dessus) && !dessus.contains(e);
+        });
+        if (masque) throw new Error("masqué");
         await el.click({ timeout: 3000 });
         await attendre(page, 600);
         const apres = await page.evaluate(() => document.body.innerHTML);
@@ -117,7 +126,9 @@ async function nouvellePage(nav) {
         else if (dejaActif && !effets.length) statut = "déjà actif";
         else if (!effets.length) statut = "SANS EFFET";
       } catch (e) {
-        if (String(e.message) === "désactivé") statut = "désactivé"; else statut = `NON CLIQUABLE (${String(e.message).split("\n")[0].slice(0, 80)})`;
+        if (String(e.message) === "désactivé") statut = "désactivé";
+        else if (String(e.message) === "masqué") statut = "sous un panneau";
+        else statut = `NON CLIQUABLE (${String(e.message).split("\n")[0].slice(0, 80)})`;
       }
       if (session.erreurs.length) statut = `ERREUR : ${session.erreurs[0].slice(0, 120)}`;
       resultats.push({ ecran, i, nom: noms[i], statut, effets });
@@ -127,7 +138,7 @@ async function nouvellePage(nav) {
   }
   await nav.close();
   fs.writeFileSync(RAPPORT, JSON.stringify(resultats, null, 2));
-  const problemes = resultats.filter((r) => !["ok", "désactivé", "déjà actif"].includes(r.statut));
+  const problemes = resultats.filter((r) => !["ok", "désactivé", "déjà actif", "sous un panneau"].includes(r.statut));
   console.log(`\n${resultats.length} éléments cliqués, ${problemes.length} problème(s)${erreurs.length ? `, erreurs au démarrage : ${erreurs}` : ""}`);
   process.exit(problemes.length ? 1 : 0);
 })();

@@ -178,8 +178,8 @@ export const nombre = (v: number, decimales = 0) =>
   v.toLocaleString("fr-FR", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 
 /** Barre du haut de chaque page : menu (toutes les sections), titre, accès au profil. */
-export function BarreHaut({ titre, onMenu, onProfil, avatar }: {
-  titre: string; onMenu: () => void; onProfil: () => void; avatar: ReactNode;
+export function BarreHaut({ titre, onMenu, onProfil, avatar, surProfil }: {
+  titre: string; onMenu: () => void; onProfil: () => void; avatar: ReactNode; surProfil: boolean;
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 6,
@@ -189,7 +189,7 @@ export function BarreHaut({ titre, onMenu, onProfil, avatar }: {
         <Icone nom="menu" />
       </Pressable>
       <Text style={{ flex: 1, fontSize: 18, fontWeight: "800", color: C.encre }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
-      <Pressable onPress={onProfil} accessibilityRole="button" accessibilityLabel="Mon profil"
+      <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button" accessibilityLabel="Mon profil"
                  style={{ width: 44, height: 44, borderRadius: 22, overflow: "hidden", backgroundColor: C.blanc }}>
         {avatar}
       </Pressable>

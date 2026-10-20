@@ -13,7 +13,7 @@ reste à construire**, par étapes.
 | Demande | État | Où |
 |---|---|---|
 | Nutrition compréhensible | ✅ | Course → Nutrition : « Comment c'est calculé », routine horaire, conseil sur chaque réglage, sources |
-| Tous les boutons qui marchent | ✅ vérifié | `scripts/audit_boutons.js` clique chaque bouton de chaque écran (rapport plus bas) |
+| Tous les boutons qui marchent | ✅ vérifié | `scripts/audit_boutons.js` : 20 écrans, ≈ 420 boutons cliqués un par un, 0 sans effet, 0 erreur de page (20/10) |
 | Filtrer par longueur et par D+ | ✅ | Côtes → Filtres : courtes < 300 m, moyennes 300-800 m, longues ≥ 800 m ; D+ minimum |
 | Enchaîner des côtes dans une boucle | ✅ zone de Rennes | Côtes → Boucle : distance, nombre de côtes, D+ visé, sans route, sans route passante |
 | Export GPX vers la montre | ✅ | côte, séance et boucle ; s'importe dans Garmin Connect, Coros, Suunto, Strava |

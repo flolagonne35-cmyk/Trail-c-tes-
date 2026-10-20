@@ -219,7 +219,8 @@ function Contenu() {
     <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top }}>
       <StatusBar style="dark" />
       {!detail && (
-        <BarreHaut titre={TITRES[page]} onMenu={() => setMenu(true)} onProfil={() => aller({ page: "profil" })} avatar={avatar} />
+        <BarreHaut titre={TITRES[page]} onMenu={() => setMenu(true)} onProfil={() => aller({ page: "profil" })} avatar={avatar}
+                   surProfil={page === "profil"} />
       )}
       <View style={{ flex: 1 }}>{ecran}</View>
       <Navigation actif={detail ? page : page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />
