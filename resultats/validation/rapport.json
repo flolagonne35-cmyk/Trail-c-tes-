@@ -1,15 +1,15 @@
 {
-  "date_utc": "2026-10-20T15:55:03+00:00",
+  "date_utc": "2026-10-20T15:59:49+00:00",
   "statut": "ok",
   "resume": {
-    "Mont Ventoux par Bédoin": "à examiner — 12.06 km, 795 m, 6.59 % ; écarts {'longueur_pct': -43.9, 'denivele_pct': -50.6, 'pente_pts': -0.91, 'alt_arrivee_m': -787.2}",
+    "Mont Ventoux par Bédoin": "conforme — 21.91 km, 1570 m, 7.17 % ; écarts {'longueur_pct': 1.9, 'denivele_pct': -2.5, 'pente_pts': -0.33, 'alt_arrivee_m': -12.7}",
     "Alpe d'Huez par Le Bourg-d'Oisans": "conforme — 13.31 km, 1090 m, 8.19 % ; écarts {'longueur_pct': -3.5, 'denivele_pct': -2.6, 'pente_pts': 0.09, 'alt_arrivee_m': -52.1}",
-    "Débit GET lot 150 (6 déc., ×1)": "191.3 pts/s {'200': 3}",
-    "Débit GET lot 300 (6 déc., ×1)": "265.6 pts/s {'200': 3}",
-    "Débit GET lot 330 (5 déc., ×1)": "341.0 pts/s {'200': 3}",
-    "Débit POST_JSON lot 1000 (6 déc., ×1)": "353.2 pts/s {'200': 1}",
-    "Débit POST_JSON lot 5000 (6 déc., ×1)": "680.7 pts/s {'200': 1}",
-    "Débit GET lot 150 (6 déc., ×4)": "284.2 pts/s {'200': 5, '429': 3}"
+    "Débit GET lot 150 (6 déc., ×1)": "130.4 pts/s {'200': 3}",
+    "Débit GET lot 300 (6 déc., ×1)": "257.8 pts/s {'200': 3}",
+    "Débit GET lot 330 (5 déc., ×1)": "283.7 pts/s {'200': 3}",
+    "Débit POST_JSON lot 1000 (6 déc., ×1)": "432.0 pts/s {'200': 1}",
+    "Débit POST_JSON lot 5000 (6 déc., ×1)": "626.6 pts/s {'200': 1}",
+    "Débit GET lot 150 (6 déc., ×4)": "359.8 pts/s {'200': 5, '429': 3}"
   },
   "montees": [
     {
@@ -19,7 +19,7 @@
       "wfs_codes": {
         "200": 8
       },
-      "statut": "à examiner",
+      "statut": "conforme",
       "autour_arrivee": [
         {
           "distance_m": 6,
@@ -362,37 +362,51 @@
             "taille_composante": 127
           },
           "meme_composante": false
+        },
+        "routes + chemins": {
+          "depart": {
+            "accrochage_m": 2.6,
+            "nature": "Route à 1 chaussée",
+            "composante": 2,
+            "taille_composante": 4757
+          },
+          "arrivee": {
+            "accrochage_m": 38.6,
+            "nature": "Route à 1 chaussée",
+            "composante": 2,
+            "taille_composante": 4757
+          },
+          "meme_composante": true
         }
       },
-      "reseau": "routes",
-      "alerte": "arrivée non atteinte : réseau coupé dans l'emprise ou point d'arrivée mal placé",
-      "longueur_m": 12065,
-      "denivele_m": 795,
-      "dplus_m": 818,
-      "pente_moy_pct": 6.59,
+      "reseau": "routes + chemins",
+      "longueur_m": 21909,
+      "denivele_m": 1570,
+      "dplus_m": 1606,
+      "pente_moy_pct": 7.17,
       "alt_depart_m": 326.4,
-      "alt_arrivee_m": 1121.2,
+      "alt_arrivee_m": 1896.7,
       "ref_longueur_m": 21500,
       "ref_denivele_m": 1610,
       "ref_pente_moy_pct": 7.5,
       "ref_alt_arrivee_m": 1909,
       "ecarts": {
-        "longueur_pct": -43.9,
-        "denivele_pct": -50.6,
-        "pente_pts": -0.91,
-        "alt_arrivee_m": -787.2
+        "longueur_pct": 1.9,
+        "denivele_pct": -2.5,
+        "pente_pts": -0.33,
+        "alt_arrivee_m": -12.7
       },
       "plus_grande_montee": {
-        "longueur_m": 6285,
-        "denivele_m": 593,
-        "part_du_denivele_pct": 75,
-        "nb_montees": 2
+        "longueur_m": 8650,
+        "denivele_m": 747,
+        "part_du_denivele_pct": 48,
+        "nb_montees": 4
       },
-      "points": 1208,
+      "points": 2192,
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 3.2
+      "alti_duree_s": 3.5
     },
     {
       "cle": "alpe_d_huez",
@@ -773,7 +787,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 2.2
+      "alti_duree_s": 1.8
     }
   ],
   "debit_api": [
@@ -786,9 +800,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 2.34,
+      "duree_s": 3.43,
       "points_ok": 447,
-      "points_par_s": 191.3,
+      "points_par_s": 130.4,
       "erreur": ""
     },
     {
@@ -800,9 +814,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.38,
+      "duree_s": 3.48,
       "points_ok": 897,
-      "points_par_s": 265.6,
+      "points_par_s": 257.8,
       "erreur": ""
     },
     {
@@ -814,9 +828,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 2.89,
+      "duree_s": 3.48,
       "points_ok": 987,
-      "points_par_s": 341.0,
+      "points_par_s": 283.7,
       "erreur": ""
     },
     {
@@ -828,9 +842,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 2.82,
+      "duree_s": 2.31,
       "points_ok": 997,
-      "points_par_s": 353.2,
+      "points_par_s": 432.0,
       "erreur": ""
     },
     {
@@ -842,9 +856,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 7.31,
+      "duree_s": 7.95,
       "points_ok": 4979,
-      "points_par_s": 680.7,
+      "points_par_s": 626.6,
       "erreur": ""
     },
     {
@@ -857,9 +871,9 @@
         "200": 5,
         "429": 3
       },
-      "duree_s": 2.63,
+      "duree_s": 2.08,
       "points_ok": 747,
-      "points_par_s": 284.2,
+      "points_par_s": 359.8,
       "erreur": "HTTP 429 lot 750-900 : <html>\r\n<head><title>429 Too Many Requests</title></head>\r\n<body>\r\n<center><h1>429 Too Many Requests</h1></center>\r\n</body>\r\n</html>\r\n"
     }
   ],

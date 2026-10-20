@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T15:55:08+00:00",
+  "date_utc": "2026-10-20T15:59:54+00:00",
   "statut": "ok",
   "parametres": {
     "gpx": "resultats/validation/alpe_d_huez.gpx",
@@ -62,7 +62,7 @@
     "replis_get": 0,
     "points_demandes": 1328,
     "points_nodata": 0,
-    "duree_s": 4.5,
+    "duree_s": 4.3,
     "codes_http": {
       "429": 1,
       "200": 1
