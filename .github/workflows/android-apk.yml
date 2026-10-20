@@ -51,10 +51,20 @@ jobs:
         with:
           name: ${{ steps.v.outputs.nom }}
           path: app/${{ steps.v.outputs.nom }}.apk
-      - name: Release à télécharger depuis le téléphone
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Publier sur la branche « apk » (lien fixe, à ouvrir depuis le téléphone)
+        # la création de Release est refusée au jeton automatique de ce dépôt : une branche à un seul
+        # commit, écrasée à chaque version, sert de lien de téléchargement stable
         run: |
-          gh release create "apk-${{ github.run_number }}" "${{ steps.v.outputs.nom }}.apk" \
-            --target "${GITHUB_SHA}" --prerelease --title "Trail-côtes — test Android n°${{ github.run_number }}" \
-            --notes "APK de test (branche ${GITHUB_REF_NAME}). Sur le téléphone Android : ouvrir cette page, télécharger le .apk, autoriser l'installation depuis le navigateur. Les données restent sur le téléphone."
+          mkdir -p "$RUNNER_TEMP/apk" && cd "$RUNNER_TEMP/apk"
+          cp "$GITHUB_WORKSPACE/app/${{ steps.v.outputs.nom }}.apk" trail-cotes.apk
+          printf '%s\n' "# Trail-côtes — appli Android de test" "" \
+            "Version ${{ steps.v.outputs.nom }} (commit ${GITHUB_SHA::7}, branche ${GITHUB_REF_NAME})." "" \
+            "Sur le téléphone Android : ouvrir trail-cotes.apk ci-dessus → « Télécharger » (ou « View raw »)," \
+            "puis ouvrir le fichier et autoriser l'installation depuis le navigateur." > LISEZMOI.md
+          git init -q -b apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add . && git commit -q -m "APK ${{ steps.v.outputs.nom }}"
+          git remote add origin "$(git -C "$GITHUB_WORKSPACE" remote get-url origin)"
+          git -c http.extraheader="$(git -C "$GITHUB_WORKSPACE" config --get http.https://github.com/.extraheader)" \
+            push -f origin apk
