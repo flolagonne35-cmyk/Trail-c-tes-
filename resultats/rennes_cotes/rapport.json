@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T14:41:53+00:00",
+  "date_utc": "2026-10-20T14:56:32+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -41,7 +41,7 @@
     "troncon": "TRONROUT0000000047479795",
     "nature": "Route à 1 chaussée",
     "x": -18.026114161803015,
-    "y": -0.7558061052480198,
+    "y": -0.7558061052480269,
     "distance_m": 18.0,
     "lat": 48.111293,
     "lon": -1.680243
@@ -58,7 +58,7 @@
       "type_voie": "route",
       "revetement": "goudronné",
       "technicite": "roulant",
-      "nom": "R GAMBETTA"
+      "nom": "Rue Gambetta"
     },
     {
       "id": 2,
@@ -82,7 +82,7 @@
       "type_voie": "sentier",
       "revetement": "goudronné",
       "technicite": "",
-      "nom": ""
+      "nom": "Parc Saint-Martin"
     },
     {
       "id": 4,
@@ -94,7 +94,7 @@
       "type_voie": "route",
       "revetement": "goudronné",
       "technicite": "correct",
-      "nom": "R PAUL FEVAL"
+      "nom": "Rue Paul Féval"
     },
     {
       "id": 5,
@@ -106,7 +106,7 @@
       "type_voie": "sentier",
       "revetement": "goudronné",
       "technicite": "roulant",
-      "nom": "PAS ANITA CONTI"
+      "nom": "Passerelle Anita Conti"
     },
     {
       "id": 6,
@@ -118,7 +118,7 @@
       "type_voie": "route",
       "revetement": "goudronné",
       "technicite": "",
-      "nom": "ALL SUZANNE LENGLEN"
+      "nom": "Rue du Père Bourdon"
     },
     {
       "id": 7,
@@ -130,7 +130,7 @@
       "type_voie": "route",
       "revetement": "goudronné",
       "technicite": "roulant",
-      "nom": "R MICHELET"
+      "nom": "Rue Michelet"
     }
   ],
   "osm": {
@@ -155,7 +155,7 @@
       "paved": 40
     },
     "erreurs": [],
-    "duree_s": 35.0
+    "duree_s": 40.3
   },
   "fond_erreurs": [],
   "wfs": {
@@ -274,7 +274,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 22.3
+    "duree_s": 4.3
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -284,7 +284,7 @@
     "lots_en_echec": 0,
     "points_demandes": 30759,
     "points_nodata": 0,
-    "duree_s": 155.6,
+    "duree_s": 140.3,
     "codes_http": {
       "200": 206
     },
