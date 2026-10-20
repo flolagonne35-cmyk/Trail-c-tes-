@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T21:52:29+00:00",
+  "date_utc": "2026-10-20T22:27:32+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme, ressource ign_rge_alti_wld",
   "parametres": {
@@ -31,25 +31,28 @@
     "Points valides": "100.00 %",
     "Altitudes": "22.1 → 66.3 m",
     "Zones pentues": 36,
-    "Requêtes altimétrie": "9 (OK 9, réessais 0)"
+    "Requêtes altimétrie": "10 (OK 9, réessais 1)"
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
-    "requetes": 9,
+    "requetes": 10,
     "requetes_ok": 9,
-    "reessais": 0,
+    "reessais": 1,
     "lots_en_echec": 0,
     "replis_get": 0,
     "points_demandes": 40401,
     "points_nodata": 0,
-    "duree_s": 31.3,
+    "duree_s": 35.8,
     "codes_http": {
-      "200": 9
+      "200": 9,
+      "502": 1
     },
     "precisions": {
       "Variable suivant la source de mesure": 40401
     },
-    "erreurs": [],
+    "erreurs": [
+      "HTTP 502 lot 40000-40401 : {\n  \"message\":\"An invalid response was received from the upstream server\"\n}"
+    ],
     "exemple_reponse": "{\"elevations\": [{\"lon\": -1.706938, \"lat\": 48.129286, \"z\": 63.38, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.706669, \"lat\": 48.129286, \"z\": 64.38, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.7064, \"lat\": 48.129286, \"z\": 63.74, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.70613, \"lat\": 48.129286, \"z\": 63.48, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.705861, \"lat\": 48.129286, \"z\": 63.88, \"acc\": \"Variable suivant la source de mesure\"}, {\""
   }
 }
