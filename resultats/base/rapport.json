@@ -1,0 +1,29 @@
+{
+  "date_utc": "2026-10-20T15:17:53+00:00",
+  "statut": "echec_partiel",
+  "resume": {
+    "Zone": "48.085,-1.715,48.140,-1.640",
+    "Tuiles": "3 faites / 4 (1 restantes)",
+    "Ce passage": "3 tuiles ok, 1 en échec",
+    "Côtes dans la base": 31,
+    "Durée moyenne par tuile": "262 s",
+    "Points altimétriques": 124225
+  },
+  "parametres": {
+    "zone": "48.085,-1.715,48.140,-1.640",
+    "tuile": 4000,
+    "marge": 500,
+    "max_tuiles": 0,
+    "pente_min": 5,
+    "taille_lot": 150,
+    "methode": "GET",
+    "decimales": 6,
+    "paralleles": 1,
+    "pause": 0.25,
+    "sans_osm": false,
+    "demo": false,
+    "base": "resultats/base/rennes.sqlite",
+    "cherche": null,
+    "rayon": 3000
+  }
+}
