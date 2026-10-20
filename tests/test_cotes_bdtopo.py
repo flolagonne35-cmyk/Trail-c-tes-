@@ -99,3 +99,42 @@ def test_demo_bout_en_bout(tmp_path):
     for nom in ("cotes.csv", "cotes.geojson", "carte.png", "rapport.json"):
         assert (tmp_path / nom).stat().st_size > 0
     assert len((tmp_path / "cotes.csv").read_text().splitlines()) > 1
+
+
+def test_acces_pieton():
+    assert cb.acces_pieton_ok({"prive": False, "acces_pieton": None, "sens_de_circulation": "Sens direct"})
+    assert not cb.acces_pieton_ok({"prive": True})
+    assert not cb.acces_pieton_ok({"acces_pieton": "Restreint aux ayants droit"})
+    assert not cb.acces_pieton_ok({"acces_pieton": "Interdit"})
+
+
+def test_nom_complet_prefere():
+    proj = cb.Projection(48.11, -1.68)
+    f = {"geometry": {"type": "LineString", "coordinates": [[-1.68, 48.11], [-1.679, 48.11]]},
+         "properties": {"nature": "Route à 1 chaussée", "nom_1_gauche": "R GAMBETTA",
+                        "nom_collaboratif_gauche": "Rue Gambetta"}}
+    assert cb.lire_troncons([f], proj, False, cb.StatsWfs())[0].nom == "Rue Gambetta"
+
+
+def _cote(lonlat, type_voie="chemin"):
+    c = cb.Cote(1, 0, 100, 8, 9, 8, 0, 8, type_voie, "Chemin", "", 0, 0, 0, 0, [8.0])
+    c.lonlat = lonlat
+    return c
+
+
+def test_revetement_osm_et_repli():
+    proj = cb.Projection(48.11, -1.68)
+    trace = [[-1.68 + i * 1e-4, 48.11] for i in range(15)]  # ~110 m vers l'est
+    voisine = [{"lon": lon, "lat": lat + 5e-5} for lon, lat in trace]  # à ~5 m
+    lointaine = [{"lon": lon, "lat": lat + 1e-3} for lon, lat in trace]  # à ~110 m
+    voies = [{"tags": {"surface": "fine_gravel", "smoothness": "bad"}, "geometry": voisine},
+             {"tags": {"surface": "asphalt"}, "geometry": lointaine}]
+    a, b, c = _cote(trace), _cote([[lon, lat + 1e-3] for lon, lat in trace]), _cote(
+        [[lon, lat - 5e-3] for lon, lat in trace], "route")
+    cb.qualifier_revetement([a, b, c], voies, proj)
+    assert (a.revetement, a.technicite, a.couverture_osm_pct) == ("stabilisé", "technique", 100)
+    assert b.revetement == "goudronné" and b.source_revetement == "OSM surface"
+    assert c.revetement == "goudronné (supposé)" and c.source_revetement == "nature BD TOPO"
+    voies[0]["tags"] = {"tracktype": "grade3"}
+    cb.qualifier_revetement([a], voies, proj)
+    assert a.revetement == "terre" and a.source_revetement == "OSM tracktype"

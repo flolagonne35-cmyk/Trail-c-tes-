@@ -98,8 +98,19 @@ Sorties dans `resultats/rennes_cotes/` : `cotes.csv` (une côte par ligne, avec 
 50 m), `cotes.geojson` (géométrie + profil tous les 10 m, prêt pour l'écran Détail), `carte.png`,
 `rapport.json`.
 
-Limites connues : distance réseau sans sens interdits ni accès privés ; pas de fond de carte ;
-la nature du sol (racines, cailloux) n'est pas dans la BD TOPO.
+6. **Accès** : à pied, les sens interdits ne comptent pas (`sens_de_circulation` ignoré). Les
+   tronçons `prive = true` ou dont `acces_pieton` est interdit / réservé aux ayants droit sont exclus.
+7. **Revêtement et technicité** : la BD TOPO ne décrit pas le sol ; on prend les tags OpenStreetMap
+   (`surface`, `tracktype`, `smoothness`, `sac_scale`) des voies OSM à moins de 15 m de la côte,
+   via l'API Overpass. Sans tag OSM, repli sur la nature BD TOPO (« goudronné (supposé) »,
+   « non revêtu (supposé) »). La colonne `source_revetement` dit d'où vient la valeur.
+8. **Fond de carte** : Plan IGN v2 (WMS Géoplateforme) sous la carte PNG ; jamais bloquant.
+
+Options : `--sans-osm`, `--sans-fond`.
+
+Limites restantes : racines et cailloux ne sont décrits que là où OSM a `smoothness` ou
+`sac_scale` ; Overpass est une API publique à usage raisonnable, l'application devra utiliser
+son propre extrait OSM (Geofabrik) plutôt que l'interroger à chaque requête.
 
 ## GitHub Actions
 
@@ -128,3 +139,9 @@ Il :
 ## Licences des données
 
 Altitudes RGE ALTI et BD TOPO : IGN, Licence Ouverte Etalab 2.0. Mentionner « Source : IGN » dans l'application.
+
+Revêtements : OpenStreetMap, licence ODbL. Mention obligatoire « © contributeurs OpenStreetMap ».
+Si l'application diffuse une base de côtes enrichie par OSM, cette base doit elle aussi être
+publiée sous ODbL (partage à l'identique) ; les champs issus d'OSM sont isolés
+(`surface_osm`, `technicite`, `revetement` quand `source_revetement` commence par « OSM ») pour
+pouvoir les retirer si besoin.

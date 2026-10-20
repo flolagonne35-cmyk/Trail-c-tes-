@@ -11,7 +11,10 @@
   4. lissage du profil, découpage en montées (dans un sens ou dans l'autre), rognage des
      bouts plats, coupure aux replats ;
   5. position de l'utilisateur accrochée au tronçon le plus proche, distance à chaque côte
-     par le réseau.
+     par le réseau (à pied : les sens interdits ne comptent pas ; les voies privées ou
+     interdites aux piétons sont exclues) ;
+  6. revêtement et technicité de chaque côte d'après OpenStreetMap (surface, smoothness,
+     sac_scale), à défaut déduits de la nature BD TOPO ; fond de carte Plan IGN.
 
 Sorties (dans --sortie) :
   cotes.csv      une côte par ligne : distance, longueur, pentes, D+, type de voie, nom, pentes / 50 m
@@ -116,6 +119,8 @@ class StatsWfs:
     axes_inverses: bool = False
     natures: dict = field(default_factory=dict)
     troncons_retenus: int = 0
+    exclus_acces: int = 0
+    valeurs_acces: dict = field(default_factory=dict)
     exemple_proprietes: dict = field(default_factory=dict)
     duree_s: float = 0.0
 
@@ -206,6 +211,21 @@ def _est_ouvrage(position) -> bool:
         return False
 
 
+# nom complet d'abord (« Rue Gambetta »), l'abréviation historique (« R GAMBETTA ») en dernier
+CHAMPS_NOM = ("nom_collaboratif_gauche", "nom_collaboratif_droite", "nom_voie_ban_gauche",
+              "nom_voie_ban_droite", "nom_1_gauche", "nom_1_droite")
+
+
+def acces_pieton_ok(p: dict) -> bool:
+    """Écarte les voies privées et celles dont l'accès piéton est interdit ou réservé.
+
+    Le sens de circulation est ignoré : il ne s'applique pas à un coureur."""
+    if p.get("prive") is True or str(p.get("prive")).lower() in ("true", "oui", "1"):
+        return False
+    acces = str(p.get("acces_pieton") or "").lower()
+    return not any(m in acces for m in ("interdit", "impossible", "restreint", "ayants droit"))
+
+
 def lire_troncons(features: list[dict], proj: Projection, inverse: bool, stats: StatsWfs) -> list[Troncon]:
     natures: Counter = Counter()
     troncons = []
@@ -218,6 +238,11 @@ def lire_troncons(features: list[dict], proj: Projection, inverse: bool, stats: 
         type_voie = TYPE_VOIE.get(nature)
         etat = str(p.get("etat_de_l_objet") or "").lower()
         if type_voie is None or "projet" in etat or "construction" in etat:
+            continue
+        acces = f"prive={p.get('prive')} / acces_pieton={p.get('acces_pieton')}"
+        stats.valeurs_acces[acces] = stats.valeurs_acces.get(acces, 0) + 1
+        if not acces_pieton_ok(p):
+            stats.exclus_acces += 1
             continue
         geom = f.get("geometry") or {}
         lignes = {"LineString": [geom.get("coordinates")],
@@ -232,8 +257,7 @@ def lire_troncons(features: list[dict], proj: Projection, inverse: bool, stats: 
             longueur = float(longueurs_cumulees(xy)[-1])
             if longueur < 1:
                 continue
-            nom = next((str(p[k]) for k in ("nom_1_gauche", "nom_1_droite", "nom_collaboratif_gauche")
-                        if p.get(k)), "")
+            nom = next((str(p[k]) for k in CHAMPS_NOM if p.get(k)), "")
             troncons.append(Troncon(
                 id=f"{p.get('cleabs') or f.get('id')}" + (f"#{n}" if n else ""),
                 nature=nature, type_voie=type_voie, nom=nom,
@@ -492,6 +516,11 @@ class Cote:
     lat_arrivee: float
     lon_arrivee: float
     pentes_50m: list
+    revetement: str = ""
+    source_revetement: str = ""
+    surface_osm: str = ""
+    technicite: str = ""
+    couverture_osm_pct: int = 0
     profil_d: list = field(repr=False, default_factory=list)
     profil_z: list = field(repr=False, default_factory=list)
     lonlat: list = field(repr=False, default_factory=list)
@@ -590,6 +619,144 @@ def reseau_fictif(proj: Projection, rayon: float, maille: float = 400) -> list[d
     return feats
 
 
+# --------------------------------------------------------------------------- revêtement (OSM) et fond de carte
+
+OVERPASS_URLS = ("https://overpass-api.de/api/interpreter",
+                 "https://overpass.kumi.systems/api/interpreter")
+WMS_URL = "https://data.geopf.fr/wms-r/wms"
+COUCHE_PLAN = "GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2"
+
+REVETEMENT = {
+    "asphalt": "goudronné", "paved": "goudronné", "concrete": "goudronné", "concrete:plates": "goudronné",
+    "chipseal": "goudronné", "metal": "goudronné",
+    "compacted": "stabilisé", "fine_gravel": "stabilisé",
+    "gravel": "gravier", "pebblestone": "gravier", "unpaved": "non revêtu",
+    "ground": "terre", "dirt": "terre", "earth": "terre", "mud": "terre",
+    "grass": "herbe", "grass_paver": "herbe", "sand": "sable", "rock": "rocher", "stone": "rocher",
+    "sett": "pavés", "paving_stones": "pavés", "cobblestone": "pavés", "unhewn_cobblestone": "pavés",
+    "wood": "bois", "woodchips": "copeaux",
+}
+TRACKTYPE = {"grade1": "stabilisé", "grade2": "gravier", "grade3": "terre", "grade4": "terre", "grade5": "herbe"}
+TECHNICITE = {
+    "excellent": "roulant", "good": "roulant", "intermediate": "correct", "bad": "technique",
+    "very_bad": "technique", "horrible": "très technique", "very_horrible": "très technique",
+    "impassable": "très technique",
+    "hiking": "roulant", "mountain_hiking": "technique", "demanding_mountain_hiking": "très technique",
+    "alpine_hiking": "très technique",
+}
+# repli quand OSM ne dit rien : la nature BD TOPO suffit à distinguer route et chemin
+REVETEMENT_BDTOPO = {"route": "goudronné", "piste cyclable": "goudronné", "chemin": "non revêtu",
+                     "sentier": "non revêtu"}
+
+
+@dataclass
+class StatsOsm:
+    statut: str = "non demandé"
+    url: str = ""
+    nb_voies: int = 0
+    valeurs_surface: dict = field(default_factory=dict)
+    erreurs: list = field(default_factory=list)
+    duree_s: float = 0.0
+
+
+def voies_osm(lat0: float, lon0: float, rayon: float, stats: StatsOsm, essais: int = 2) -> list[dict]:
+    """Voies OSM (highway=*) avec leurs tags et leur géométrie, via l'API Overpass."""
+    import requests
+
+    dlat = math.degrees(rayon / RAYON_TERRE)
+    dlon = math.degrees(rayon / (RAYON_TERRE * math.cos(math.radians(lat0))))
+    requete = (f"[out:json][timeout:120];way[\"highway\"]"
+               f"({lat0 - dlat},{lon0 - dlon},{lat0 + dlat},{lon0 + dlon});out tags geom;")
+    t0 = time.monotonic()
+    for url in OVERPASS_URLS:
+        for essai in range(essais):
+            try:
+                r = requests.post(url, data={"data": requete}, timeout=180,
+                                  headers={"User-Agent": "trail-cotes/0.1 (+https://github.com/flolagonne35-cmyk/Trail-c-tes-)"})
+                if r.status_code == 200:
+                    voies = [e for e in r.json().get("elements", []) if e.get("type") == "way" and e.get("geometry")]
+                    stats.statut, stats.url, stats.nb_voies = "ok", url, len(voies)
+                    stats.valeurs_surface = dict(Counter(v.get("tags", {}).get("surface", "—") for v in voies)
+                                                 .most_common(15))
+                    stats.duree_s = round(time.monotonic() - t0, 1)
+                    return voies
+                stats.erreurs.append(f"{url} HTTP {r.status_code} : {r.text[:200]}")
+            except (requests.RequestException, ValueError) as exc:
+                stats.erreurs.append(f"{url} {type(exc).__name__} : {exc}")
+            print("  ! " + stats.erreurs[-1], file=sys.stderr)
+            time.sleep(5 * (essai + 1))
+    stats.statut = "échec"
+    stats.duree_s = round(time.monotonic() - t0, 1)
+    return []
+
+
+def qualifier_revetement(cotes: list, voies: list[dict], proj: Projection,
+                         tolerance: float = 15.0) -> None:
+    """Pour chaque côte, tags OSM majoritaires des voies à moins de `tolerance` m de ses points."""
+    from scipy.spatial import cKDTree
+
+    pts, idx = [], []
+    for k, v in enumerate(voies):
+        geo = np.array([[g["lon"], g["lat"]] for g in v["geometry"]])
+        xy = np.column_stack(proj.xy(geo[:, 0], geo[:, 1]))
+        c = longueurs_cumulees(xy)
+        s = np.append(np.arange(0, c[-1], 5.0), c[-1])  # un point tous les 5 m
+        pts.append(np.column_stack([np.interp(s, c, xy[:, 0]), np.interp(s, c, xy[:, 1])]))
+        idx.append(np.full(len(s), k))
+    arbre = cKDTree(np.vstack(pts)) if pts else None
+    idx = np.concatenate(idx) if idx else np.zeros(0, int)
+
+    for cote in cotes:
+        tags_proches = []
+        if arbre is not None:
+            lon, lat = np.array(cote.lonlat).T
+            dist, j = arbre.query(np.column_stack(proj.xy(lon, lat)), distance_upper_bound=tolerance)
+            tags_proches = [voies[idx[n]].get("tags", {}) for n, d in zip(j, dist) if np.isfinite(d)]
+            couverture = len(tags_proches) / len(lon)
+        else:
+            couverture = 0.0
+        surfaces = Counter(t["surface"] for t in tags_proches if t.get("surface"))
+        types = Counter(t["tracktype"] for t in tags_proches if t.get("tracktype"))
+        techs = Counter(t.get("sac_scale") or t.get("smoothness") for t in tags_proches
+                        if t.get("sac_scale") or t.get("smoothness"))
+        cote.couverture_osm_pct = round(100 * couverture)
+        if surfaces:
+            cote.surface_osm = surfaces.most_common(1)[0][0]
+            cote.revetement = REVETEMENT.get(cote.surface_osm, cote.surface_osm)
+            cote.source_revetement = "OSM surface"
+        elif types:
+            cote.surface_osm = "tracktype=" + types.most_common(1)[0][0]
+            cote.revetement = TRACKTYPE.get(types.most_common(1)[0][0], "non revêtu")
+            cote.source_revetement = "OSM tracktype"
+        else:
+            cote.revetement = REVETEMENT_BDTOPO.get(cote.type_voie, "") + " (supposé)"
+            cote.source_revetement = "nature BD TOPO"
+        if techs:
+            cote.technicite = TECHNICITE.get(techs.most_common(1)[0][0], techs.most_common(1)[0][0])
+
+
+def fond_plan_ign(proj: Projection, rayon: float, erreurs: list, pixels: int = 1600):
+    """Image du Plan IGN couvrant le carré analysé (WMS Géoplateforme), ou None."""
+    import io
+    import requests
+    import matplotlib.image as mpimg
+
+    lon_min, lat_min = proj.lonlat(-rayon, -rayon)
+    lon_max, lat_max = proj.lonlat(rayon, rayon)
+    params = {"SERVICE": "WMS", "VERSION": "1.3.0", "REQUEST": "GetMap", "LAYERS": COUCHE_PLAN,
+              "STYLES": "", "CRS": "EPSG:4326", "BBOX": f"{lat_min},{lon_min},{lat_max},{lon_max}",
+              "WIDTH": pixels, "HEIGHT": pixels, "FORMAT": "image/png"}
+    try:
+        r = requests.get(WMS_URL, params=params, timeout=90)
+        if r.status_code == 200 and r.headers.get("Content-Type", "").startswith("image/"):
+            return mpimg.imread(io.BytesIO(r.content), format="png")
+        erreurs.append(f"WMS Plan IGN HTTP {r.status_code} {r.headers.get('Content-Type')} : {r.text[:200]}")
+    except Exception as exc:  # le fond est un bonus : jamais bloquant
+        erreurs.append(f"WMS Plan IGN {type(exc).__name__} : {exc}")
+    print("  ! " + erreurs[-1], file=sys.stderr)
+    return None
+
+
 # --------------------------------------------------------------------------- sorties
 
 COLONNES = [f for f in Cote.__dataclass_fields__ if f not in ("profil_d", "profil_z", "lonlat")]
@@ -616,7 +783,7 @@ def ecrire_geojson(chemin: Path, cotes: list[Cote], position: dict) -> None:
     chemin.write_text(json.dumps({"type": "FeatureCollection", "features": feats}, ensure_ascii=False) + "\n")
 
 
-def dessiner_carte(chemin: Path, troncons, cotes, proj, accroche, rayon, pente_min, titre) -> None:
+def dessiner_carte(chemin: Path, troncons, cotes, proj, accroche, rayon, pente_min, titre, fond=None) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -624,6 +791,10 @@ def dessiner_carte(chemin: Path, troncons, cotes, proj, accroche, rayon, pente_m
     from matplotlib.colors import Normalize
 
     fig, ax = plt.subplots(figsize=(10, 10), dpi=120)
+    if fond is not None:
+        ax.imshow(fond, extent=[-rayon, rayon, -rayon, rayon], alpha=0.75, zorder=0)
+        ax.text(0.99, 0.005, "Fond : Plan IGN · Revêtements : © contributeurs OpenStreetMap",
+                transform=ax.transAxes, ha="right", va="bottom", fontsize=7, color="#333")
     styles = {"route": ("#9a9a9a", 0.9), "chemin": ("#b08a5a", 0.8), "sentier": ("#7a9a6a", 0.8),
               "piste cyclable": ("#6a8fb0", 0.8)}
     for tv, (couleur, lw) in styles.items():
@@ -727,11 +898,17 @@ def analyser(args: argparse.Namespace) -> int:
     for n, c in enumerate(cotes, start=1):
         c.id = n
 
+    osm = StatsOsm()
+    voies_o = [] if args.demo or args.sans_osm else voies_osm(args.lat, args.lon, args.rayon, osm)
+    qualifier_revetement(cotes, voies_o, proj)
+    erreurs_fond: list[str] = []
+    fond = None if args.demo or args.sans_fond else fond_plan_ign(proj, args.rayon, erreurs_fond)
+
     ecrire_csv(sortie / "cotes.csv", cotes)
     ecrire_geojson(sortie / "cotes.geojson", cotes, accroche)
     titre = (f"Côtes ≥ {args.pente_min:g} % sur ≥ {args.longueur_min:g} m autour de "
              f"({args.lat:.4f}, {args.lon:.4f}) — {len(cotes)} côtes\nSource : {source}")
-    dessiner_carte(sortie / "carte.png", troncons, cotes, proj, accroche, args.rayon, args.pente_min, titre)
+    dessiner_carte(sortie / "carte.png", troncons, cotes, proj, accroche, args.rayon, args.pente_min, titre, fond)
 
     echec = (1 - taux_valide) > args.max_echec
     rapport.update(
@@ -743,12 +920,19 @@ def analyser(args: argparse.Namespace) -> int:
             "Points valides": f"{100 * taux_valide:.2f} %",
             "Accrochage de la position": f"{accroche['distance_m']} m ({accroche['nature']})",
             "Côtes trouvées": len(cotes),
+            "Tronçons exclus (privés / interdits aux piétons)": wfs.exclus_acces,
+            "Revêtement": ", ".join(f"{k} : {v}" for k, v in Counter(c.source_revetement for c in cotes).items()),
+            "OpenStreetMap": f"{osm.statut} ({osm.nb_voies} voies)",
+            "Fond Plan IGN": "ok" if fond is not None else ("—" if args.demo or args.sans_fond else "échec"),
             "Requêtes WFS / altimétrie": f"{wfs.requetes} / {alti.requetes}",
         },
         accroche=accroche,
         nb_cotes=len(cotes),
         top=[{k: getattr(c, k) for k in ("id", "distance_m", "longueur_m", "pente_moy_pct", "pente_max_pct",
-                                         "dplus_m", "type_voie", "nom")} for c in cotes[:10]],
+                                         "dplus_m", "type_voie", "revetement", "technicite", "nom")}
+             for c in cotes[:10]],
+        osm=None if args.demo else asdict(osm),
+        fond_erreurs=erreurs_fond,
         wfs=None if args.demo else asdict(wfs),
         api=None if args.demo else asdict(alti),
     )
@@ -757,7 +941,7 @@ def analyser(args: argparse.Namespace) -> int:
     print(f"{len(cotes)} côtes, {100 * taux_valide:.1f} % de points valides")
     for c in cotes[:8]:
         print(f"  n°{c.id} à {c.distance_m} m : {c.longueur_m} m à {c.pente_moy_pct} % "
-              f"(+{c.dplus_m} m, max {c.pente_max_pct} %) — {c.type_voie} {c.nom}")
+              f"(+{c.dplus_m} m, max {c.pente_max_pct} %) — {c.type_voie}, {c.revetement} {c.nom}")
     if echec:
         print(f"ÉCHEC : {100 * (1 - taux_valide):.1f} % de points sans altitude", file=sys.stderr)
         return 2
@@ -787,6 +971,8 @@ def parser_arguments(argv=None) -> argparse.Namespace:
     p.add_argument("--essais", type=int, default=4)
     p.add_argument("--max-echec", type=float, default=0.05)
     p.add_argument("--sortie", default="resultats/rennes_cotes")
+    p.add_argument("--sans-osm", action="store_true", help="ne pas interroger OpenStreetMap pour le revêtement")
+    p.add_argument("--sans-fond", action="store_true", help="carte sans fond Plan IGN")
     p.add_argument("--demo", action="store_true", help="réseau et relief fictifs, sans appel réseau")
     return p.parse_args(argv)
 

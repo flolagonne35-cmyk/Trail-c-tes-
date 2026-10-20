@@ -92,10 +92,11 @@ jobs:
           if (r.get("api") or {}).get("points_nodata"):
               print(f"::warning title=api::{r['api']['points_nodata']} points sans donnée (-99999)")
           if r.get("top"):
-              out.write("\n| n° | à | longueur | pente moy | max | D+ | voie | nom |\n|---|---|---|---|---|---|---|---|\n")
+              out.write("\n| n° | à | longueur | pente moy | max | D+ | voie | revêtement | technicité | nom |\n|---|---|---|---|---|---|---|---|---|---|\n")
               for c in r["top"]:
                   out.write(f"| {c['id']} | {c['distance_m']} m | {c['longueur_m']} m | {c['pente_moy_pct']} % "
-                            f"| {c['pente_max_pct']} % | +{c['dplus_m']} m | {c['type_voie']} | {c['nom']} |\n")
+                            f"| {c['pente_max_pct']} % | +{c['dplus_m']} m | {c['type_voie']} | {c.get('revetement', '')} "
+                            f"| {c.get('technicite', '')} | {c['nom']} |\n")
           if (r.get("wfs") or {}).get("exemple_proprietes"):
               out.write("\nExemple de propriétés BD TOPO :\n\n```json\n"
                         + json.dumps(r["wfs"]["exemple_proprietes"], ensure_ascii=False, indent=1)[:3000] + "\n```\n")
