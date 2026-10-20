@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // Tests des calculs de l'application, et comparaison avec les scripts Python sur la même trace.
 // Lancer : npm test (node --test, sans dépendance).
 
@@ -76,8 +77,9 @@ test("Minetti et objectifs", () => {
 });
 
 test("côtes proches : filtres et tri par distance", () => {
-  const base = { longueur_m: 300, pente_max_pct: 9, dplus_m: 20, alt_depart_m: 0, alt_arrivee_m: 20, nom: "",
-    revetement: "", technicite: "", pentes_50m: [], profil: { d: [], z: [] }, geometrie: [] } as const;
+  const base: Omit<Cote, "id" | "lat" | "lon" | "pente_moy_pct" | "type_voie"> = { longueur_m: 300, pente_max_pct: 9,
+    dplus_m: 20, alt_depart_m: 0, alt_arrivee_m: 20, nom: "", revetement: "", technicite: "", pentes_50m: [],
+    profil: { d: [], z: [] }, geometrie: [] };
   const cotes: Cote[] = [
     { ...base, id: 1, lat: 48.12, lon: -1.68, pente_moy_pct: 6, type_voie: "route" },
     { ...base, id: 2, lat: 48.112, lon: -1.68, pente_moy_pct: 9, type_voie: "sentier" },

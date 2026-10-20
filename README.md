@@ -23,6 +23,8 @@ scripts/valider_cotes.py          validation sur des montées de référence (Ve
 scripts/segmenter_gpx.py          GPX → segments montée / descente / plat (fonctionnalité 1)
 scripts/plan_nutrition.py         segments + objectif + ravitos → eau, glucides, sodium par tronçon (fonctionnalité 2)
 scripts/precalcul.py              zone découpée en tuiles → base SQLite de côtes, reprise, recherche « côtes proches »
+scripts/exporter_app.py           côtes et parcours de démonstration → app/assets/data/
+app/                              application Expo (iOS, Android, web) : les 4 écrans de la maquette
 tests/                            tests sans réseau (relief fictif, formats de réponse de l'API)
 resultats/rennes/, rennes_cotes/  sorties du dernier run GitHub Actions (CSV, GeoJSON, PNG, rapport JSON)
 .github/workflows/cotes-rennes.yml  run automatique sur Rennes + signalement des erreurs
@@ -32,8 +34,6 @@ requirements.txt
 
 Maquette des 4 écrans : https://claude.ai/artifact/MU9jPStx1URh9ZusPGLrWf
 
-Plus tard : `trailcotes/` (paquet Python partagé : altitudes, lissage, segmentation, accrochage
-aux chemins), puis l'application mobile.
 
 ## Script `cotes_rennes.py`
 
@@ -185,10 +185,14 @@ Il :
 3. ✅ API altimétrique vérifiée (run du 20/10/2026) : 270 requêtes de 150 points, 100 % de points
    valides, aucune erreur, ~0,8 s par requête ; `acc` vaut toujours « Variable suivant la source de
    mesure » (inutilisable comme précision).
-4. 🚧 `cotes_bdtopo.py` : accrocher les zones pentues aux tronçons BD TOPO (`troncon_de_route`, chemins et sentiers) :
-   échantillonner chaque tronçon tous les 10 m, calculer le profil lissé, découper en côtes
-   (longueur, pente moyenne et max, D+), filtrer chemin / route.
-5. Segmentation GPX, puis plan nutrition, puis l'application mobile.
+4. ✅ `cotes_bdtopo.py` : côtes le long des tronçons BD TOPO, accès piétons, revêtement OSM,
+   fond Plan IGN ; fusion des montées coupées par de petites contre-pentes.
+5. ✅ Validation sur l'Alpe d'Huez et le Ventoux (chiffres publiés), mesure du débit de l'API.
+6. ✅ Segmentation GPX et plan nutrition (scripts et application).
+7. ✅ Précalcul par tuiles dans une base SQLite (Rennes) ; 🚧 à étendre à l'Ille-et-Vilaine puis
+   à la France (≈ 620 points/s en POST JSON).
+8. ✅ Application Expo (4 écrans) sur des données de Rennes ; 🚧 brancher la base précalculée
+   (téléchargement par zone) et tester sur téléphone.
 
 ## Licences des données
 
