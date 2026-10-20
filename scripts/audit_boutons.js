@@ -76,7 +76,7 @@ async function nouvellePage(nav) {
       await page.goto(URL_APP);
       await attendre(page, 1200);
       await aller(page);
-      await attendre(page);
+      await attendre(page, 3000); // page stable : messages éphémères terminés
       return { ctx, page, erreurs };
     };
     let session = await ouvrir();
@@ -100,8 +100,9 @@ async function nouvellePage(nav) {
       try {
         if (!(await el.isVisible())) { await el.scrollIntoViewIfNeeded({ timeout: 2000 }).catch(() => {}); }
         const avant = await page.evaluate(() => document.body.innerHTML);
-        const desactive = (await el.getAttribute("aria-disabled")) === "true";
+        const desactive = (await el.getAttribute("aria-disabled")) === "true" || (await el.isDisabled());
         const dejaActif = (await el.getAttribute("aria-selected")) === "true"; // onglet ou choix déjà sélectionné
+        if (desactive) throw new Error("désactivé");
         await el.click({ timeout: 3000 });
         await attendre(page, 600);
         const apres = await page.evaluate(() => document.body.innerHTML);
@@ -110,7 +111,7 @@ async function nouvellePage(nav) {
         else if (dejaActif && !effets.length) statut = "déjà actif";
         else if (!effets.length) statut = "SANS EFFET";
       } catch (e) {
-        statut = `NON CLIQUABLE (${String(e.message).split("\n")[0].slice(0, 80)})`;
+        if (String(e.message) === "désactivé") statut = "désactivé"; else statut = `NON CLIQUABLE (${String(e.message).split("\n")[0].slice(0, 80)})`;
       }
       if (session.erreurs.length) statut = `ERREUR : ${session.erreurs[0].slice(0, 120)}`;
       resultats.push({ ecran, i, nom: noms[i], statut, effets });
