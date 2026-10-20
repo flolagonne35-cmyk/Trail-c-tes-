@@ -50,6 +50,33 @@ TOL_RELATIVE = 0.05
 TOL_PENTE = 0.5
 
 
+def autour_arrivee(features: list[dict], proj: Projection, arrivee, inverse: bool, rayon: float = 400) -> list[dict]:
+    """Tronçons BD TOPO bruts à moins de `rayon` m de l'arrivée, avec les champs qui décident de leur sort."""
+    import numpy as np
+
+    from trailcotes.bdtopo import TYPE_VOIE, acces_pieton_ok
+
+    proches = []
+    for f in features:
+        geom = f.get("geometry") or {}
+        coords = geom.get("coordinates") or []
+        lignes = coords if geom.get("type") == "MultiLineString" else [coords]
+        pts = np.array([c[:2] for ligne in lignes for c in ligne], dtype=float)
+        if not len(pts):
+            continue
+        if inverse:
+            pts = pts[:, ::-1]
+        x, y = proj.xy(pts[:, 0], pts[:, 1])
+        d = float(np.min(np.hypot(x - arrivee[0], y - arrivee[1])))
+        if d <= rayon:
+            p = f.get("properties") or {}
+            proches.append({"distance_m": round(d), **{k: p.get(k) for k in (
+                "nature", "importance", "prive", "acces_pieton", "acces_vehicule_leger", "etat_de_l_objet",
+                "periode_de_fermeture", "position_par_rapport_au_sol", "nom_1_gauche")},
+                "retenu_route": TYPE_VOIE.get(str(p.get("nature"))) in ("route", "liaison") and acces_pieton_ok(p)})
+    return sorted(proches, key=lambda r: r["distance_m"])[:25]
+
+
 def diagnostic(reseau: Reseau, depart, arrivee) -> dict:
     """Accrochage du départ et de l'arrivée, et appartenance à la même partie connexe du réseau."""
     from scipy.sparse.csgraph import connected_components
@@ -78,8 +105,9 @@ def valider(ref: dict, args, sortie: Path) -> dict:
     features = troncons_wfs(latc, lonc, rayon, wfs)
     wfs.axes_inverses = axes_inverses(features, latc, lonc)
     tous = lire_troncons(features, proj, wfs.axes_inverses, wfs)
+    res_autour = autour_arrivee(features, proj, (x1, y1), wfs.axes_inverses)
     res = {"cle": ref["cle"], "nom": ref["nom"], "troncons": len(tous), "wfs_codes": wfs.codes_http,
-           "statut": "échec"}
+           "statut": "échec", "autour_arrivee": res_autour}
     xy = None
     # par la route d'abord ; à défaut (réseau coupé dans l'emprise), en acceptant aussi les chemins
     # routes et ronds-points, sans escaliers ni sentiers : ce sont des montées routières
