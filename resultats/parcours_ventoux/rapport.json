@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T16:42:46+00:00",
+  "date_utc": "2026-10-20T17:03:18+00:00",
   "statut": "ok",
   "parametres": {
     "gpx": "resultats/validation/alpe_d_huez.gpx",
@@ -55,24 +55,21 @@
   ],
   "api": {
     "ressource": "ign_rge_alti_wld",
-    "requetes": 2,
+    "requetes": 1,
     "requetes_ok": 1,
-    "reessais": 1,
+    "reessais": 0,
     "lots_en_echec": 0,
     "replis_get": 0,
     "points_demandes": 1328,
     "points_nodata": 0,
-    "duree_s": 3.6,
+    "duree_s": 2.3,
     "codes_http": {
-      "429": 1,
       "200": 1
     },
     "precisions": {
       "Variable suivant la source de mesure": 1328
     },
-    "erreurs": [
-      "HTTP 429 lot 0-1328 : <html>\r\n<head><title>429 Too Many Requests</title></head>\r\n<body>\r\n<center><h1>429 Too Many Requests</h1></center>\r\n</body>\r\n</html>\r\n"
-    ],
+    "erreurs": [],
     "exemple_reponse": "{\"elevations\": [{\"lon\": 6.038667, \"lat\": 45.060598, \"z\": 717.45, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.0386, \"lat\": 45.060522, \"z\": 717.46, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.038497, \"lat\": 45.060469, \"z\": 717.48, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.038388, \"lat\": 45.060423, \"z\": 717.44, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.038275, \"lat\": 45.060381, \"z\": 717.56, \"acc\": \"Variable suivant la source de mesure\"}, {"
   }
 }
