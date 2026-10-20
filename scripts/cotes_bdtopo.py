@@ -49,7 +49,9 @@ from trailcotes.bdtopo import (  # noqa: E402
     echantillonner, lire_troncons, troncons_wfs,
 )
 from trailcotes.geo import Projection  # noqa: E402
-from trailcotes.ign import RENNES_LAT, RENNES_LON, RESSOURCE_DEFAUT, StatsApi, altitudes_ign  # noqa: E402
+from trailcotes.ign import (  # noqa: E402
+    LOT_DEFAUT, METHODE_DEFAUT, RENNES_LAT, RENNES_LON, RESSOURCE_DEFAUT, StatsApi, altitudes_ign,
+)
 from trailcotes.osm import StatsOsm, fond_plan_ign, qualifier_revetement, voies_osm  # noqa: E402
 from trailcotes.profil import boucher_et_lisser, montees, pentes_par_tranche  # noqa: E402
 
@@ -423,9 +425,10 @@ def parser_arguments(argv=None) -> argparse.Namespace:
     p.add_argument("--angle-max", type=float, default=45,
                    help="virage maxi pour prolonger une voie à une intersection, en degrés (défaut 45)")
     p.add_argument("--ressource", default=RESSOURCE_DEFAUT)
-    p.add_argument("--taille-lot", type=int, default=150)
-    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default="GET",
-                   help="requêtes altimétriques (défaut GET)")
+    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT,
+                   help="points par requête altimétrique (défaut %(default)s)")
+    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default=METHODE_DEFAUT,
+                   help="requêtes altimétriques (défaut %(default)s, repli GET automatique)")
     p.add_argument("--decimales", type=int, default=6, help="décimales des coordonnées envoyées (défaut 6)")
     p.add_argument("--paralleles", type=int, default=1, help="requêtes altimétriques simultanées (défaut 1)")
     p.add_argument("--pause", type=float, default=0.25)

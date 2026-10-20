@@ -35,6 +35,7 @@ class StatsApi:
     requetes_ok: int = 0
     reessais: int = 0
     lots_en_echec: int = 0
+    replis_get: int = 0  # lots refaits en GET après échec du POST
     points_demandes: int = 0
     points_nodata: int = 0
     duree_s: float = 0.0
@@ -62,13 +63,21 @@ def _parser_reponse(donnees: dict, n_attendu: int, stats: StatsApi) -> list[floa
     return z
 
 
+LOT_GET = 150
+
+# Mesuré sur le service réel (20/10/2026) : POST JSON par 5 000 points ≈ 620 points/s, GET par 150
+# ≈ 90 à 140 points/s, GET au-delà de ~330 points refusé (414), POST formulaire refusé (500).
+METHODE_DEFAUT, LOT_DEFAUT = "POST_JSON", 5000
+
+
 def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: int,
                   pause: float, essais: int, stats: StatsApi, methode: str = "GET",
                   decimales: int = 6, paralleles: int = 1) -> np.ndarray:
     """Interroge l'API par lots. Renvoie un tableau de z (NaN pour les points sans donnée ou en échec).
 
     `methode` : "GET" (paramètres dans l'URL, ~150 points au plus à 6 décimales : au-delà,
-    erreur 414), "POST" (formulaire) ou "POST_JSON" (corps JSON).
+    erreur 414), "POST" (formulaire) ou "POST_JSON" (corps JSON). Un lot POST en échec est refait
+    en GET par lots de 150 points.
     `decimales` : 5 décimales ≈ 1 m, ce qui raccourcit l'URL. `paralleles` : requêtes simultanées
     (à garder faible : service public partagé).
     """
@@ -96,10 +105,19 @@ def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: 
                     setattr(stats, k, getattr(stats, k) + v)
 
     def lot(debut: int) -> None:
+        fin = min(debut + taille_lot, lat_f.size)
+        if not requete(debut, fin, methode) and methode != "GET":
+            compter(replis_get=1)
+            for sous in range(debut, fin, LOT_GET):
+                requete(sous, min(sous + LOT_GET, fin), "GET")
+        time.sleep(pause)
+        if (debut // taille_lot) % 20 == 0:
+            print(f"  {fin}/{lat_f.size} points", flush=True)
+
+    def requete(debut: int, fin: int, methode: str) -> bool:
         if not hasattr(local, "session"):
             local.session = requests.Session()
             local.session.headers["User-Agent"] = "trail-cotes/0.1 (+https://github.com/flolagonne35-cmyk/Trail-c-tes-)"
-        fin = min(debut + taille_lot, lat_f.size)
         params = {
             "lon": "|".join(f"{v:.{decimales}f}" for v in lon_f[debut:fin]),
             "lat": "|".join(f"{v:.{decimales}f}" for v in lat_f[debut:fin]),
@@ -121,7 +139,7 @@ def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: 
                             stats.exemple_reponse = r.text[:500]
                         z[debut:fin] = _parser_reponse(r.json(), fin - debut, stats)
                         stats.requetes_ok += 1
-                    break
+                    return True
                 message = f"HTTP {r.status_code} lot {debut}-{fin} : {r.text[:300]}"
                 reessayable = r.status_code == 429 or r.status_code >= 500
             except (requests.RequestException, ValueError) as exc:
@@ -131,12 +149,10 @@ def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: 
             print("  ! " + message, file=sys.stderr)
             if not reessayable or essai == essais - 1:
                 compter(lots_en_echec=1)
-                break
+                return False
             compter(reessais=1)
             time.sleep(2 ** (essai + 1))
-        time.sleep(pause)
-        if (debut // taille_lot) % 20 == 0:
-            print(f"  {fin}/{lat_f.size} points", flush=True)
+        return False
 
     debuts = range(0, lat_f.size, taille_lot)
     if paralleles > 1:

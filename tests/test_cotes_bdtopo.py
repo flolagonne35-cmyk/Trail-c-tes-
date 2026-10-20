@@ -166,3 +166,13 @@ def test_fusion_des_montees():
     # deux rampes à 10 % séparées par 400 m de plat : deux côtes
     z2 = np.interp(d, [0, 500, 900, 1400, 3000], [0, 50, 50, 100, 100])
     assert len(profil.montees(d, z2, 5)) == 2
+
+
+def test_arrivee_accrochee_a_la_partie_reliee():
+    # route de 0 à 1000 m ; un escalier isolé tout près de l'arrivée (comme au sommet du Ventoux)
+    ts = [troncon([[40 * i, 0], [40 * (i + 1), 0]], "Route à 1 chaussée") for i in range(25)]
+    ts.append(troncon([[1000, 5], [1010, 5]], "Sentier"))
+    r = bdtopo.Reseau(ts)
+    xy = r.chemin((0, 0), (1005, 5))
+    assert xy is not None and abs(geo.longueurs_cumulees(xy)[-1] - 1000) < 1
+    assert r.accrocher(1005, 5)["distance_m"] > 4  # accroché à la route, pas au bout isolé

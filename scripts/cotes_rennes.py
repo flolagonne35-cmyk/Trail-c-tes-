@@ -38,7 +38,7 @@ from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from trailcotes.ign import (  # noqa: E402
-    RAYON_TERRE, RENNES_LAT, RENNES_LON, RESSOURCE_DEFAUT, StatsApi, altitudes_ign,
+    LOT_DEFAUT, METHODE_DEFAUT, RAYON_TERRE, RENNES_LAT, RENNES_LON, RESSOURCE_DEFAUT, StatsApi, altitudes_ign,
 )
 
 
@@ -217,7 +217,7 @@ def analyser(args: argparse.Namespace) -> int:
         source = "relief fictif (--demo)"
     else:
         lat, lon = grille.latlon()
-        z_brut = altitudes_ign(lat, lon, args.ressource, args.taille_lot, args.pause, args.essais, stats)
+        z_brut = altitudes_ign(lat, lon, args.ressource, args.taille_lot, args.pause, args.essais, stats, args.methode)
         source = f"IGN Géoplateforme, ressource {args.ressource}"
 
     taux_valide = float(np.isfinite(z_brut).mean())
@@ -274,7 +274,9 @@ def parser_arguments(argv=None) -> argparse.Namespace:
     p.add_argument("--pente-min", type=float, default=5, help="seuil de pente en %% (défaut 5)")
     p.add_argument("--surface-min", type=float, default=2000, help="surface mini d'une zone en m² (défaut 2000)")
     p.add_argument("--ressource", default=RESSOURCE_DEFAUT, help="ressource altimétrique IGN")
-    p.add_argument("--taille-lot", type=int, default=150, help="points par requête (défaut 150)")
+    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT,
+                   help="points par requête altimétrique (défaut %(default)s)")
+    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default=METHODE_DEFAUT)
     p.add_argument("--pause", type=float, default=0.25, help="pause entre requêtes en s (défaut 0.25)")
     p.add_argument("--essais", type=int, default=4, help="tentatives par lot (défaut 4)")
     p.add_argument("--max-echec", type=float, default=0.05,

@@ -44,3 +44,36 @@ def test_demo_bout_en_bout(tmp_path):
     for nom in ("grille.csv", "zones.csv", "carte.png", "rapport.json"):
         assert (tmp_path / nom).stat().st_size > 0
     assert len((tmp_path / "zones.csv").read_text().splitlines()) > 1
+
+
+def test_repli_get_si_le_post_echoue(monkeypatch):
+    """Un lot POST JSON en erreur 500 est refait en GET par lots de 150 points."""
+    import requests
+
+    class Reponse:
+        def __init__(self, code, n=0):
+            self.status_code, self.n, self.text = code, n, "erreur"
+
+        def json(self):
+            return {"elevations": [{"z": 42.0, "acc": "x"}] * self.n}
+
+    appels = []
+
+    class Session:
+        headers: dict = {}
+
+        def post(self, url, json=None, data=None, timeout=None):
+            appels.append("POST")
+            return Reponse(500)
+
+        def get(self, url, params=None, timeout=None):
+            appels.append("GET")
+            return Reponse(200, len(params["lat"].split("|")))
+
+    monkeypatch.setattr(requests, "Session", Session)
+    monkeypatch.setattr(ign.time, "sleep", lambda s: None)
+    stats = ign.StatsApi()
+    lat = np.linspace(48, 48.1, 400)
+    z = ign.altitudes_ign(lat, lat * 0 - 1.68, "r", 5000, 0, 2, stats, "POST_JSON")
+    assert np.allclose(z, 42.0)
+    assert appels == ["POST", "POST", "GET", "GET", "GET"] and stats.replis_get == 1

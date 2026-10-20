@@ -33,7 +33,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from trailcotes.geo import Projection, echantillonner_ligne, longueurs_cumulees  # noqa: E402
 from trailcotes.gpx import lire_gpx  # noqa: E402
-from trailcotes.ign import RESSOURCE_DEFAUT, StatsApi, altitudes_ign  # noqa: E402
+from trailcotes.ign import LOT_DEFAUT, METHODE_DEFAUT, RESSOURCE_DEFAUT, StatsApi, altitudes_ign  # noqa: E402
 from trailcotes.profil import boucher_et_lisser, pentes_par_tranche  # noqa: E402
 
 TYPES = {1: "montée", -1: "descente", 0: "plat"}
@@ -195,14 +195,15 @@ def analyser(args: argparse.Namespace) -> int:
     garder = np.r_[True, np.hypot(*np.diff(xy, axis=0).T) > 0.01]  # points répétés
     xy, ele = xy[garder], ele[garder]
     d, x, y = echantillonner_ligne(xy, args.pas)
-    plat_, plon = proj.lonlat(x, y)
+    plon, plat_ = proj.lonlat(x, y)
     ele_gpx = np.interp(d, longueurs_cumulees(xy), ele) if np.isfinite(ele).sum() >= 2 else np.full(len(d), np.nan)
     print(f"{nom} : {d[-1] / 1000:.1f} km, {len(d)} points à {args.pas:g} m")
 
     stats = StatsApi(ressource=args.ressource)
     source = "IGN RGE ALTI"
     if args.altitudes == "ign":
-        z_brut = altitudes_ign(plat_, plon, args.ressource, args.taille_lot, args.pause, args.essais, stats)
+        z_brut = altitudes_ign(plat_, plon, args.ressource, args.taille_lot, args.pause, args.essais, stats,
+                               args.methode)
         if np.isnan(z_brut).mean() > 0.05:
             print("  ! trop de points sans altitude IGN : repli sur les altitudes du GPX", file=sys.stderr)
             z_brut, source = ele_gpx, "GPX (repli : service IGN indisponible)"
@@ -266,7 +267,9 @@ def parser_arguments(argv=None) -> argparse.Namespace:
     p.add_argument("--fenetre", type=float, default=200, help="fenêtre de calcul de la pente, en m (défaut 200)")
     p.add_argument("--longueur-min", type=float, default=300, help="longueur mini d'un segment, en m (défaut 300)")
     p.add_argument("--ressource", default=RESSOURCE_DEFAUT)
-    p.add_argument("--taille-lot", type=int, default=150)
+    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT,
+                   help="points par requête altimétrique (défaut %(default)s)")
+    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default=METHODE_DEFAUT)
     p.add_argument("--pause", type=float, default=0.25)
     p.add_argument("--essais", type=int, default=4)
     p.add_argument("--sortie", default="resultats/parcours")

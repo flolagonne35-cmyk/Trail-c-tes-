@@ -332,7 +332,10 @@ class Reseau:
 
     def accrocher(self, x: float, y: float) -> dict:
         """Projette (x, y) sur le tronçon le plus proche et calcule les distances à tous les nœuds."""
-        k, off, dist = self.projeter(x, y)
+        # partie principale du réseau : pas un bout d'escalier ou de chemin isolé
+        comp = self.composantes()
+        tailles = np.bincount(comp)
+        k, off, dist = self.projeter(x, y, tailles[comp] >= min(20, tailles.max()))
         px, py = point_a(self.troncons[k].xy, off)
         da, db = dijkstra(self.graphe, directed=False, indices=[self.a[k], self.b[k]])
         self.base = np.minimum(da + off, db + (self.L[k] - off))
@@ -346,21 +349,36 @@ class Reseau:
             d = min(d, abs(off - self.accroche[1]))
         return float(d)
 
-    def projeter(self, x: float, y: float) -> tuple[int, float, float]:
-        """(tronçon, abscisse sur le tronçon, distance) du point du réseau le plus proche."""
-        p0, p1 = self.segments[:, 0:2], self.segments[:, 2:4]
+    def composantes(self) -> np.ndarray:
+        """Numéro de partie connexe de chaque tronçon (calculé une fois)."""
+        if getattr(self, "_composantes", None) is None:
+            from scipy.sparse.csgraph import connected_components
+
+            _, etiquettes = connected_components(self.graphe, directed=False)
+            self._composantes = etiquettes[self.a]
+        return self._composantes
+
+    def projeter(self, x: float, y: float, autorises: np.ndarray | None = None) -> tuple[int, float, float]:
+        """(tronçon, abscisse sur le tronçon, distance) du point du réseau le plus proche.
+
+        `autorises` : masque booléen des tronçons candidats (par défaut tous)."""
+        segments = self.segments
+        if autorises is not None and autorises.any():
+            segments = segments[autorises[segments[:, 5].astype(int)]]
+        p0, p1 = segments[:, 0:2], segments[:, 2:4]
         v = p1 - p0
         l2 = np.maximum((v ** 2).sum(1), 1e-9)
         t = np.clip(((np.array([x, y]) - p0) * v).sum(1) / l2, 0, 1)
         proj = p0 + v * t[:, None]
         dist = np.hypot(proj[:, 0] - x, proj[:, 1] - y)
         s = int(np.argmin(dist))
-        return int(self.segments[s, 5]), float(self.segments[s, 4] + t[s] * math.sqrt(l2[s])), float(dist[s])
+        return int(segments[s, 5]), float(segments[s, 4] + t[s] * math.sqrt(l2[s])), float(dist[s])
 
     def chemin(self, depart: tuple[float, float], arrivee: tuple[float, float]) -> np.ndarray | None:
         """Plus court chemin par le réseau entre deux points (x, y) : polyligne, ou None."""
         k0, t0, _ = self.projeter(*depart)
-        k1, t1, _ = self.projeter(*arrivee)
+        comp = self.composantes()
+        k1, t1, _ = self.projeter(*arrivee, comp == comp[k0])  # arrivée reliée au départ
         L0, L1 = self.L[k0], self.L[k1]
         xy0, xy1 = self.troncons[k0].xy, self.troncons[k1].xy
         sorties = [(self.a[k0], t0, sous_ligne(xy0, t0, 0)), (self.b[k0], L0 - t0, sous_ligne(xy0, t0, L0))]

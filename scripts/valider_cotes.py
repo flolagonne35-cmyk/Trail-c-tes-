@@ -32,7 +32,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from trailcotes.bdtopo import Reseau, StatsWfs, axes_inverses, lire_troncons, troncons_wfs  # noqa: E402
 from trailcotes.geo import Projection, echantillonner_ligne  # noqa: E402
 from trailcotes.gpx import ecrire_gpx  # noqa: E402
-from trailcotes.ign import RAYON_TERRE, RESSOURCE_DEFAUT, StatsApi, altitudes_ign, mesurer_debit  # noqa: E402
+from trailcotes.ign import (  # noqa: E402
+    LOT_DEFAUT, METHODE_DEFAUT, RAYON_TERRE, RESSOURCE_DEFAUT, StatsApi, altitudes_ign, mesurer_debit,
+)
 from trailcotes.profil import boucher_et_lisser, montees  # noqa: E402
 
 # Chiffres couramment publiés pour ces ascensions (longueur, dénivelé, pente moyenne).
@@ -80,8 +82,10 @@ def valider(ref: dict, args, sortie: Path) -> dict:
            "statut": "échec"}
     xy = None
     # par la route d'abord ; à défaut (réseau coupé dans l'emprise), en acceptant aussi les chemins
-    for reseau_nom, types in (("routes", ("route", "liaison")), ("toutes voies", None)):
-        troncons = [t for t in tous if types is None or t.type_voie in types]
+    # routes et ronds-points, sans escaliers ni sentiers : ce sont des montées routières
+    for reseau_nom, garder in (("routes", lambda t: t.type_voie == "route" or t.nature == "Rond-point"),
+                               ("toutes voies", lambda t: True)):
+        troncons = [t for t in tous if garder(t)]
         if not troncons:
             continue
         reseau = Reseau(troncons)
@@ -96,7 +100,7 @@ def valider(ref: dict, args, sortie: Path) -> dict:
 
     d, x, y = echantillonner_ligne(xy, args.pas)
     lon, lat = proj.lonlat(x, y)
-    z_brut = altitudes_ign(lat, lon, args.ressource, args.taille_lot, args.pause, 4, alti)
+    z_brut = altitudes_ign(lat, lon, args.ressource, args.taille_lot, args.pause, 4, alti, args.methode)
     z = boucher_et_lisser(d, z_brut, args.lissage, args.pas)
     if z is None:
         res["statut"] = "pas d'altitude"
@@ -162,7 +166,9 @@ def main(argv=None) -> int:
     p.add_argument("--lissage", type=float, default=20)
     p.add_argument("--marge", type=float, default=1500, help="marge autour du départ et de l'arrivée, en m")
     p.add_argument("--ressource", default=RESSOURCE_DEFAUT)
-    p.add_argument("--taille-lot", type=int, default=150)
+    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT,
+                   help="points par requête altimétrique (défaut %(default)s)")
+    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default=METHODE_DEFAUT)
     p.add_argument("--pause", type=float, default=0.25)
     p.add_argument("--sans-debit", action="store_true", help="ne pas mesurer le débit de l'API")
     p.add_argument("--sortie", default="resultats/validation")

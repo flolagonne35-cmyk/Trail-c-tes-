@@ -66,3 +66,18 @@ def test_plan_nutrition(tmp_path):
     # 25 °C : eau +20 %
     assert abs(plan[0]["eau_ml"] - 500 * 1.2 * plan[0]["duree_h"]) < 2
     assert (tmp_path / "plan.md").read_text().count("|") > 10
+
+
+def test_coordonnees_envoyees_a_l_ign(tmp_path, monkeypatch):
+    """Régression : lat et lon étaient inversées (points hors de France, tous « sans donnée »)."""
+    gpx_test(tmp_path / "t.gpx")  # autour de 45° N, 6° E
+    vus = {}
+
+    def faux_ign(lat, lon, *args, **kwargs):
+        vus["lat"], vus["lon"] = float(np.mean(lat)), float(np.mean(lon))
+        return np.full(len(lat), 500.0)
+
+    monkeypatch.setattr(sg, "altitudes_ign", faux_ign)
+    assert sg.analyser(sg.parser_arguments([str(tmp_path / "t.gpx"), "--sortie", str(tmp_path)])) == 0
+    assert abs(vus["lat"] - 45.0) < 0.1 and abs(vus["lon"] - 6.03) < 0.1
+    assert json.loads((tmp_path / "parcours.json").read_text())["source_altitudes"] == "IGN RGE ALTI"

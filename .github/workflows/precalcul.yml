@@ -13,8 +13,8 @@ on:
         description: "Tuiles par passage (0 = toutes) ; relancer pour continuer"
         default: "0"
       taille_lot:
-        description: "Points par requête altimétrique"
-        default: "150"
+        description: "Points par requête altimétrique (POST JSON)"
+        default: "5000"
       paralleles:
         description: "Requêtes altimétriques simultanées"
         default: "1"
@@ -39,7 +39,7 @@ jobs:
       ZONE: ${{ inputs.zone || '48.085,-1.715,48.140,-1.640' }}
       BASE: resultats/base/${{ inputs.nom || 'rennes' }}.sqlite
       MAX_TUILES: ${{ inputs.max_tuiles || '0' }}
-      TAILLE_LOT: ${{ inputs.taille_lot || '150' }}
+      TAILLE_LOT: ${{ inputs.taille_lot || '5000' }}
       PARALLELES: ${{ inputs.paralleles || '1' }}
     steps:
       - uses: actions/checkout@v4

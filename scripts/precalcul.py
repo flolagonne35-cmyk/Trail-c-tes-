@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cotes_bdtopo  # noqa: E402
 from trailcotes.base import cotes_proches, enregistrer_tuile, ouvrir, tuile_faite  # noqa: E402
-from trailcotes.ign import RAYON_TERRE  # noqa: E402
+from trailcotes.ign import LOT_DEFAUT, METHODE_DEFAUT, RAYON_TERRE  # noqa: E402
 
 
 def tuiles(lat_min, lon_min, lat_max, lon_max, cote_m):
@@ -111,8 +111,9 @@ def main(argv=None) -> int:
     p.add_argument("--marge", type=float, default=500, help="marge autour de chaque tuile, en m (défaut 500)")
     p.add_argument("--max-tuiles", type=int, default=0, help="tuiles calculées par passage (0 : toutes)")
     p.add_argument("--pente-min", type=float, default=5)
-    p.add_argument("--taille-lot", type=int, default=150)
-    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default="GET")
+    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT,
+                   help="points par requête altimétrique (défaut %(default)s)")
+    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default=METHODE_DEFAUT)
     p.add_argument("--decimales", type=int, default=6)
     p.add_argument("--paralleles", type=int, default=1)
     p.add_argument("--pause", type=float, default=0.25)

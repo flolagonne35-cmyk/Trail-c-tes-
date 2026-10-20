@@ -1,0 +1,50 @@
+{
+  "parcours": "Test",
+  "objectif_h": 1.0,
+  "par_heure": {
+    "glucides_g": 70,
+    "eau_ml": 500,
+    "sodium_mg": 600
+  },
+  "temperature_c": 25.0,
+  "troncons": [
+    {
+      "n": 1,
+      "de": "Départ",
+      "a": "Col",
+      "km_debut": 0.0,
+      "km_fin": 3.0,
+      "dplus_m": 160,
+      "duree_h": 0.68,
+      "passage_h": 0.68,
+      "passage": "0 h 41",
+      "glucides_g": 47,
+      "eau_ml": 407,
+      "sodium_mg": 488,
+      "gels": 2,
+      "barres": 0,
+      "eau_l": 0.5,
+      "pastilles_sel": 2,
+      "resume": "2 gels · 0,5 L d'eau · 2 pastilles sel"
+    },
+    {
+      "n": 2,
+      "de": "Col",
+      "a": "Arrivée",
+      "km_debut": 3.0,
+      "km_fin": 5.5,
+      "dplus_m": 2,
+      "duree_h": 0.32,
+      "passage_h": 1.0,
+      "passage": "1 h 00",
+      "glucides_g": 23,
+      "eau_ml": 193,
+      "sodium_mg": 232,
+      "gels": 1,
+      "barres": 0,
+      "eau_l": 0.25,
+      "pastilles_sel": 1,
+      "resume": "1 gel · 0,25 L d'eau · 1 pastille sel"
+    }
+  ]
+}
