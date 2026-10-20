@@ -1,15 +1,15 @@
 {
-  "date_utc": "2026-10-20T15:36:23+00:00",
+  "date_utc": "2026-10-20T15:42:51+00:00",
   "statut": "ok",
   "resume": {
     "Mont Ventoux par Bédoin": "à examiner — 12.06 km, 795 m, 6.59 % ; écarts {'longueur_pct': -43.9, 'denivele_pct': -50.6, 'pente_pts': -0.91, 'alt_arrivee_m': -787.2}",
     "Alpe d'Huez par Le Bourg-d'Oisans": "conforme — 13.31 km, 1090 m, 8.19 % ; écarts {'longueur_pct': -3.5, 'denivele_pct': -2.6, 'pente_pts': 0.09, 'alt_arrivee_m': -52.1}",
-    "Débit GET lot 150 (6 déc., ×1)": "174.0 pts/s {'200': 3}",
-    "Débit GET lot 300 (6 déc., ×1)": "261.4 pts/s {'200': 3}",
-    "Débit GET lot 330 (5 déc., ×1)": "309.2 pts/s {'200': 3}",
-    "Débit POST_JSON lot 1000 (6 déc., ×1)": "247.2 pts/s {'200': 1}",
-    "Débit POST_JSON lot 5000 (6 déc., ×1)": "598.2 pts/s {'200': 1}",
-    "Débit GET lot 150 (6 déc., ×4)": "192.7 pts/s {'200': 5, '429': 3}"
+    "Débit GET lot 150 (6 déc., ×1)": "129.0 pts/s {'200': 3}",
+    "Débit GET lot 300 (6 déc., ×1)": "173.2 pts/s {'200': 3}",
+    "Débit GET lot 330 (5 déc., ×1)": "318.3 pts/s {'200': 3}",
+    "Débit POST_JSON lot 1000 (6 déc., ×1)": "328.2 pts/s {'200': 1}",
+    "Débit POST_JSON lot 5000 (6 déc., ×1)": "409.9 pts/s {'200': 1}",
+    "Débit GET lot 150 (6 déc., ×4)": "221.7 pts/s {'200': 8}"
   },
   "montees": [
     {
@@ -20,6 +20,333 @@
         "200": 8
       },
       "statut": "à examiner",
+      "autour_arrivee": [
+        {
+          "distance_m": 6,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 19,
+          "nature": "Escalier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 20,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 34,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 35,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 39,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 39,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 45,
+          "nature": "Chemin",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 46,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 46,
+          "nature": "Chemin",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 47,
+          "nature": "Escalier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 47,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 50,
+          "nature": "Route empierrée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 51,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 51,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 51,
+          "nature": "Route empierrée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 55,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": "[{\"fin\": \"30 avril\", \"cycle\": \"annuel\", \"debut\": \"15 novembre\", \"periode\": \"Fermeture hivernale\"}]",
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 63,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 67,
+          "nature": "Route empierrée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 68,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": "[{\"fin\": \"30 avril\", \"cycle\": \"annuel\", \"debut\": \"15 novembre\", \"periode\": \"Fermeture hivernale\"}]",
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 68,
+          "nature": "Escalier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 77,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": "Libre",
+          "acces_vehicule_leger": "Restreint aux ayants droit",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 95,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": "[{\"fin\": \"30 avril\", \"cycle\": \"annuel\", \"debut\": \"15 novembre\", \"periode\": \"Fermeture hivernale\"}]",
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 95,
+          "nature": "Sentier",
+          "importance": "6",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Physiquement impossible",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": false
+        },
+        {
+          "distance_m": 99,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": "[{\"fin\": \"30 avril\", \"cycle\": \"annuel\", \"debut\": \"15 novembre\", \"periode\": \"Fermeture hivernale\"}]",
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        }
+      ],
       "diagnostic": {
         "routes": {
           "depart": {
@@ -65,7 +392,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 3.7
+      "alti_duree_s": 2.1
     },
     {
       "cle": "alpe_d_huez",
@@ -75,6 +402,333 @@
         "200": 5
       },
       "statut": "conforme",
+      "autour_arrivee": [
+        {
+          "distance_m": 18,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 22,
+          "nature": "Rond-point",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 27,
+          "nature": "Rond-point",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 40,
+          "nature": "Rond-point",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 40,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 42,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 47,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 50,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 59,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 59,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 66,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 82,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 112,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 114,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 119,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 129,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 129,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 142,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 142,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 142,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 153,
+          "nature": "Rond-point",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 154,
+          "nature": "Route à 1 chaussée",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 154,
+          "nature": "Route à 1 chaussée",
+          "importance": "5",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 155,
+          "nature": "Rond-point",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        },
+        {
+          "distance_m": 155,
+          "nature": "Rond-point",
+          "importance": "3",
+          "prive": false,
+          "acces_pieton": null,
+          "acces_vehicule_leger": "Libre",
+          "etat_de_l_objet": "En service",
+          "periode_de_fermeture": null,
+          "position_par_rapport_au_sol": "0",
+          "nom_1_gauche": null,
+          "retenu_route": true
+        }
+      ],
       "diagnostic": {
         "routes": {
           "depart": {
@@ -119,7 +773,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 2.2
+      "alti_duree_s": 1.7
     }
   ],
   "debit_api": [
@@ -132,9 +786,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 2.57,
+      "duree_s": 3.46,
       "points_ok": 447,
-      "points_par_s": 174.0,
+      "points_par_s": 129.0,
       "erreur": ""
     },
     {
@@ -146,9 +800,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.43,
+      "duree_s": 5.18,
       "points_ok": 897,
-      "points_par_s": 261.4,
+      "points_par_s": 173.2,
       "erreur": ""
     },
     {
@@ -160,9 +814,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.19,
+      "duree_s": 3.1,
       "points_ok": 987,
-      "points_par_s": 309.2,
+      "points_par_s": 318.3,
       "erreur": ""
     },
     {
@@ -174,9 +828,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 4.03,
+      "duree_s": 3.04,
       "points_ok": 997,
-      "points_par_s": 247.2,
+      "points_par_s": 328.2,
       "erreur": ""
     },
     {
@@ -188,9 +842,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 8.32,
+      "duree_s": 12.15,
       "points_ok": 4979,
-      "points_par_s": 598.2,
+      "points_par_s": 409.9,
       "erreur": ""
     },
     {
@@ -200,13 +854,12 @@
       "paralleles": 4,
       "points": 1200,
       "codes_http": {
-        "200": 5,
-        "429": 3
+        "200": 8
       },
-      "duree_s": 3.88,
-      "points_ok": 747,
-      "points_par_s": 192.7,
-      "erreur": "HTTP 429 lot 750-900 : <html>\r\n<head><title>429 Too Many Requests</title></head>\r\n<body>\r\n<center><h1>429 Too Many Requests</h1></center>\r\n</body>\r\n</html>\r\n"
+      "duree_s": 5.4,
+      "points_ok": 1197,
+      "points_par_s": 221.7,
+      "erreur": ""
     }
   ],
   "rayon_terre_m": 6371000.0
