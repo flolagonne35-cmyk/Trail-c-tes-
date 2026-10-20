@@ -50,19 +50,25 @@ Dans l'ordre. Je te prépare tout le reste (configuration, textes, captures).
 
 ### 2.1 Tout de suite (gratuit)
 
-1. **Créer un compte Expo** sur expo.dev, puis un *access token* (Settings → Access tokens) et
-   l'ajouter dans GitHub : dépôt → Settings → Secrets and variables → Actions → `EXPO_TOKEN`.
-   Avec ça, je fabrique la version installable sur GitHub, sans ordinateur de ton côté.
-2. **Trouver 12 testeurs traileurs** (Mathieu, Théo, ton club). Google l'exige : un compte
+1. **Essayer l'appli sur ton téléphone Android** : sur GitHub, dépôt → *Releases* → la plus récente
+   « Trail-côtes — test Android » → télécharger le `.apk` depuis le téléphone → autoriser
+   l'installation. Une nouvelle version se fabrique avec *Actions* → « Appli Android à installer »
+   → *Run workflow*. (Sur iPhone, il faut le compte Apple : voir 2.2.)
+2. **Créer un compte Expo** sur expo.dev, puis un *access token* (Settings → Access tokens) et
+   l'ajouter dans GitHub : dépôt → Settings → Secrets and variables → Actions → *New repository
+   secret* → nom `EXPO_TOKEN`. Il sert aux versions iPhone et aux stores (workflow « Appli iPhone
+   et stores (EAS) »).
+3. **Trouver 12 testeurs traileurs** (Mathieu, Théo, ton club). Google l'exige : un compte
    développeur personnel doit faire tester l'appli à **au moins 12 personnes pendant 14 jours**
    avant de pouvoir la publier.
-3. **Me dire les zones prioritaires** (départements, lieux de vacances) pour le calcul des côtes.
+4. **Choisir les zones suivantes** : il suffit d'ajouter une ligne dans `scripts/zones.json`
+   (nom et rectangle lat/lon) ; le calcul part tout seul sur GitHub.
 
 ### 2.2 Avant la publication (≈ 120 € la première année)
 
 | Quoi | Coût | Pourquoi |
 |---|---|---|
-| Apple Developer Program (developer.apple.com) | 99 $ / an | obligatoire pour l'iPhone (TestFlight puis App Store) |
+| Apple Developer Program (developer.apple.com) | 99 $ / an | obligatoire pour l'iPhone (TestFlight puis App Store). Ensuite : App Store Connect → Utilisateurs et accès → Intégrations → créer une clé API, et l'ajouter en secrets GitHub (`EXPO_ASC_KEY_ID`, `EXPO_ASC_ISSUER_ID`, `EXPO_ASC_API_KEY` = contenu du .p8, `EXPO_APPLE_TEAM_ID`) |
 | Google Play Console (play.google.com/console) | 25 $ une fois | obligatoire pour Android ; pièce d'identité demandée |
 | Nom de domaine (ex. trailcotes.fr) | ≈ 10 € / an | site, adresse mail de contact, page de confidentialité |
 
@@ -100,8 +106,13 @@ Les deux stores demandent ton identité (ou celle d'une société), une adresse 
 
 ### 3.1 Étape 1 — une vraie appli de test (2 à 4 semaines)
 
-- **Version installable** : EAS Build (Expo) → APK Android direct et TestFlight iPhone.
-- **Couverture** : Ille-et-Vilaine puis Loire-Atlantique entières. Mesuré : ≈ 4 min par carré de
+- ✅ **Version installable Android** : APK fabriqué sur GitHub (workflow « Appli Android à
+  installer »), icône et écran de démarrage, permissions minimales expliquées en français.
+- **iPhone et stores** : workflow EAS prêt, attend les comptes (2.1 et 2.2). Identifiant choisi :
+  `fr.trailcotes.app` (à changer avant la première publication si le nom change).
+- 🟡 **Couverture** : Rennes Métropole et Nantes Métropole (dont Couëron) en cours de calcul
+  (`scripts/zones.json`) ; boucles sur Rennes centre et Nantes–Couëron. Ensuite Ille-et-Vilaine
+  puis Loire-Atlantique entières. Mesuré : ≈ 4 min par carré de
   4 × 4 km, soit ≈ 1 h 30 par 400 km² ; l'Ille-et-Vilaine (6 800 km²) demande ≈ 27 h, en
   passages de 5 h sur GitHub. Pour la France entière, il faudra un petit serveur.
 - **Base géographique** : les côtes et le réseau dans une base (PostgreSQL + PostGIS, ou
