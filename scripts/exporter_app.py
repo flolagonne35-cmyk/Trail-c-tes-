@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 
 CHAMPS = ("longueur_m", "pente_moy_pct", "pente_max_pct", "dplus_m", "alt_depart_m", "alt_arrivee_m",
-          "type_voie", "nom", "revetement", "technicite")
+          "type_voie", "nom", "revetement", "technicite", "adresse")
 
 
 def alleger(valeurs: list, n_max: int) -> list:
@@ -37,7 +37,7 @@ def cote_app(i: int, props: dict, profil: dict, geometrie: list) -> dict:
     return {
         "id": i,
         "lat": round(geometrie[0][1], 6), "lon": round(geometrie[0][0], 6),
-        **{k: props.get(k) or ("" if k in ("nom", "revetement", "technicite") else 0) for k in CHAMPS},
+        **{k: props.get(k) or ("" if k in ("nom", "revetement", "technicite", "adresse") else 0) for k in CHAMPS},
         "pentes_50m": props.get("pentes_50m") or [],
         "profil": {"d": [round(d[k], 1) for k in garder], "z": [round(z[k], 1) for k in garder]},
         "geometrie": [[round(lon, 6), round(lat, 6)] for lon, lat in alleger(geometrie, 80)],

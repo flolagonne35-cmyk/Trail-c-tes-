@@ -31,3 +31,23 @@ def test_precalcul_reprise_et_recherche(tmp_path):
     assert proches and proches == sorted(proches, key=lambda c: c["distance_m"])
     assert isinstance(proches[0]["pentes_50m"], list) and proches[0]["geometrie"]
     assert all(c["pente_moy_pct"] >= 7 for c in cotes_proches(con, 48.115, -1.675, 5000, pente_min=7))
+
+
+def test_adresses_completees_une_fois(tmp_path):
+    from trailcotes.adresses import completer_adresses
+
+    base = tmp_path / "b.sqlite"
+    assert precalcul.main(["--zone", "48.10,-1.70,48.11,-1.69", "--demo", "--base", str(base), "--tuile", "2000"]) == 0
+    con = ouvrir(base)
+    n = con.execute("SELECT COUNT(*) FROM cotes").fetchone()[0]
+    appels = []
+
+    def faux(lat, lon):
+        appels.append((lat, lon))
+        if len(appels) == 1:
+            raise TimeoutError("réseau")
+        return f"{len(appels)} Rue d'essai 35000 Rennes"
+
+    assert completer_adresses(con, faux, pause=0) == (n - 1, 1)
+    assert completer_adresses(con, faux, pause=0) == (1, 0)  # seule la côte en échec est reprise
+    assert con.execute("SELECT COUNT(*) FROM cotes WHERE adresse LIKE '%Rue d''essai%'").fetchone()[0] == n

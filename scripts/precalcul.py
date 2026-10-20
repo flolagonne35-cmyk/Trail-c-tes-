@@ -28,6 +28,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cotes_bdtopo  # noqa: E402
+from trailcotes.adresses import completer_adresses  # noqa: E402
 from trailcotes.base import cotes_proches, enregistrer_tuile, ouvrir, tuile_faite  # noqa: E402
 from trailcotes.ign import LOT_DEFAUT, METHODE_DEFAUT, RAYON_TERRE  # noqa: E402
 
@@ -83,6 +84,10 @@ def precalculer(args) -> int:
         print(f"  {statut} : {ajoutees} côtes ajoutées, {calcul.nb_points} points, "
               f"{time.monotonic() - t0:.0f} s")
 
+    adresses = (0, 0)
+    if not args.demo and not args.sans_adresses:
+        print("\nAdresses des pieds de côtes (géocodage inverse IGN)…")
+        adresses = completer_adresses(con)
     total = con.execute("SELECT COUNT(*) FROM cotes").fetchone()[0]
     etat = dict(con.execute("SELECT statut, COUNT(*) FROM tuiles GROUP BY statut").fetchall())
     duree = con.execute("SELECT AVG(duree_s), SUM(points_alti) FROM tuiles WHERE statut = 'ok'").fetchone()
@@ -94,6 +99,7 @@ def precalculer(args) -> int:
             "Zone": args.zone, "Tuiles": f"{etat.get('ok', 0)} faites / {len(liste)} ({restantes} restantes)",
             "Ce passage": f"{faites} tuiles ok, {echecs} en échec",
             "Côtes dans la base": total,
+            "Adresses trouvées / en échec (ce passage)": f"{adresses[0]} / {adresses[1]}",
             "Durée moyenne par tuile": f"{(duree[0] or 0):.0f} s",
             "Points altimétriques": duree[1] or 0,
         },
@@ -118,6 +124,7 @@ def main(argv=None) -> int:
     p.add_argument("--paralleles", type=int, default=1)
     p.add_argument("--pause", type=float, default=0.25)
     p.add_argument("--sans-osm", action="store_true")
+    p.add_argument("--sans-adresses", action="store_true", help="ne pas chercher l'adresse du pied des côtes")
     p.add_argument("--demo", action="store_true", help="réseau et relief fictifs, sans appel réseau")
     p.add_argument("--base", default="resultats/base/cotes.sqlite")
     p.add_argument("--cherche", help="lat,lon : affiche les côtes proches dans la base, sans calcul")

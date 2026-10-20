@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS cotes (
     longueur_m REAL, pente_moy_pct REAL, pente_max_pct REAL, dplus_m REAL,
     alt_depart_m REAL, alt_arrivee_m REAL,
     type_voie TEXT, nature TEXT, nom TEXT, revetement TEXT, source_revetement TEXT, technicite TEXT,
-    pentes_50m TEXT, profil TEXT, geometrie TEXT, tuile TEXT
+    pentes_50m TEXT, profil TEXT, geometrie TEXT, tuile TEXT,
+    adresse TEXT                     -- adresse du pied (géocodage inverse), NULL tant qu'elle n'est pas cherchée
 );
 CREATE INDEX IF NOT EXISTS cotes_position ON cotes (lat_depart, lon_depart);
 CREATE TABLE IF NOT EXISTS tuiles (
@@ -33,6 +34,9 @@ def ouvrir(chemin: str | Path) -> sqlite3.Connection:
     con = sqlite3.connect(chemin)
     con.row_factory = sqlite3.Row
     con.executescript(SCHEMA)
+    colonnes = {r[1] for r in con.execute("PRAGMA table_info(cotes)")}
+    if "adresse" not in colonnes:  # bases créées avant l'ajout des adresses
+        con.execute("ALTER TABLE cotes ADD COLUMN adresse TEXT")
     return con
 
 

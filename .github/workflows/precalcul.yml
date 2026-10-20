@@ -23,6 +23,7 @@ on:
       - ".github/workflows/precalcul.yml"
       - "scripts/precalcul.py"
       - "trailcotes/base.py"
+      - "trailcotes/adresses.py"
 
 permissions:
   contents: write
@@ -67,12 +68,15 @@ jobs:
               out.write(f"## Précalcul — `{r['statut']}`\n\n" + "".join(f"- {k} : **{v}**\n" for k, v in r["resume"].items()))
           PY
           python scripts/precalcul.py --cherche 48.1113,-1.68 --rayon 3000 --base "$BASE" | head -15 || true
+      - name: Données de l'application
+        if: always() && hashFiles('resultats/base/*.sqlite') != ''
+        run: python scripts/exporter_app.py --base "$BASE" --parcours resultats/parcours_ventoux/parcours.json
       - name: Enregistrer la base
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resultats/base
+          git add resultats/base app/assets/data
           git diff --cached --quiet && exit 0
           git commit -m "Base de côtes $(basename "$BASE" .sqlite) (run ${{ github.run_id }})"
           for i in 1 2 3 4; do
