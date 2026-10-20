@@ -20,8 +20,11 @@ scripts/cotes_rennes.py           grille autour d'un point → altitudes IGN →
 tests/                            tests sans réseau (relief fictif, formats de réponse de l'API)
 resultats/rennes/                 sorties du dernier run GitHub Actions (CSV, PNG, rapport JSON)
 .github/workflows/cotes-rennes.yml  run automatique sur Rennes + signalement des erreurs
+docs/maquette.md                  champs attendus par chaque écran de la maquette
 requirements.txt
 ```
+
+Maquette des 4 écrans : https://claude.ai/artifact/MU9jPStx1URh9ZusPGLrWf
 
 Plus tard : `trailcotes/` (paquet Python partagé : altitudes, lissage, segmentation, accrochage
 aux chemins), puis l'application mobile.
