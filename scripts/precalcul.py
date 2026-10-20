@@ -105,7 +105,7 @@ def precalculer(args) -> int:
         },
         "parametres": vars(args),
     }
-    Path(args.base).with_name("rapport.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2) + "\n")
+    Path(args.base).with_name(f"rapport_{Path(args.base).stem}.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(rapport["resume"], ensure_ascii=False, indent=1))
     return 0 if echecs == 0 else 2
 

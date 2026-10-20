@@ -29,7 +29,7 @@ function reseau(): ReseauBrut {
     if (i + 1 < N) aretes.push([id(i, j), id(i + 1, j), PAS, j === 8 ? 10 : 0, 0, j === 8 ? 2 : 0, 0, -1, []]);
     if (j + 1 < N) aretes.push([id(i, j), id(i, j + 1), PAS, 0, 0, 0, i === 0 ? 2 : 0, -1, []]);
   }
-  return { source: "test", zone: [], types: ["route", "chemin", "sentier", "piste cyclable", "liaison"],
+  return { source: "test", zones: [], types: ["route", "chemin", "sentier", "piste cyclable", "liaison"],
            trafics: ["calme", "modéré", "passant"], noeuds, aretes, noms: [] };
 }
 

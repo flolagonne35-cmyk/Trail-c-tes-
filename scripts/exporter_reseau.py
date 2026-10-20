@@ -14,7 +14,7 @@ type (route, chemin, sentier…) et son exposition au trafic.
   pour garder un fichier léger.
 
 Exemples :
-  python scripts/exporter_reseau.py --zone 48.07,-1.75,48.16,-1.61 --sortie app/assets/data/reseau.json
+  python scripts/exporter_reseau.py --zone 48.07,-1.75,48.16,-1.61 --zone 47.17,-1.80,47.26,-1.50
   python scripts/exporter_reseau.py --demo --sortie /tmp/reseau.json      # sans réseau
 """
 
@@ -129,24 +129,12 @@ def construire(troncons, proj: Projection, z_points, pas: float, tolerance: floa
     }
 
 
-def main(argv=None) -> int:
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--zone", default="48.075,-1.745,48.150,-1.615", help="lat_min,lon_min,lat_max,lon_max")
-    p.add_argument("--sortie", default="app/assets/data/reseau.json")
-    p.add_argument("--rapport", default="resultats/reseau/rapport.json")
-    p.add_argument("--pas", type=float, default=25, help="un point d'altitude tous les … m (défaut 25)")
-    p.add_argument("--tolerance", type=float, default=4, help="simplification de la géométrie, en m (défaut 4)")
-    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT)
-    p.add_argument("--methode", default=METHODE_DEFAUT)
-    p.add_argument("--demo", action="store_true", help="réseau et relief fictifs, sans réseau")
-    args = p.parse_args(argv)
-
-    lat_min, lon_min, lat_max, lon_max = (float(v) for v in args.zone.split(","))
+def reseau_zone(zone: str, args, wfs: StatsWfs, alti: StatsApi) -> dict:
+    """Réseau d'une zone « lat_min,lon_min,lat_max,lon_max »."""
+    lat_min, lon_min, lat_max, lon_max = (float(v) for v in zone.split(","))
     lat0, lon0 = (lat_min + lat_max) / 2, (lon_min + lon_max) / 2
     proj = Projection(lat0, lon0)
     demi = max(math.radians(lat_max - lat_min) * RAYON_TERRE, math.radians(lon_max - lon_min) * proj.kx) / 2
-    t0 = time.monotonic()
-    wfs, alti = StatsWfs(), StatsApi()
     if args.demo:
         import cotes_bdtopo
         features = cotes_bdtopo.reseau_fictif(proj, min(demi, 1600))
@@ -162,18 +150,52 @@ def main(argv=None) -> int:
             lon, lat = proj.lonlat(x, y)
             return altitudes_ign(lat, lon, "ign_rge_alti_wld", args.taille_lot, 0.25, 4, alti, args.methode)
     troncons = lire_troncons(features, proj, inverse, wfs)
-    print(f"{len(troncons)} tronçons retenus sur {len(features)}")
-    reseau = construire(troncons, proj, z_points, args.pas, args.tolerance)
+    print(f"{zone} : {len(troncons)} tronçons retenus sur {len(features)}")
+    return construire(troncons, proj, z_points, args.pas, args.tolerance)
+
+
+def fusionner(reseaux: list[dict]) -> dict:
+    """Réseaux de zones distinctes → un seul graphe (numéros de nœuds et de noms décalés)."""
+    res = {"types": list(TYPES), "trafics": list(TRAFICS), "noeuds": [], "aretes": [], "noms": []}
+    stats: dict = {}
+    for r in reseaux:
+        dn, dm = len(res["noeuds"]), len(res["noms"])
+        res["noeuds"] += r["noeuds"]
+        res["noms"] += r["noms"]
+        res["aretes"] += [[a + dn, b + dn, L, p, m, t, s, (nom + dm if nom >= 0 else -1), inter]
+                          for a, b, L, p, m, t, s, nom, inter in r["aretes"]]
+        for k, v in r["_stats"].items():
+            stats[k] = stats.get(k, 0) + v if k != "points_valides_pct" else min(stats.get(k, 100), v)
+    res["_stats"] = stats
+    return res
+
+
+def main(argv=None) -> int:
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--zone", action="append", help="lat_min,lon_min,lat_max,lon_max (répétable : plusieurs zones)")
+    p.add_argument("--sortie", default="app/assets/data/reseau.json")
+    p.add_argument("--rapport", default="resultats/reseau/rapport.json")
+    p.add_argument("--pas", type=float, default=25, help="un point d'altitude tous les … m (défaut 25)")
+    p.add_argument("--tolerance", type=float, default=4, help="simplification de la géométrie, en m (défaut 4)")
+    p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT)
+    p.add_argument("--methode", default=METHODE_DEFAUT)
+    p.add_argument("--demo", action="store_true", help="réseau et relief fictifs, sans réseau")
+    args = p.parse_args(argv)
+    zones = args.zone or ["48.075,-1.745,48.150,-1.615"]
+
+    t0 = time.monotonic()
+    wfs, alti = StatsWfs(), StatsApi()
+    reseau = fusionner([reseau_zone(z, args, wfs, alti) for z in zones])
     stats = reseau.pop("_stats")
     reseau = {"source": "démo" if args.demo else "BD TOPO + RGE ALTI (IGN)",
               "date_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-              "zone": [lat_min, lon_min, lat_max, lon_max], **reseau}
+              "zones": [[float(v) for v in z.split(",")] for z in zones], **reseau}
     sortie = Path(args.sortie)
     sortie.parent.mkdir(parents=True, exist_ok=True)
     sortie.write_text(json.dumps(reseau, ensure_ascii=False, separators=(",", ":")))
     taille = sortie.stat().st_size
     ok = stats["aretes"] > 0 and stats["points_valides_pct"] >= 95
-    rapport = {"date_utc": reseau["date_utc"], "statut": "ok" if ok else "echec", "zone": args.zone,
+    rapport = {"date_utc": reseau["date_utc"], "statut": "ok" if ok else "echec", "zones": zones,
                "resume": {**stats, "taille_ko": round(taille / 1024), "duree_s": round(time.monotonic() - t0)},
                "wfs": {k: v for k, v in vars(wfs).items() if k != "exemple_proprietes"} if not args.demo else None,
                "alti": {"requetes": alti.requetes, "codes_http": getattr(alti, "codes_http", {})}}

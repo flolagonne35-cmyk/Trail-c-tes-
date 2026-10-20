@@ -67,26 +67,31 @@ jobs:
         run: |
           python - <<'PY'
           import json, os, pathlib
-          p = pathlib.Path("resultats/base/rapport.json")
+          p = pathlib.Path(os.environ["BASE"]).with_name("rapport_" + pathlib.Path(os.environ["BASE"]).stem + ".json")
           out = open(os.environ["GITHUB_STEP_SUMMARY"], "a")
           if p.exists():
               r = json.loads(p.read_text())
               out.write(f"## Précalcul — `{r['statut']}`\n\n" + "".join(f"- {k} : **{v}**\n" for k, v in r["resume"].items()))
           PY
           python scripts/precalcul.py --cherche 48.1113,-1.68 --rayon 3000 --base "$BASE" | head -15 || true
-      - name: Données de l'application
+      - name: Enregistrer la base et les données de l'appli (toutes les zones)
         if: always() && hashFiles('resultats/base/*.sqlite') != ''
-        run: python scripts/exporter_app.py --base "$BASE" --parcours resultats/parcours_ventoux/parcours.json
-      - name: Enregistrer la base
-        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resultats/base app/assets/data
-          git diff --cached --quiet && exit 0
-          git commit -m "Base de côtes $(basename "$BASE" .sqlite) (run ${{ github.run_id }})"
-          for i in 1 2 3 4; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
-            sleep $((i * 5))
+          # plusieurs zones peuvent tourner en même temps : on repart chaque fois de la dernière
+          # version du dépôt, on y remet notre base, puis on réexporte toutes les bases
+          cp "$BASE" "$RUNNER_TEMP/base.sqlite"
+          cp "resultats/base/rapport_$(basename "$BASE" .sqlite).json" "$RUNNER_TEMP/rapport.json" 2>/dev/null || true
+          for i in 1 2 3 4 5; do
+            git fetch -q origin "${GITHUB_REF_NAME}" && git reset -q --hard "origin/${GITHUB_REF_NAME}"
+            cp "$RUNNER_TEMP/base.sqlite" "$BASE"
+            cp "$RUNNER_TEMP/rapport.json" "resultats/base/rapport_$(basename "$BASE" .sqlite).json" 2>/dev/null || true
+            python scripts/exporter_app.py --base resultats/base/*.sqlite --parcours resultats/parcours_ventoux/parcours.json
+            git add resultats/base app/assets/data
+            git diff --cached --quiet && exit 0
+            git commit -q -m "Base de côtes $(basename "$BASE" .sqlite) (run ${{ github.run_id }})"
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 7))
           done
           exit 1

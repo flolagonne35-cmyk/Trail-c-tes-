@@ -38,10 +38,14 @@ import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
 
-const COTES = (cotesExportees as { source: string; cotes: Cote[] }).cotes;
-const SOURCE = (cotesExportees as { source: string }).source.includes("sqlite") ? "base précalculée" : "zone de Rennes";
+type Donnees = { source: string; zones?: { nom: string; lat: number; lon: number; cotes: number }[]; cotes: Cote[] };
+const DONNEES = cotesExportees as Donnees;
+const COTES = DONNEES.cotes;
+const SOURCE = DONNEES.source.includes("sqlite") ? "base précalculée" : "zone de Rennes";
 // zones dont les côtes sont calculées (proposées dans la recherche et hors zone)
-const ZONES: Lieu[] = [{ label: "Rennes", detail: "Rennes et communes proches (≈ 9 × 8 km)", lat: 48.1113, lon: -1.68 }];
+const ZONES: Lieu[] = DONNEES.zones?.length
+  ? DONNEES.zones.map((z) => ({ label: z.nom, detail: `${z.cotes} côtes calculées`, lat: z.lat, lon: z.lon }))
+  : [{ label: "Rennes", detail: "Rennes et communes proches", lat: 48.1113, lon: -1.68 }];
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {

@@ -8,7 +8,7 @@ import {
   cotesProches, distanceCouverture, enDescente, kmLisibles, LONGUEURS, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres,
   type Cote, type CoteProche, type Filtres, type Longueur, type Sens, type TypeVoie,
 } from "../calcul/cotes.ts";
-import type { Position } from "../calcul/geo.ts";
+import { distanceM, type Position } from "../calcul/geo.ts";
 import { adresseDe, type Lieu } from "../calcul/geoservices.ts";
 import { dureeLisible, tempsTrajets } from "../calcul/trajets.ts";
 import { zoomAjuste } from "../calcul/tuiles.ts";
@@ -173,7 +173,7 @@ export function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDep
         Chaque côte est mesurée à partir des altitudes IGN, zone par zone. La plus proche est à {kmLisibles(distance)}.
         Cette zone sera calculée dans une prochaine version.
       </Text>
-      {zones.map((z) => (
+      {[...zones].sort((a, b) => distanceM(depart.position, a) - distanceM(depart.position, b)).slice(0, 2).map((z) => (
         <Pressable key={z.label} onPress={() => onLieu(z)} accessibilityRole="button" style={S.bouton}>
           <Text style={S.boutonTexte}>Voir les côtes de {z.label}</Text>
         </Pressable>

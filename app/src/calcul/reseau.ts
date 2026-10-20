@@ -4,7 +4,7 @@
 import { distanceM, type Position } from "./geo.ts";
 
 export type ReseauBrut = {
-  source: string; zone: number[]; types: string[]; trafics: string[];
+  source: string; zones?: number[][]; types: string[]; trafics: string[];
   noeuds: [number, number][]; // [lon × 1e5, lat × 1e5]
   aretes: [number, number, number, number, number, number, number, number, number[]][];
   // [a, b, longueur m, D+ de a vers b, D− de a vers b, type, trafic, nom, points intermédiaires lon,lat × 1e5]

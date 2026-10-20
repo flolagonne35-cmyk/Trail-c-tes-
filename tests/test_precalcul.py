@@ -75,3 +75,33 @@ def test_douglas_peucker_et_denivele():
     xy = np.array([[0, 0], [10, 0.5], [20, 0], [30, 10], [40, 20]], float)
     assert er.douglas_peucker(xy, 1).tolist() == [0, 2, 4]
     assert er.denivele(np.array([0, 1, 0, 1, 5, 4.5, 2])) == (5.0, 3.0)
+
+
+def test_export_app_plusieurs_zones(tmp_path):
+    """Deux bases (deux zones) → un seul cotes.json, ids uniques, une zone décrite par base."""
+    import exporter_app
+    bases = []
+    for nom, zone in (("rennes", "48.10,-1.70,48.12,-1.67"), ("nantes", "47.20,-1.58,47.22,-1.55")):
+        base = tmp_path / f"{nom}.sqlite"
+        assert precalcul.main(["--zone", zone, "--demo", "--base", str(base), "--tuile", "2000", "--sans-adresses"]) == 0
+        bases.append(str(base))
+    assert exporter_app.main(["--base", *bases, "--sortie", str(tmp_path / "app")]) == 0
+    d = json.loads((tmp_path / "app" / "cotes.json").read_text())
+    assert [z["nom"] for z in d["zones"]] == ["Nantes Métropole", "Rennes Métropole"]
+    ids = [c["id"] for c in d["cotes"]]
+    assert len(ids) == len(set(ids)) == sum(z["cotes"] for z in d["zones"])
+    assert all(len(c["geometrie"]) <= 50 and len(c["profil"]["d"]) <= 80 for c in d["cotes"])
+
+
+def test_reseau_plusieurs_zones(tmp_path):
+    import exporter_reseau as er
+    un, deux = tmp_path / "1.json", tmp_path / "2.json"
+    assert er.main(["--demo", "--sortie", str(un), "--rapport", str(tmp_path / "r1.json")]) == 0
+    assert er.main(["--demo", "--zone", "48.07,-1.75,48.10,-1.70", "--zone", "47.20,-1.60,47.23,-1.55",
+                    "--sortie", str(deux), "--rapport", str(tmp_path / "r2.json")]) == 0
+    a, b = json.loads(un.read_text()), json.loads(deux.read_text())
+    assert len(b["zones"]) == 2 and len(b["noeuds"]) == 2 * len(a["noeuds"])
+    n = len(b["noeuds"])
+    assert all(0 <= x[0] < n and 0 <= x[1] < n for x in b["aretes"])
+    # la seconde zone garde des numéros de nœuds décalés
+    assert max(x[0] for x in b["aretes"][len(a["aretes"]):]) >= len(a["noeuds"])
