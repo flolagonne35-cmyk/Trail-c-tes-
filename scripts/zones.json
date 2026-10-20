@@ -1,0 +1,7 @@
+{
+  "_doc": "Zones dont les côtes sont précalculées (workflow « Précalcul des côtes »). Modifier ce fichier relance le calcul ; les carrés déjà faits ne sont pas recalculés. zone = lat_min,lon_min,lat_max,lon_max.",
+  "zones": [
+    { "nom": "rennes", "zone": "47.99,-1.86,48.21,-1.50" },
+    { "nom": "nantes", "zone": "47.12,-1.80,47.32,-1.40" }
+  ]
+}

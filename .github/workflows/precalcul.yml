@@ -1,4 +1,4 @@
-name: Précalcul des côtes (zone)
+name: Précalcul des côtes (zones)
 
 on:
   workflow_dispatch:
@@ -29,21 +29,44 @@ on:
       - "trailcotes/adresses.py"
       - "trailcotes/bdtopo.py"
       - "scripts/cotes_bdtopo.py"
+      - "scripts/zones.json"
 
 permissions:
   contents: write
 
-concurrency:
-  group: precalcul-${{ inputs.nom || 'rennes' }}
-  cancel-in-progress: false
-
 jobs:
+  # zones à calculer : celle saisie au lancement manuel, sinon toutes celles de scripts/zones.json
+  zones:
+    runs-on: ubuntu-latest
+    outputs:
+      liste: ${{ steps.l.outputs.liste }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: l
+        env:
+          NOM: ${{ inputs.nom }}
+          ZONE: ${{ inputs.zone }}
+        run: |
+          if [ -n "$ZONE" ]; then
+            echo "liste=[{\"nom\":\"$NOM\",\"zone\":\"$ZONE\"}]" >> "$GITHUB_OUTPUT"
+          else
+            echo "liste=$(python3 -c 'import json; print(json.dumps(json.load(open("scripts/zones.json"))["zones"]))')" >> "$GITHUB_OUTPUT"
+          fi
+
   precalcul:
+    needs: zones
     runs-on: ubuntu-latest
     timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.zones.outputs.liste) }}
+    concurrency:
+      group: precalcul-${{ matrix.nom }}
+      cancel-in-progress: false
     env:
-      ZONE: ${{ inputs.zone || '48.075,-1.745,48.150,-1.615' }}
-      BASE: resultats/base/${{ inputs.nom || 'rennes' }}.sqlite
+      ZONE: ${{ matrix.zone }}
+      BASE: resultats/base/${{ matrix.nom }}.sqlite
       MAX_TUILES: ${{ inputs.max_tuiles || '0' }}
       TAILLE_LOT: ${{ inputs.taille_lot || '5000' }}
       PARALLELES: ${{ inputs.paralleles || '1' }}
