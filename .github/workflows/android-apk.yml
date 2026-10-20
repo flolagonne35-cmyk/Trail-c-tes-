@@ -7,8 +7,10 @@ name: Appli Android à installer (APK de test)
 on:
   workflow_dispatch:
   push:
+    # nouvelle version à chaque changement de l'appli ou de ses données (côtes, réseau)
     paths:
       - ".github/workflows/android-apk.yml"
+      - "app/**"
 
 permissions:
   contents: write
