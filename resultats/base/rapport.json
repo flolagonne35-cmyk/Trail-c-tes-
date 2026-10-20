@@ -1,14 +1,14 @@
 {
-  "date_utc": "2026-10-20T15:57:26+00:00",
-  "statut": "echec_partiel",
+  "date_utc": "2026-10-20T16:01:30+00:00",
+  "statut": "ok",
   "resume": {
     "Zone": "48.085,-1.715,48.140,-1.640",
-    "Tuiles": "3 faites / 4 (1 restantes)",
-    "Ce passage": "0 tuiles ok, 1 en échec",
-    "Côtes dans la base": 31,
-    "Adresses trouvées / en échec (ce passage)": "31 / 0",
-    "Durée moyenne par tuile": "262 s",
-    "Points altimétriques": 124225
+    "Tuiles": "4 faites / 4 (0 restantes)",
+    "Ce passage": "1 tuiles ok, 0 en échec",
+    "Côtes dans la base": 35,
+    "Adresses trouvées / en échec (ce passage)": "4 / 0",
+    "Durée moyenne par tuile": "226 s",
+    "Points altimétriques": 155384
   },
   "parametres": {
     "zone": "48.085,-1.715,48.140,-1.640",
