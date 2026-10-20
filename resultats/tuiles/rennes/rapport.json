@@ -1,0 +1,14 @@
+{
+  "date_utc": "2026-10-20T16:02:19+00:00",
+  "statut": "ok",
+  "resume": {
+    "Tuiles téléchargées": 260,
+    "Déjà présentes": 0,
+    "Erreurs": 0,
+    "Taille téléchargée": "14.6 Mo",
+    "Zooms": "11-15",
+    "Zone": "48.070,-1.745,48.155,-1.595"
+  },
+  "erreurs": [],
+  "source": "Plan IGN v2, WMTS Géoplateforme (Licence Ouverte Etalab 2.0)"
+}
