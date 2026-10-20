@@ -75,3 +75,20 @@ test("D+ sans bruit", () => {
   assert.equal(denivelePositif([10, 11, 10, 11, 10, 11]), 0);
   assert.equal(denivelePositif([10, 20, 15, 30, null, 25]), 25);
 });
+
+test("mes passages : temps de chaque montée et FC moyenne, retrouvés par la position du pied", async () => {
+  const { mesPassages, vitesseAscensionnelle } = await import("./points.ts");
+  const { lireGpx } = await import("./gpx.ts");
+  // 2 montées, 4 s par 10 m : 30 points → 120 s par montée ; FC 150 puis 160
+  const brut = sortie(2, APRES).replace(/<\/time><\/trkpt>/g, (_m, i: number) => `</time><extensions><gpxtpx:hr>${i < 4000 ? 150 : 160}</gpxtpx:hr></extensions></trkpt>`);
+  assert.equal(lireGpx(brut).fc.filter((v) => v !== null).length, lireGpx(brut).lat.length);
+  const a = activiteDepuisGpx(brut, [cote], CREATION, []);
+  const r = a.repetitions[0];
+  assert.equal(r.cle, "48.1100,-1.6800");
+  assert.equal(r.passages!.length, 2);
+  assert.ok(r.passages!.every((p) => p.temps_s !== null && Math.abs(p.temps_s - 120) <= 8), JSON.stringify(r.passages));
+  // un nouvel id après un nouveau précalcul : retrouvé par la position
+  const p = mesPassages([a], { id: 99, lat: 48.11, lon: -1.68 });
+  assert.equal(p.length, 2);
+  assert.equal(vitesseAscensionnelle(24, 120), 720);
+});

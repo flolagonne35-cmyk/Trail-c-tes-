@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
-import { dureeMontee, kmLisibles, type CoteProche } from "../calcul/cotes.ts";
+import { dureeMontee, kmLisibles, NOMS_TRAFIC, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { adresseDe, itineraire } from "../calcul/geoservices.ts";
 import { ecrireGpx } from "../calcul/gpx.ts";
 import { dureeLisible, NOMS_MODES, tempsTrajets, type TempsTrajet } from "../calcul/trajets.ts";
 import { coutMinetti } from "../calcul/nutrition.ts";
-import { BAREME, pointsRepetition } from "../calcul/points.ts";
+import { BAREME, pointsRepetition, vitesseAscensionnelle, type PassageDate } from "../calcul/points.ts";
 import { Ajusteur, EnTete, nombre, Tuiles } from "../composants/communs.tsx";
 import { BarresPentes, ProfilCote } from "../composants/graphiques.tsx";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
@@ -25,8 +25,42 @@ function urlItineraire(lat: number, lon: number) {
   return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=%3B${lat}%2C${lon}`;
 }
 
-export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour }: {
+function MesPassages({ passages, dplus }: { passages: PassageDate[]; dplus: number }) {
+  const chrono = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const avecTemps = passages.filter((p) => p.temps_s);
+  const record = avecTemps.length ? Math.min(...avecTemps.map((p) => p.temps_s!)) : null;
+  return (
+    <View style={[S.carte, { marginTop: 10, gap: 8 }]}>
+      <Text style={[S.surtitre, { fontSize: 12 }]}>Mes passages</Text>
+      {passages.length === 0 ? (
+        <Text style={S.petit}>
+          Importe le GPX d'une sortie où tu montes cette côte (Profil → Ajouter une sortie) : chaque montée est chronométrée
+          du pied au sommet, avec ta fréquence cardiaque si ta montre l'enregistre. Tu pourras comparer tes passages mois après mois.
+        </Text>
+      ) : (
+        <>
+          {record !== null && (
+            <Text style={S.fort}>Record : {chrono(record)} · {nombre(vitesseAscensionnelle(dplus, record))} m/h</Text>
+          )}
+          {passages.slice(0, 12).map((p, i) => (
+            <View key={`${p.activite}-${i}`} style={{ flexDirection: "row", gap: 8, paddingVertical: 4, borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
+              <Text style={[S.petit, { width: 86, color: C.encre }]}>{new Date(p.date).toLocaleDateString("fr-FR")}</Text>
+              <Text style={[S.fort, { width: 56, color: p.temps_s === record ? C.montee : C.encre }]}>{p.temps_s ? chrono(p.temps_s) : "—"}</Text>
+              <Text style={[S.petit, { flex: 1, color: C.encre }]}>
+                {p.temps_s ? `${nombre(vitesseAscensionnelle(dplus, p.temps_s))} m/h` : ""}{p.fc ? ` · ${p.fc} bpm` : ""}
+              </Text>
+            </View>
+          ))}
+          <Text style={S.petit}>Vitesse ascensionnelle : mètres de dénivelé gagnés par heure, pour comparer des côtes différentes.</Text>
+        </>
+      )}
+    </View>
+  );
+}
+
+export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour, passages = [] }: {
   cote: CoteProche; rang: number; allurePlat: number; depart: Position; nomDepart: string; retour: () => void;
+  passages?: PassageDate[];
 }) {
   const pied = { lat: cote.lat, lon: cote.lon };
   const trace = cote.geometrie.length ? cote.geometrie.map(([lon, lat]) => ({ lat, lon })) : [pied];
@@ -42,7 +76,10 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour 
     return () => { actif = false; };
   }, [cote.id, depart.lat, depart.lon]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const minutes = dureeMontee(cote, allurePlat, coutMinetti);
+  const descente = cote.sens === "descente";
+  const signe = descente ? "−" : "";
+  // en descente, le coût de Minetti est pris sur la pente négative
+  const minutes = dureeMontee(cote, allurePlat, descente ? (i) => coutMinetti(-i) : coutMinetti);
   // séance de répétitions : environ 1,5 km de montées au total, retour en trottinant
   const [reps, setReps] = useState(Math.min(15, Math.max(4, Math.round(1500 / Math.max(cote.longueur_m, 100)))));
   const dureeSeance = reps * (minutes + (cote.longueur_m / 1000) * allurePlat * 1.3);
@@ -51,29 +88,42 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour 
   const exporter = () => {
     const z = cote.profil.z;
     const n = cote.geometrie.length;
-    const gpx = ecrireGpx(`Côte ${nombre(cote.longueur_m)} m à ${nombre(cote.pente_moy_pct, 1)} %${cote.nom ? ` — ${cote.nom}` : ""}`,
+    const gpx = ecrireGpx(`${descente ? "Descente" : "Côte"} ${nombre(cote.longueur_m)} m à ${signe}${nombre(cote.pente_moy_pct, 1)} %${cote.nom ? ` — ${cote.nom}` : ""}`,
       cote.geometrie.map(([lon, lat], i) => ({ lat, lon, ele: z.length ? z[Math.round((i / Math.max(n - 1, 1)) * (z.length - 1))] : undefined })));
     return partagerFichier(`cote-${cote.id}.gpx`, gpx);
   };
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
-      <EnTete retour={retour} surtitre={`Côte n°${rang} · à ${kmLisibles(cote.distance_m)}`}
-              titre={`${nombre(Math.round(cote.longueur_m / 10) * 10)} m à ${nombre(cote.pente_moy_pct, 1)} %`}
+      <EnTete retour={retour} surtitre={`${descente ? "Descente" : "Côte"} n°${rang} · à ${kmLisibles(cote.distance_m)}`}
+              titre={`${nombre(Math.round(cote.longueur_m / 10) * 10)} m à ${signe}${nombre(cote.pente_moy_pct, 1)} %`}
               sousTitre={[cote.nom, cote.revetement, cote.technicite, "altitudes IGN au mètre"].filter(Boolean).join(" · ")} />
-      <Tuiles valeurs={[["D+", `${nombre(cote.dplus_m)} m`], ["Pente max", `${nombre(cote.pente_max_pct)} %`],
+      {cote.trafic ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10, padding: 10, borderRadius: 12,
+                       backgroundColor: cote.trafic === "passant" ? C.monteeClair : cote.trafic === "modéré" ? C.descenteClair : C.platClair }}>
+          <Text style={{ fontSize: 14, fontWeight: "700", color: cote.trafic === "passant" ? C.monteeFonce : C.encre }}>
+            {cote.trafic === "passant" ? "⚠ " : ""}{NOMS_TRAFIC[cote.trafic]}
+          </Text>
+          <Text style={[S.petit, { flex: 1 }]}>
+            {cote.trafic === "passant" ? "Grand axe ou route rapide : gilet visible, bas-côté, à éviter de nuit."
+              : cote.trafic === "modéré" ? "Route de quartier ou départementale calme : reste visible."
+              : "Chemin, sentier, voie verte ou petite rue."}
+          </Text>
+        </View>
+      ) : null}
+      <Tuiles valeurs={[[descente ? "D−" : "D+", `${nombre(cote.dplus_m)} m`], ["Pente max", `${signe}${nombre(cote.pente_max_pct)} %`],
                         ["Rythme*", `≈ ${nombre(Math.max(1, Math.round(minutes)))} min`]]} />
 
       <View style={{ marginTop: 14 }}>
         <Carte hauteur={240} cle={`cote-${cote.id}`} centre={centreDe(trace)} zoom={zoomAjuste(trace, 360, 240, 12, 17)}
                position={depart} traces={[{ id: cote.id, points: trace, couleur: couleurPente(cote.pente_moy_pct), epaisseur: 6 }]}
                marqueurs={[
-                 { id: "d", position: trace[0], texte: "D", couleur: C.descente, label: "Départ, pied de la côte" },
-                 { id: "a", position: trace[trace.length - 1], texte: "A", couleur: C.encre, label: "Arrivée, sommet" },
+                 { id: "d", position: trace[0], texte: "D", couleur: C.descente, label: descente ? "Départ, en haut" : "Départ, pied de la côte" },
+                 { id: "a", position: trace[trace.length - 1], texte: "A", couleur: C.encre, label: descente ? "Arrivée, en bas" : "Arrivée, sommet" },
                ]} />
       </View>
 
       <View style={[S.carte, { gap: 6 }]}>
-        <Text style={[S.surtitre, { fontSize: 12 }]}>Départ de la côte</Text>
+        <Text style={[S.surtitre, { fontSize: 12 }]}>{descente ? "Départ, en haut" : "Départ, au pied"}</Text>
         <Text style={S.fort} selectable>
           {adresse === undefined ? "Recherche de l'adresse…" : adresse ?? "Adresse introuvable"}
         </Text>
@@ -114,10 +164,12 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour 
         <BarresPentes pentes={cote.pentes_50m} longueur={cote.longueur_m} seuilRaide={SEUIL_RAIDE} />
       </View>
 
+      {!descente && <MesPassages passages={passages} dplus={cote.dplus_m} />}
+
       <View style={[S.carte, { marginTop: 10, gap: 8 }]}>
-        <Text style={[S.surtitre, { fontSize: 12 }]}>Séance de côtes</Text>
+        <Text style={[S.surtitre, { fontSize: 12 }]}>{descente ? "Séance de descentes" : "Séance de côtes"}</Text>
         <Ajusteur etiquette="Répétitions" valeur={reps} unite="×" pas={1} min={1} max={30} onChange={setReps} />
-        <Text style={S.petit}>Montée à allure soutenue, retour en trottinant. ≈ {nombre(Math.round(dureeSeance))} min,
+        <Text style={S.petit}>{descente ? "Descente rapide en relâchant, remontée en marchant ou trottinant." : "Montée à allure soutenue, retour en trottinant."} ≈ {nombre(Math.round(dureeSeance))} min,
           +{nombre(Math.round(reps * cote.dplus_m))} m de D+, ≈ {nombre(pointsSeance)} points avec le GPX de la séance
           (sans l'échauffement).</Text>
       </View>

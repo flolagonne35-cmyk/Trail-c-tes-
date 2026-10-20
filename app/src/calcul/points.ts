@@ -20,7 +20,18 @@ export const BAREME = {
   plafondKmSemaine: 250,
 };
 
-export type Repetition = { cote_id: number; nom: string; longueur_m: number; pente_moy_pct: number; n: number };
+/** Un passage chronométré sur une côte : durée de la montée et FC moyenne (si le GPX les a). */
+export type Passage = { temps_s: number | null; fc: number | null };
+
+export type Repetition = {
+  cote_id: number; nom: string; longueur_m: number; pente_moy_pct: number; n: number;
+  cle?: string; // position du pied, stable d'un précalcul à l'autre (l'id change)
+  dplus_m?: number;
+  passages?: Passage[];
+};
+
+/** Identifiant stable d'une côte : son pied arrondi à ~10 m. */
+export const cleCote = (c: Pick<Cote, "lat" | "lon">) => `${c.lat.toFixed(4)},${c.lon.toFixed(4)}`;
 
 export type Activite = {
   id: string;
@@ -77,7 +88,8 @@ export function denivelePositif(z: (number | null)[], seuil = 3): number {
  * Montées complètes de chaque côte : la trace passe à moins de `tolM` du pied, puis du sommet,
  * avec entre les deux une distance parcourue proche de la longueur de la côte.
  */
-export function compterRepetitions(lat: number[], lon: number[], cotes: Cote[], tolM = 30): Repetition[] {
+export function compterRepetitions(lat: number[], lon: number[], cotes: Cote[], tolM = 30,
+                                   temps: (number | null)[] = [], fc: (number | null)[] = []): Repetition[] {
   const cumul = [0];
   for (let i = 1; i < lat.length; i++) cumul.push(cumul[i - 1] + distanceM({ lat: lat[i - 1], lon: lon[i - 1] }, { lat: lat[i], lon: lon[i] }));
   const latMin = Math.min(...lat) - 0.01, latMax = Math.max(...lat) + 0.01;
@@ -86,18 +98,40 @@ export function compterRepetitions(lat: number[], lon: number[], cotes: Cote[], 
   for (const c of cotes) {
     if (c.lat < latMin || c.lat > latMax || c.lon < lonMin || c.lon > lonMax || !c.geometrie.length) continue;
     const [lonS, latS] = c.geometrie[c.geometrie.length - 1];
-    let pied: number | null = null;
+    const piedC = { lat: c.lat, lon: c.lon };
+    const sommet = { lat: latS, lon: lonS };
+    const dist = (i: number, q: typeof piedC) => distanceM({ lat: lat[i], lon: lon[i] }, q);
+    let pied: number | null = null; // point le plus près du pied lors du dernier passage
+    let auPied = false;
     let n = 0;
+    const passages: Passage[] = [];
     for (let i = 0; i < lat.length; i++) {
-      const p = { lat: lat[i], lon: lon[i] };
-      if (distanceM(p, { lat: c.lat, lon: c.lon }) <= tolM) pied = i; // dernier passage au pied
-      else if (pied !== null && distanceM(p, { lat: latS, lon: lonS }) <= tolM) {
-        const parcouru = cumul[i] - cumul[pied];
-        if (parcouru >= 0.7 * c.longueur_m && parcouru <= 1.5 * c.longueur_m) n += 1;
+      const dPied = dist(i, piedC);
+      if (dPied <= tolM) {
+        if (!auPied || pied === null || dPied < dist(pied, piedC)) pied = i;
+        auPied = true;
+        continue;
+      }
+      auPied = false;
+      if (pied !== null && dist(i, sommet) <= tolM) {
+        // on garde le point le plus près du sommet tant qu'on reste dans sa zone : chrono au mètre près
+        let haut = i;
+        while (haut + 1 < lat.length && dist(haut + 1, sommet) <= tolM && dist(haut + 1, sommet) < dist(haut, sommet)) haut += 1;
+        const parcouru = cumul[haut] - cumul[pied];
+        if (parcouru >= 0.7 * c.longueur_m && parcouru <= 1.5 * c.longueur_m) {
+          n += 1;
+          const t0 = temps[pied] ?? null;
+          const t1 = temps[haut] ?? null;
+          const f = fc.slice(pied, haut + 1).filter((v): v is number => v !== null);
+          passages.push({ temps_s: t0 !== null && t1 !== null ? Math.round((t1 - t0) / 1000) : null,
+                          fc: f.length ? Math.round(f.reduce((a, b) => a + b, 0) / f.length) : null });
+        }
         pied = null;
+        i = haut;
       }
     }
-    if (n) resultats.push({ cote_id: c.id, nom: c.nom, longueur_m: c.longueur_m, pente_moy_pct: c.pente_moy_pct, n });
+    if (n) resultats.push({ cote_id: c.id, nom: c.nom, longueur_m: c.longueur_m, pente_moy_pct: c.pente_moy_pct, n,
+                            cle: cleCote(c), dplus_m: c.dplus_m, passages });
   }
   return resultats;
 }
@@ -111,7 +145,7 @@ export function activiteDepuisGpx(texte: string, cotes: Cote[], compteCreeLe: st
   const debut = horaires.length ? Math.min(...horaires) : null;
   const dureeMin = horaires.length > 1 ? (Math.max(...horaires) - Math.min(...horaires)) / 60000 : null;
   const empreinte = `${debut ?? "?"}-${t.lat.length}-${t.lat[0].toFixed(4)}-${t.lon[0].toFixed(4)}`;
-  const repetitions = compterRepetitions(t.lat, t.lon, cotes);
+  const repetitions = compterRepetitions(t.lat, t.lon, cotes, 30, t.temps, t.fc);
   const dplus = denivelePositif(t.ele);
   const base: Activite = {
     id: empreinte, date: new Date(debut ?? Date.now()).toISOString(), source: "gpx", statut: "validee", nom: t.nom,
@@ -159,3 +193,19 @@ export function score(activites: Activite[]): { valides: number; enAttente: numb
   }
   return { valides, enAttente };
 }
+
+export type PassageDate = Passage & { date: string; activite: string };
+
+/** Tous mes passages chronométrés sur une côte, du plus récent au plus ancien. */
+export function mesPassages(activites: Activite[], cote: Pick<Cote, "id" | "lat" | "lon">): PassageDate[] {
+  const cle = cleCote(cote);
+  return activites
+    .filter((a) => a.statut === "validee")
+    .flatMap((a) => a.repetitions
+      .filter((r) => (r.cle ? r.cle === cle : r.cote_id === cote.id))
+      .flatMap((r) => (r.passages ?? []).map((p) => ({ ...p, date: a.date, activite: a.id }))))
+    .sort((x, y) => y.date.localeCompare(x.date));
+}
+
+/** Vitesse ascensionnelle (m/h), l'indicateur des traileurs pour comparer des montées. */
+export const vitesseAscensionnelle = (dplusM: number, tempsS: number) => Math.round((dplusM / tempsS) * 3600);

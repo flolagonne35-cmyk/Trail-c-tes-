@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 import {
-  cotesProches, distanceCouverture, kmLisibles, RAYON_COUVERTURE_M, resumeFiltres, type Cote, type CoteProche,
-  type Filtres, type TypeVoie,
+  cotesProches, distanceCouverture, enDescente, kmLisibles, LONGUEURS, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres,
+  type Cote, type CoteProche, type Filtres, type Longueur, type Sens, type TypeVoie,
 } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { adresseDe, type Lieu } from "../calcul/geoservices.ts";
@@ -15,13 +15,19 @@ import { zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { Icone, nombre, Segments } from "../composants/communs.tsx";
 import { RechercheLieu } from "../composants/RechercheLieu.tsx";
+import { VueBoucle } from "./Boucle.tsx";
+import { VueSeance } from "./Seance.tsx";
 import { C, S } from "../theme.ts";
 
 export type Localisation = "inactive" | "en_cours" | "refusee" | "indisponible";
 export type PointDepart = { position: Position; nom: string; detail: string; gps: boolean };
 
-export const FILTRES_DEFAUT: Filtres = { rayonM: 5000, penteMin: 5, types: ["route", "piste cyclable", "chemin", "sentier"] };
-const PENTES: [string, string][] = [["3", "3 %"], ["5", "5 %"], ["8", "8 %"], ["10", "10 %"]];
+export const FILTRES_DEFAUT: Filtres = {
+  rayonM: 5000, penteMin: 4, types: ["route", "piste cyclable", "chemin", "sentier"], longueur: "toutes", dplusMin: 0, eviterPassant: false,
+};
+const PENTES: [string, string][] = [["4", "4 %"], ["6", "6 %"], ["8", "8 %"], ["10", "10 %"]];
+const DPLUS: [string, string][] = [["0", "Tout"], ["20", "20 m"], ["40", "40 m"], ["80", "80 m"]];
+const CATEGORIES: [Longueur, string][] = [["toutes", "Toutes"], ["courtes", "Courtes"], ["moyennes", "Moyennes"], ["longues", "Longues"]];
 const RAYONS: [string, string][] = [["2000", "2 km"], ["5000", "5 km"], ["10000", "10 km"], ["25000", "25 km"]];
 const TYPES: [TypeVoie, string, string][] = [
   ["route", "Route", "Routes et pistes cyclables, goudronnées"],
@@ -44,7 +50,8 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
     <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "#1B2A2266",
                    justifyContent: "flex-end" }}>
       <Pressable style={{ flex: 1 }} onPress={onFermer} accessibilityLabel="Fermer les filtres" />
-      <View style={{ backgroundColor: C.fond, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, gap: 18 }}>
+      <ScrollView style={{ backgroundColor: C.fond, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "88%" }}
+                  contentContainerStyle={{ padding: 20, gap: 18 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={[S.h2, { flex: 1, fontSize: 20 }]} accessibilityRole="header">Filtres</Text>
           <Pressable onPress={() => setF(FILTRES_DEFAUT)} accessibilityRole="button" hitSlop={10}>
@@ -54,6 +61,15 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
         <View style={{ gap: 8 }}>
           <Text style={S.fort}>Pente moyenne minimale</Text>
           <Segments options={PENTES} valeur={String(f.penteMin)} onChange={(v) => setF({ ...f, penteMin: Number(v) })} />
+        </View>
+        <View style={{ gap: 8 }}>
+          <Text style={S.fort}>Longueur</Text>
+          <Segments options={CATEGORIES} valeur={f.longueur ?? "toutes"} onChange={(longueur) => setF({ ...f, longueur })} />
+          <Text style={S.petit}>{f.longueur && f.longueur !== "toutes" ? LONGUEURS[f.longueur].detail : "Courtes < 300 m · moyennes 300 à 800 m · longues ≥ 800 m"}</Text>
+        </View>
+        <View style={{ gap: 8 }}>
+          <Text style={S.fort}>Dénivelé minimum</Text>
+          <Segments options={DPLUS} valeur={String(f.dplusMin ?? 0)} onChange={(v) => setF({ ...f, dplusMin: Number(v) })} />
         </View>
         <View style={{ gap: 8 }}>
           <Text style={S.fort}>Distance du point de départ</Text>
@@ -81,11 +97,32 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
             })}
           </View>
         </View>
+        <Pressable onPress={() => setF({ ...f, eviterPassant: !f.eviterPassant })} accessibilityRole="switch"
+                   accessibilityState={{ checked: !!f.eviterPassant }}
+                   style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
+                            backgroundColor: C.blanc, borderRadius: 14 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={[S.fort, { fontWeight: "600" }]}>Éviter les routes passantes</Text>
+            <Text style={S.petit}>Grands axes, routes rapides (≥ 60 km/h) ou à 3 voies et plus</Text>
+          </View>
+          <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, alignItems: "center", justifyContent: "center",
+                         borderColor: f.eviterPassant ? C.encre : C.sable, backgroundColor: f.eviterPassant ? C.encre : C.blanc }}>
+            {f.eviterPassant && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
+          </View>
+        </Pressable>
         <Pressable onPress={() => { onValider(f); onFermer(); }} accessibilityRole="button" style={S.bouton}>
           <Text style={S.boutonTexte}>{n ? `Voir ${n} côte${n > 1 ? "s" : ""}` : "Aucune côte avec ces filtres"}</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </View>
+  );
+}
+
+export function BadgeTrafic() {
+  return (
+    <Text accessibilityLabel={NOMS_TRAFIC.passant}
+          style={{ fontSize: 11, fontWeight: "700", color: C.monteeFonce, backgroundColor: C.monteeClair, borderRadius: 6,
+                   paddingHorizontal: 6, paddingVertical: 2, overflow: "hidden" }}>⚠ route passante</Text>
   );
 }
 
@@ -95,19 +132,23 @@ function LigneCote({ c, rang, position, allurePlat, onPress, adresse }: {
   const t = tempsTrajets(position, { lat: c.lat, lon: c.lon }, allurePlat);
   const voiture = t.find((x) => x.mode === "voiture")!;
   const course = t.find((x) => x.mode === "course")!;
+  const descente = c.sens === "descente";
   return (
     <Pressable onPress={onPress} accessibilityRole="button"
-               accessibilityLabel={`Côte ${rang} : ${Math.round(c.longueur_m)} mètres à ${c.pente_moy_pct} %, à ${kmLisibles(c.distance_m)}${adresse ? `, ${adresse}` : ""}`}
+               accessibilityLabel={`${descente ? "Descente" : "Côte"} ${rang} : ${Math.round(c.longueur_m)} mètres à ${descente ? "moins " : ""}${c.pente_moy_pct} %, à ${kmLisibles(c.distance_m)}${adresse ? `, ${adresse}` : ""}`}
                style={[S.ligne, { alignItems: "stretch", paddingLeft: 0, overflow: "hidden" }]}>
       <View style={{ width: 6, backgroundColor: couleurPente(c.pente_moy_pct) }} />
       <View style={{ width: 28, alignItems: "center", paddingTop: 2 }}>
         <Text style={{ fontSize: 15, fontWeight: "800", color: C.gris }}>{rang}</Text>
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={S.fort}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {nombre(c.pente_moy_pct, 1)} %</Text>
-        <Text style={[S.petit, { color: C.encre, marginTop: 2 }]} numberOfLines={1}>{adresse ?? (c.nom || "Adresse en cours…")}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text style={S.fort}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(c.pente_moy_pct, 1)} %</Text>
+          {c.trafic === "passant" && <BadgeTrafic />}
+        </View>
+        <Text style={[S.petit, { color: C.encre, marginTop: 2 }]} numberOfLines={1}>{descente ? "Haut : " : ""}{adresse ?? (c.nom || "Adresse en cours…")}</Text>
         <Text style={[S.petit, { marginTop: 2 }]} numberOfLines={1}>
-          +{nombre(c.dplus_m)} m · max {nombre(c.pente_max_pct)} % · {c.type_voie}
+          {descente ? "−" : "+"}{nombre(c.dplus_m)} m · max {nombre(c.pente_max_pct)} % · {c.type_voie}
           {c.revetement ? ` · ${c.revetement.replace(" (supposé)", "")}` : ""}
         </Text>
       </View>
@@ -147,20 +188,26 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   recents: Lieu[]; zones: Lieu[]; source: string;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
+  const [mode, setMode] = useState<Sens | "seance" | "boucle">("montee");
+  // une descente est une côte parcourue depuis le sommet
+  const sens: Sens = mode === "descente" ? "descente" : "montee";
+  const base = useMemo(() => (sens === "descente" ? toutes.map(enDescente) : toutes), [toutes, sens]);
+  const mot = sens === "descente" ? "descente" : "côte";
   const [panneau, setPanneau] = useState<"recherche" | "filtres" | null>(null);
   const position = depart.position;
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
   const horsZone = couverture > RAYON_COUVERTURE_M;
-  const cotes = useMemo(() => cotesProches(toutes, position, filtres), [toutes, position, filtres]);
+  const cotes = useMemo(() => cotesProches(base, position, filtres), [base, position, filtres]);
   // aucune côte dans le rayon : on montre quand même les plus proches
   const auDela = useMemo(
-    () => (cotes.length || horsZone ? [] : cotesProches(toutes, position, { ...filtres, rayonM: Infinity }).slice(0, 5)),
-    [cotes, toutes, position, filtres, horsZone],
+    () => (cotes.length || horsZone ? [] : cotesProches(base, position, { ...filtres, rayonM: Infinity }).slice(0, 5)),
+    [cotes, base, position, filtres, horsZone],
   );
   const affichees = cotes.length ? cotes : auDela;
   const nbFiltres = Number(filtres.penteMin !== FILTRES_DEFAUT.penteMin) + Number(filtres.rayonM !== FILTRES_DEFAUT.rayonM)
-    + Number(filtres.types.length !== FILTRES_DEFAUT.types.length);
+    + Number(filtres.types.length !== FILTRES_DEFAUT.types.length) + Number((filtres.longueur ?? "toutes") !== "toutes")
+    + Number(!!filtres.dplusMin) + Number(!!filtres.eviterPassant);
 
   // adresses du pied des 10 premières côtes, si le précalcul ne les donne pas (géocodage inverse, mis en cache)
   const [adresses, setAdresses] = useState<Record<number, string | null>>({});
@@ -215,13 +262,24 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
           </Pressable>
         </View>
 
+        {!horsZone && (
+          <View style={{ marginTop: 12 }}>
+            <Segments options={[["montee", "Montées"], ["descente", "Descentes"], ["seance", "Séance"], ["boucle", "Boucle"]]}
+                      valeur={mode} onChange={setMode} />
+          </View>
+        )}
+
         {horsZone ? (
           <HorsZone depart={depart} distance={couverture} zones={zones} onLieu={onLieu} />
+        ) : mode === "boucle" ? (
+          <VueBoucle toutes={toutes} position={position} nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} />
+        ) : mode === "seance" ? (
+          <VueSeance toutes={toutes} position={position} filtres={filtres} allurePlat={allurePlat} onChoisir={onChoisir} />
         ) : (
           <>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={S.fort}>{cotes.length ? `${cotes.length} côte${cotes.length > 1 ? "s" : ""}` : "Aucune côte dans le rayon"}</Text>
+                <Text style={S.fort}>{cotes.length ? `${cotes.length} ${mot}${cotes.length > 1 ? "s" : ""}` : `Aucune ${mot} dans le rayon`}</Text>
                 <Text style={S.petit} numberOfLines={1}>{resumeFiltres(filtres)}</Text>
               </View>
               <Pressable onPress={() => setPanneau("filtres")} accessibilityRole="button"
@@ -296,7 +354,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
       </ScrollView>
 
       {panneau === "filtres" && (
-        <PanneauFiltres filtres={filtres} toutes={toutes} position={position} onValider={setFiltres} onFermer={() => setPanneau(null)} />
+        <PanneauFiltres filtres={filtres} toutes={base} position={position} onValider={setFiltres} onFermer={() => setPanneau(null)} />
       )}
       {panneau === "recherche" && (
         <RechercheLieu pres={position} recents={recents} zones={zones} onLieu={onLieu} onLocaliser={onLocaliser}

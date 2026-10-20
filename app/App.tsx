@@ -14,6 +14,7 @@ import { apparenceAleatoire } from "./src/avatar/modele.ts";
 import { cotesProches, type Cote, type CoteProche, type Filtres } from "./src/calcul/cotes.ts";
 import type { Lieu } from "./src/calcul/geoservices.ts";
 import { PREFERENCES_DEFAUT, type Ravito } from "./src/calcul/nutrition.ts";
+import { mesPassages } from "./src/calcul/points.ts";
 import type { Parcours } from "./src/calcul/profil.ts";
 import { Navigation, type Onglet } from "./src/composants/communs.tsx";
 import { EcranAccueil } from "./src/ecrans/Accueil.tsx";
@@ -144,7 +145,8 @@ function Contenu() {
   let ecran;
   if (detail) {
     ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} depart={depart.position}
-                         nomDepart={depart.nom} retour={() => setDetail(null)} />;
+                         nomDepart={depart.nom} retour={() => setDetail(null)}
+                         passages={mesPassages(profil.activites, detail.cote)} />;
   } else if (onglet === "accueil") {
     ecran = <EcranAccueil profil={profil} proches={proches} lieu={depart.nom} nbCotes={COTES.length} allerA={aller}
                           ouvrirCote={ouvrirCote} />;
@@ -155,7 +157,8 @@ function Contenu() {
   } else if (onglet === "course") {
     ecran = <EcranCourse parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                          objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
-                         prefs={prefs} setPrefs={setPrefs} />;
+                         prefs={prefs} setPrefs={setPrefs} cotes={COTES} position={depart.position} nomDepart={depart.nom}
+                         onChoisir={ouvrirCote} />;
   } else {
     ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)} />;
   }

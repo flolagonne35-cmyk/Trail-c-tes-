@@ -115,3 +115,22 @@ test("temps de passage : objectif tenu, côte plus lente que la descente", async
   assert.ok(allure(p[1].allure) > allure(p[0].allure)); // km 2 (montée) plus lent que km 1 (plat)
   assert.ok(allure(p[5].allure) < allure(p[0].allure)); // dernier tronçon (descente) plus rapide
 });
+
+test("nutrition : recommandations selon la durée et l'habitude", async () => {
+  const { recommandation, routineHoraire, fourchetteGlucides, besoinsParHeure } = await import("./nutrition.ts");
+  assert.deepEqual(fourchetteGlucides(0.5), [0, 30]);
+  assert.deepEqual(fourchetteGlucides(2), [30, 60]);
+  assert.deepEqual(fourchetteGlucides(2.75), [60, 90]);
+  assert.equal(recommandation(2.75, "debutant").glucides, 60);
+  assert.equal(recommandation(2.75, "habitue").glucides, 75);
+  assert.equal(recommandation(2.75, "entraine").glucides, 90);
+  assert.equal(recommandation(1.5, "habitue").glucides, 45);
+  assert.equal(recommandation(6, "habitue").partSolide, 0.3);
+  // sodium : 600 mg par litre d'eau (ISSN 2019)
+  assert.equal(recommandation(3, "habitue").sodium, 300);
+  const prefs = { ...PREFERENCES_DEFAUT, ...recommandation(2.75, "habitue"), temperature: 25 };
+  assert.deepEqual(besoinsParHeure(prefs), { glucides: 75, eau: 600, sodium: 360 });
+  const r = routineHoraire(prefs);
+  assert.match(r[0], /^3 gels de 25 g par heure, soit un toutes les 20 min$/);
+  assert.match(r[1], /^600 ml d'eau/);
+});

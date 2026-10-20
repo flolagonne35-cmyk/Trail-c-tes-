@@ -3,7 +3,11 @@
 import type { Parcours } from "./profil.ts";
 import { interp } from "./geo.ts";
 
+export type Niveau = "debutant" | "habitue" | "entraine";
+
 export type Preferences = {
+  niveau: Niveau; // habitude de manger en courant (« intestin entraîné »)
+  perso: boolean; // true : valeurs réglées à la main ; false : recommandations
   glucides: number; // g par heure
   eau: number; // ml par heure
   sodium: number; // mg par heure
@@ -16,6 +20,7 @@ export type Preferences = {
 };
 
 export const PREFERENCES_DEFAUT: Preferences = {
+  niveau: "habitue", perso: false,
   glucides: 70, eau: 500, sodium: 600, temperature: 15, partSolide: 0,
   gelG: 25, barreG: 40, sodiumGelMg: 50, pastilleMg: 250,
 };
@@ -129,3 +134,75 @@ export function construirePlan(parcours: Parcours, objectifH: number, ravitos: R
     };
   });
 }
+
+// ---------------------------------------------------------------------------- recommandations
+// Sources :
+// - glucides : ACSM, Academy of Nutrition and Dietetics, Dietitians of Canada, « Nutrition and
+//   Athletic Performance » (Thomas et al. 2016) ; Jeukendrup 2014, « A step towards personalized
+//   sports nutrition: carbohydrate intake during exercise » (Sports Med) :
+//   < 45 min rien, 1 h à 2 h 30 : 30 à 60 g/h, au-delà de 2 h 30 : jusqu'à 90 g/h en mélangeant
+//   glucose et fructose (gels « 2:1 ») ; au-delà de 60 g/h, l'intestin doit être entraîné.
+// - eau et sodium : ISSN, « Position stand: nutritional considerations for single-stage
+//   ultra-marathon training and racing » (Tiller et al. 2019) : 450 à 750 ml/h, sodium 500 à
+//   700 mg par litre bu ; boire selon la soif, sans dépasser ce qu'on perd en sueur.
+
+export const NIVEAUX: [Niveau, string, string][] = [
+  ["debutant", "Débutant", "Je mange peu en courant ou j'ai déjà eu des soucis de ventre"],
+  ["habitue", "Habitué", "Je prends des gels ou des barres à chaque longue sortie"],
+  ["entraine", "Entraîné", "J'ai habitué mon ventre à 80-90 g/h à l'entraînement"],
+];
+
+export const SODIUM_PAR_LITRE_MG = 600; // milieu de la fourchette ISSN (500-700 mg/L)
+export const EAU_REFERENCE_ML = 500; // à 15 °C ; l'appli ajoute 10 % par 5 °C au-dessus
+
+/** Fourchette de glucides conseillée (g/h) selon la durée d'effort. */
+export function fourchetteGlucides(dureeH: number): [number, number] {
+  if (dureeH < 0.75) return [0, 30];
+  if (dureeH <= 2.5) return [30, 60];
+  return [60, 90];
+}
+
+/** Réglages conseillés pour une course de `dureeH` heures. */
+export function recommandation(dureeH: number, niveau: Niveau): Pick<Preferences, "glucides" | "eau" | "sodium" | "partSolide"> {
+  const [bas, haut] = fourchetteGlucides(dureeH);
+  const part = niveau === "debutant" ? 0 : niveau === "habitue" ? 0.5 : 1;
+  return {
+    glucides: Math.round((bas + (haut - bas) * part) / 5) * 5,
+    eau: EAU_REFERENCE_ML,
+    sodium: Math.round((EAU_REFERENCE_ML * SODIUM_PAR_LITRE_MG) / 1000 / 50) * 50,
+    // au-delà de 4 h, le solide (barres, salé) évite l'écœurement du « tout gel »
+    partSolide: dureeH > 4 ? 0.3 : 0,
+  };
+}
+
+/** Phrase qui explique la fourchette de glucides pour cette durée. */
+export function pourquoiGlucides(dureeH: number): string {
+  if (dureeH < 0.75) return "Moins de 45 min : tes réserves suffisent, manger n'est pas nécessaire.";
+  if (dureeH <= 2.5) return "Entre 45 min et 2 h 30 : 30 à 60 g de glucides par heure retardent la fatigue.";
+  return "Au-delà de 2 h 30, tes réserves (glycogène) ne suffisent plus : 60 à 90 g par heure, avec des gels glucose + fructose au-delà de 60 g.";
+}
+
+/** Besoins effectifs par heure, chaleur comprise (comme construirePlan). */
+export function besoinsParHeure(prefs: Preferences) {
+  const chaleur = 1 + 0.1 * Math.max(0, (prefs.temperature - 15) / 5);
+  return { glucides: prefs.glucides, eau: Math.round(prefs.eau * chaleur), sodium: Math.round(prefs.sodium * chaleur) };
+}
+
+/** Routine d'une heure de course : « 1 gel toutes les 20 min », etc. */
+export function routineHoraire(prefs: Preferences): string[] {
+  const b = besoinsParHeure(prefs);
+  const lignes: string[] = [];
+  const gSolide = b.glucides * prefs.partSolide;
+  const gGels = b.glucides - gSolide;
+  if (b.glucides === 0) lignes.push("Pas besoin de manger : de l'eau suffit.");
+  if (gGels > 0) {
+    const parHeure = gGels / prefs.gelG;
+    lignes.push(`${nombreFr(parHeure)} gel${parHeure > 1 ? "s" : ""} de ${prefs.gelG} g par heure, soit un toutes les ${Math.round(60 / parHeure)} min`);
+  }
+  if (gSolide > 0) lignes.push(`${nombreFr(gSolide / prefs.barreG)} barre de ${prefs.barreG} g par heure (ou l'équivalent en salé au ravito)`);
+  lignes.push(`${b.eau} ml d'eau par heure : quelques gorgées toutes les 10 à 15 min, selon la soif`);
+  lignes.push(`${b.sodium} mg de sodium par heure (boisson d'effort, pastilles ou salé)`);
+  return lignes;
+}
+
+const nombreFr = (v: number) => (Math.round(v * 10) / 10).toString().replace(".", ",");
