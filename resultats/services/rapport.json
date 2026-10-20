@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T22:26:54+00:00",
+  "date_utc": "2026-10-20T22:55:34+00:00",
   "statut": "ok",
   "resume": {
     "recherche « Rennes mairie »": "ok — [{\"label\": \"Place de la Mairie 35000 Rennes\", \"lon\": -1.679255, \"lat\": 48.110964}, {\"label\": \"Allée Sainte-Marie 35700 R",
@@ -12,7 +12,7 @@
     {
       "service": "recherche « Rennes mairie »",
       "http": 200,
-      "duree_s": 1.2,
+      "duree_s": 1.44,
       "lu": [
         {
           "label": "Place de la Mairie 35000 Rennes",
@@ -31,7 +31,7 @@
     {
       "service": "recherche « Bédoin »",
       "http": 200,
-      "duree_s": 0.69,
+      "duree_s": 0.83,
       "lu": [
         {
           "label": "Bédoin",
@@ -45,7 +45,7 @@
     {
       "service": "adresse du pied (rue Gambetta)",
       "http": 200,
-      "duree_s": 0.52,
+      "duree_s": 0.88,
       "lu": "3 Rue Gambetta 35000 Rennes",
       "ok": true,
       "extrait": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-1.674645,48.110916]},\"properties\":{\"type\":\"housenumber\",\"name\":\"3 Rue Gambetta\",\"label\":\"3 Rue Gambetta 35000 Rennes\",\"street\":\"Rue Gambetta\",\"postcode\":\"35000\",\"citycode\":\"35238\",\"city\":\"Rennes\",\"oldcitycode\":null,\"oldcity\":null,\"context\":\"35, Ille-et-Vilaine, Bretagne\",\"importance\":0.6908,\"housenumber\":\"3\",\"id\":\"35238_3480_00003\",\"banId\":\"a6764df1-9a07-4375-b23d-5494a19e75d6\",\"x\":352299.77,\"y\":6789244.43,\"distance\":10,\"score\":0.999,\"_type\":\"address\"}}]}"
@@ -53,7 +53,7 @@
     {
       "service": "itinéraire car",
       "http": 200,
-      "duree_s": 0.88,
+      "duree_s": 1.32,
       "lu": {
         "distance_m": 1336.2,
         "duree_min": 5.9766666666666675
@@ -64,7 +64,7 @@
     {
       "service": "itinéraire pedestrian",
       "http": 200,
-      "duree_s": 0.72,
+      "duree_s": 0.89,
       "lu": {
         "distance_m": 519.7,
         "duree_min": 8.675
