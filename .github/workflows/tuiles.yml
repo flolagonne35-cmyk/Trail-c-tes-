@@ -1,0 +1,37 @@
+name: Tuiles Plan IGN (zone de test)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/telecharger_tuiles.py"
+      - ".github/workflows/tuiles.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  tuiles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Téléchargement
+        run: python scripts/telecharger_tuiles.py --zone 48.070,-1.745,48.155,-1.595 --zooms 11-15 --sortie resultats/tuiles/rennes
+      - name: Enregistrer
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resultats/tuiles
+          git diff --cached --quiet && exit 0
+          git commit -m "Tuiles Plan IGN de Rennes (run ${{ github.run_id }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
