@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T14:56:32+00:00",
+  "date_utc": "2026-10-20T15:05:11+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -14,9 +14,14 @@
     "tolerance": 3,
     "plat": 1.5,
     "plat_long": 150,
+    "fusion_ecart": 200,
+    "fusion_chute": 10,
     "angle_max": 45,
     "ressource": "ign_rge_alti_wld",
     "taille_lot": 150,
+    "methode": "GET",
+    "decimales": 6,
+    "paralleles": 1,
     "pause": 0.25,
     "essais": 4,
     "max_echec": 0.05,
@@ -25,13 +30,13 @@
     "demo": false
   },
   "resume": {
-    "Tronçons BD TOPO reçus / retenus": "5892 / 5598",
+    "Tronçons BD TOPO reçus / retenus": "5892 / 5801",
     "Voies raccordées (≥ longueur mini)": 756,
     "Points altimétriques demandés": 30759,
     "Points valides": "100.00 %",
     "Accrochage de la position": "18.0 m (Route à 1 chaussée)",
     "Côtes trouvées": 7,
-    "Tronçons exclus (privés / interdits aux piétons)": 76,
+    "Tronçons exclus (privés / interdits aux piétons)": 86,
     "Revêtement": "OSM surface : 7",
     "OpenStreetMap": "ok (14816 voies)",
     "Fond Plan IGN": "ok",
@@ -62,7 +67,7 @@
     },
     {
       "id": 2,
-      "distance_m": 1073,
+      "distance_m": 863,
       "longueur_m": 230,
       "pente_moy_pct": 7.2,
       "pente_max_pct": 10.3,
@@ -86,7 +91,7 @@
     },
     {
       "id": 4,
-      "distance_m": 1400,
+      "distance_m": 1396,
       "longueur_m": 170,
       "pente_moy_pct": 5.3,
       "pente_max_pct": 6.2,
@@ -155,7 +160,7 @@
       "paved": 40
     },
     "erreurs": [],
-    "duree_s": 40.3
+    "duree_s": 34.9
   },
   "fond_erreurs": [],
   "wfs": {
@@ -176,15 +181,15 @@
       "Escalier": 27,
       "Chemin": 10
     },
-    "troncons_retenus": 5598,
-    "exclus_acces": 76,
+    "troncons_retenus": 5801,
+    "exclus_acces": 86,
     "valeurs_acces": {
-      "prive=False / acces_pieton=None": 4905,
-      "prive=False / acces_pieton=Libre": 674,
-      "prive=True / acces_pieton=None": 72,
+      "prive=False / acces_pieton=None": 5081,
+      "prive=False / acces_pieton=Libre": 700,
+      "prive=True / acces_pieton=None": 82,
       "prive=True / acces_pieton=Libre": 4,
       "prive=None / acces_pieton=Libre": 3,
-      "prive=None / acces_pieton=None": 16
+      "prive=None / acces_pieton=None": 17
     },
     "exemple_proprietes": {
       "cleabs": "TRONROUT0000000047464760",
@@ -274,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.3
+    "duree_s": 9.8
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -284,7 +289,7 @@
     "lots_en_echec": 0,
     "points_demandes": 30759,
     "points_nodata": 0,
-    "duree_s": 140.3,
+    "duree_s": 145.2,
     "codes_http": {
       "200": 206
     },
