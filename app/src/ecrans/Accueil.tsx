@@ -1,16 +1,18 @@
-// Onglet « Accueil » : mon coureur et ma semaine, les quatre usages de l'appli, les côtes proches.
+// Onglet « Accueil » : mon coureur et ma semaine, puis tout ce que fait l'appli, rangé par catégorie
+// (comme le menu), et les côtes proches.
 
 import { Pressable, ScrollView, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { Avatar } from "../avatar/Avatar.tsx";
+import { joursAvant, prochaine, type CourseInscrite } from "../calcul/calendrier.ts";
 import { kmLisibles, type CoteProche } from "../calcul/cotes.ts";
 import { score } from "../calcul/points.ts";
-import { Icone, nombre, Section, type Onglet } from "../composants/communs.tsx";
+import { Icone, nombre, Section } from "../composants/communs.tsx";
+import type { Destination } from "../composants/Menu.tsx";
 import { couleurPente } from "../composants/Carte.tsx";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
-import type { ModeCotes } from "./Cotes.tsx";
 
 function semaine(profil: Profil) {
   const lundi = new Date();
@@ -42,7 +44,6 @@ function Bandeau({ profil, onPress }: { profil: Profil; onPress: () => void }) {
       </Svg>
       <View style={{ flexDirection: "row", padding: 18, gap: 8 }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ color: "#F4F1EAB3", fontSize: 13, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" }}>Trail-côtes</Text>
           <Text style={{ color: C.fond, fontSize: 26, fontWeight: "800" }} numberOfLines={1}>Salut {profil.prenom}</Text>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 10 }}>
             <Text style={{ color: C.fond, fontSize: 40, fontWeight: "800" }}>{nombre(valides)}</Text>
@@ -77,27 +78,44 @@ function Tuile({ icone, titre, texte, onPress, accent }: {
   );
 }
 
-export function EcranAccueil({ profil, proches, lieu, nbCotes, allerA, ouvrirCotes, ouvrirCote }: {
+function Categorie({ titre, children }: { titre: string; children: React.ReactNode }) {
+  return (
+    <View style={{ marginTop: 18, gap: 8 }}>
+      <Text style={[S.surtitre, { fontSize: 12 }]}>{titre}</Text>
+      <View style={{ flexDirection: "row", gap: 10 }}>{children}</View>
+    </View>
+  );
+}
+
+export function EcranAccueil({ profil, proches, lieu, nbCotes, aller, ouvrirCote, courses }: {
   profil: Profil; proches: CoteProche[]; lieu: string; nbCotes: number;
-  allerA: (o: Onglet) => void; ouvrirCotes: (m: ModeCotes) => void; ouvrirCote: (c: CoteProche, rang: number) => void;
+  aller: (d: Destination) => void; ouvrirCote: (c: CoteProche, rang: number) => void; courses: CourseInscrite[];
 }) {
+  const suivante = prochaine(courses);
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
-      <Bandeau profil={profil} onPress={() => allerA("profil")} />
+      <Bandeau profil={profil} onPress={() => aller({ page: "profil" })} />
 
-      <View style={{ gap: 10, marginTop: 14 }}>
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Tuile accent icone="boucle" titre="Créer une boucle" texte="Distance, côtes, D+ : GPX pour la montre" onPress={() => ouvrirCotes("boucle")} />
-          <Tuile icone="seance" titre="Séance du coach" texte="« 8 × 400 m à 10 % » : où la faire" onPress={() => ouvrirCotes("seance")} />
-        </View>
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Tuile icone="cotes" titre="Côtes et descentes" texte={`${nbCotes} mesurées au mètre près`} onPress={() => ouvrirCotes("montee")} />
-          <Tuile icone="course" titre="Préparer une course" texte="Profil, passages, nutrition, prépa" onPress={() => allerA("course")} />
-        </View>
-      </View>
+      <Categorie titre="S'entraîner">
+        <Tuile accent icone="boucle" titre="Créer une boucle" texte="Distance, côtes, D+ : GPX pour la montre"
+               onPress={() => aller({ page: "entrainement", mode: "boucle" })} />
+        <Tuile icone="seance" titre="Séance du coach" texte="« 8 × 400 m à 10 % » : où la faire"
+               onPress={() => aller({ page: "entrainement", mode: "seance" })} />
+      </Categorie>
+      <Categorie titre="Explorer">
+        <Tuile icone="cotes" titre="Côtes" texte={`${nbCotes} mesurées au mètre près`} onPress={() => aller({ page: "cotes", mode: "montee" })} />
+        <Tuile icone="cotes" titre="Descentes" texte="Pour préparer les quadriceps" onPress={() => aller({ page: "cotes", mode: "descente" })} />
+      </Categorie>
+      <Categorie titre="Courses">
+        <Tuile icone="calendrier" titre="Mes courses"
+               texte={suivante ? `${suivante.nom} : J-${joursAvant(suivante.date)}` : "Calendrier, budget, compte à rebours"}
+               onPress={() => aller({ page: "courses" })} />
+        <Tuile icone="course" titre="Préparer" texte="Profil, passages, prépa" onPress={() => aller({ page: "course" })} />
+        <Tuile icone="nutrition" titre="Nutrition" texte="Glucides, eau, sel" onPress={() => aller({ page: "nutrition" })} />
+      </Categorie>
 
-      <Pressable onPress={() => allerA("profil")} accessibilityRole="button"
-                 style={[S.ligne, { marginTop: 10, paddingVertical: 14 }]}>
+      <Pressable onPress={() => aller({ page: "profil" })} accessibilityRole="button"
+                 style={[S.ligne, { marginTop: 14, paddingVertical: 14 }]}>
         <Icone nom="plus" couleur={C.montee} />
         <View style={{ flex: 1 }}>
           <Text style={S.fort}>Ajouter une sortie</Text>
@@ -106,7 +124,7 @@ export function EcranAccueil({ profil, proches, lieu, nbCotes, allerA, ouvrirCot
         <Icone nom="fleche" couleur={C.gris} taille={18} />
       </Pressable>
 
-      <Section titre={`Près de ${lieu}`} action="Tout voir" onAction={() => ouvrirCotes("montee")}>
+      <Section titre={`Près de ${lieu}`} action="Tout voir" onAction={() => aller({ page: "cotes", mode: "montee" })}>
         <View style={{ gap: 8 }}>
           {proches.length === 0 && <Text style={S.petit}>Aucune côte calculée près d'ici pour l'instant.</Text>}
           {proches.slice(0, 3).map((c, i) => (

@@ -17,21 +17,25 @@ reste à construire**, par étapes.
 | Filtrer par longueur et par D+ | ✅ | Côtes → Filtres : courtes < 300 m, moyennes 300-800 m, longues ≥ 800 m ; D+ minimum |
 | Enchaîner des côtes dans une boucle | ✅ zone de Rennes | Côtes → Boucle : distance, nombre de côtes, D+ visé, sans route, sans route passante |
 | Export GPX vers la montre | ✅ | côte, séance et boucle ; s'importe dans Garmin Connect, Coros, Suunto, Strava |
-| Sans réseau | 🟡 | côtes, boucles, recherche de ville, nutrition : oui ; **carte : non** (voir 3.1) |
+| Sans réseau | 🟡 | côtes, boucles, recherche de ville, nutrition : oui ; carte : « Carte hors ligne » (5 km autour du départ, ≈ 45 Mo) **écrite mais pas encore essayée sur un téléphone** |
 | Mes temps sur une même côte | ✅ | détail d'une côte → Mes passages (chrono pied → sommet, FC, record, m/h) |
 | Sécurité (route fréquentée) | ✅ | trafic BD TOPO (importance, vitesse, voies) : badge ⚠, filtre, explication |
 | Chercher un lieu, préparer à l'avance | ✅ | 35 000 communes sans réseau, adresses IGN, lieux récents |
 | La séance, pas la côte (« 8 × 400 m à 10 % ») | ✅ | Côtes → Séance : 3 endroits, départ / arrivée de la portion, durée, GPX |
 | Préparer ma course près de chez moi | ✅ | Course → Prépa : passages-clés du GPX et côte équivalente + répétitions |
 | Les descentes | ✅ | Côtes → Descentes (et séances en descente) |
-| Prévisions à mon allure | 🔜 | voir 3.2 |
+| Prévisions à mon allure | ✅ | allure apprise par tranche de pente dans mes GPX (S'entraîner → Mes progrès) ; Course → « À ton allure » |
+| Plus d'onglets, bien rangés | ✅ | 5 onglets en bas + menu ☰ par catégorie (Explorer, S'entraîner, Courses, Moi, Infos) |
+| Nutrition visible | ✅ | onglet à part entière, aussi sans GPX (pour une durée) |
+| Courses dans le coin | 🟡 | « Mes courses » : calendrier perso, budget, compte à rebours. Calendrier national : aucune base ouverte n'existe (vérifié sur data.gouv.fr) → inscription par les organisateurs |
 | Points d'eau, position partagée, état des sentiers | 🔜 | voir 3.2 |
 | Ponts, tunnels, autoroutes | ✅ | exclus du calcul des pentes depuis le début (BD TOPO `position_par_rapport_au_sol`, natures) |
 | Données qui partent sans le savoir | ✅ aujourd'hui | tout reste sur le téléphone ; à garder avec les comptes (voir 2.4) |
 
 ### Ce qui limite encore
 
-- **Une seule zone calculée** (Rennes, ≈ 9 × 8 km). Le calcul tourne sur GitHub, une zone à la fois.
+- **Une seule zone calculée** (Rennes, ≈ 9 × 8 km : 168 côtes, 15 600 carrefours pour les boucles).
+  Le calcul tourne sur GitHub, une zone à la fois (≈ 4 min par carré de 4 km).
 - **Pas de serveur** : pas de compte, pas de classement entre coureurs, pas de sauvegarde si on
   change de téléphone.
 - **Pas encore sur un vrai téléphone** : on teste la version web. Il faut une version installable.
@@ -97,9 +101,9 @@ Les deux stores demandent ton identité (ou celle d'une société), une adresse 
 ### 3.1 Étape 1 — une vraie appli de test (2 à 4 semaines)
 
 - **Version installable** : EAS Build (Expo) → APK Android direct et TestFlight iPhone.
-- **Couverture** : Ille-et-Vilaine puis Loire-Atlantique entières (≈ 1 h 45 de calcul pour
-  ≈ 70 km², donc quelques jours de calcul par département, par passages de 5 h sur GitHub ; il
-  faudra un petit serveur pour la France entière).
+- **Couverture** : Ille-et-Vilaine puis Loire-Atlantique entières. Mesuré : ≈ 4 min par carré de
+  4 × 4 km, soit ≈ 1 h 30 par 400 km² ; l'Ille-et-Vilaine (6 800 km²) demande ≈ 27 h, en
+  passages de 5 h sur GitHub. Pour la France entière, il faudra un petit serveur.
 - **Base géographique** : les côtes et le réseau dans une base (PostgreSQL + PostGIS, ou
   Supabase hébergé en Europe) ; l'appli ne télécharge que la zone utile et la garde pour le hors
   ligne.

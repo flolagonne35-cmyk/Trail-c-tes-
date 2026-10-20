@@ -34,3 +34,13 @@ test("point au centre du cadre, zoom ajusté", () => {
   const c = centreDe(cote);
   assert.ok(Math.abs(c.lat - 48.11225) < 1e-9);
 });
+
+test("carte hors ligne : tuiles d'une zone de 5 km, zooms 11 à 16", async () => {
+  const { tuilesZone } = await import("./tuiles.ts");
+  const t = tuilesZone({ lat: 48.1113, lon: -1.68 }, 5000, 11, 16);
+  const parZoom = (z: number) => t.filter(([zz]) => zz === z).length;
+  assert.ok(parZoom(11) >= 1 && parZoom(11) <= 4);
+  // 10 km de côté à 48° N : ≈ 25 tuiles de 409 m par côté au zoom 16
+  assert.ok(parZoom(16) >= 24 * 24 && parZoom(16) <= 27 * 27, String(parZoom(16)));
+  assert.ok(t.some(([z, x, y]) => z === 15 && x === 16231 && y === 11375)); // tuile du centre de Rennes
+});

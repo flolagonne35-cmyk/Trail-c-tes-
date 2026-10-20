@@ -1,29 +1,39 @@
-// Trail-côtes : quatre onglets (Accueil, Côtes, Course, Profil), un écran de détail par côte,
-// et la création du coureur au premier lancement.
+// Trail-côtes : cinq onglets en bas (Accueil, Côtes, S'entraîner, Course, Nutrition), un menu ☰ qui
+// range toutes les sections par catégorie (dont Mes courses, Profil, Données), un écran de détail par
+// côte, et la création du coureur au premier lancement.
 
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import cotesExportees from "./assets/data/cotes.json";
 import parcoursDemo from "./assets/data/parcours_demo.json";
+import { Avatar } from "./src/avatar/Avatar.tsx";
 import { EditeurAvatar } from "./src/avatar/Editeur.tsx";
 import { apparenceAleatoire } from "./src/avatar/modele.ts";
-import { cotesProches, type Cote, type CoteProche, type Filtres } from "./src/calcul/cotes.ts";
+import type { CourseInscrite } from "./src/calcul/calendrier.ts";
+import { cotesProches, type Cote, type CoteProche, type Filtres, type Sens } from "./src/calcul/cotes.ts";
 import type { Lieu } from "./src/calcul/geoservices.ts";
 import { PREFERENCES_DEFAUT, type Ravito } from "./src/calcul/nutrition.ts";
 import { mesPassages } from "./src/calcul/points.ts";
 import { fusionner, modeleAllure } from "./src/calcul/allure.ts";
 import type { Parcours } from "./src/calcul/profil.ts";
-import { Navigation, type Onglet } from "./src/composants/communs.tsx";
+import { BarreHaut, Navigation, type Onglet, type Page } from "./src/composants/communs.tsx";
+import { Menu, type Destination } from "./src/composants/Menu.tsx";
+import { RechercheLieu } from "./src/composants/RechercheLieu.tsx";
 import { EcranAccueil } from "./src/ecrans/Accueil.tsx";
 import { EcranBienvenue } from "./src/ecrans/Bienvenue.tsx";
-import { EcranCotes, FILTRES_DEFAUT, type Localisation, type ModeCotes, type PointDepart } from "./src/ecrans/Cotes.tsx";
+import { EcranCotes, FILTRES_DEFAUT, type Localisation, type PointDepart } from "./src/ecrans/Cotes.tsx";
 import { EcranCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
+import { EcranEntrainement, type ModeEntrainement } from "./src/ecrans/Entrainement.tsx";
+import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
+import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
 import { EcranProfil } from "./src/ecrans/Profil.tsx";
+import { EcranSources } from "./src/ecrans/Sources.tsx";
+import { chargerCourses, enregistrerCourses } from "./src/mesCourses.ts";
 import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
@@ -34,10 +44,16 @@ const SOURCE = (cotesExportees as { source: string }).source.includes("sqlite") 
 const ZONES: Lieu[] = [{ label: "Rennes", detail: "Rennes et communes proches (≈ 9 × 8 km)", lat: 48.1113, lon: -1.68 }];
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
+const TITRES: Record<Page, string> = {
+  accueil: "Trail-côtes", cotes: "Côtes et descentes", entrainement: "S'entraîner", course: "Préparer une course",
+  nutrition: "Nutrition", courses: "Mes courses", profil: "Profil et sorties", sources: "Données et confidentialité",
+};
 
 function Contenu() {
   const bords = useSafeAreaInsets();
-  const [onglet, setOnglet] = useState<Onglet>("accueil");
+  const [page, setPage] = useState<Page>("accueil");
+  const [menu, setMenu] = useState(false);
+  const [recherche, setRecherche] = useState(false);
   const [profil, setProfil] = useState<Profil | null | undefined>(undefined); // undefined : en cours de chargement
   const [accueil, setAccueil] = useState<"bienvenue" | "editeur" | null>(null);
   const [edition, setEdition] = useState(false);
@@ -53,7 +69,10 @@ function Contenu() {
   const [filtres, setFiltres] = useState<Filtres>(FILTRES_DEFAUT);
   const [recents, setRecents] = useState<Lieu[]>([]);
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
-  const [modeCotes, setModeCotes] = useState<ModeCotes>("montee");
+  const [modeCotes, setModeCotes] = useState<Sens>("montee");
+  const [modeEntrainement, setModeEntrainement] = useState<ModeEntrainement>("seance");
+  const [courses, setCoursesEtat] = useState<CourseInscrite[]>([]);
+  const setCourses = (c: CourseInscrite[]) => { setCoursesEtat(c); enregistrerCourses(c); };
 
   useEffect(() => {
     chargerProfil().then((p) => {
@@ -61,6 +80,7 @@ function Contenu() {
       if (!p) setAccueil("bienvenue");
     });
     chargerRecents().then(setRecents);
+    chargerCourses().then(setCoursesEtat);
   }, []);
   const changerProfil = (p: Profil) => {
     setProfil(p);
@@ -102,14 +122,24 @@ function Contenu() {
     }
   }, []);
 
-  // première ouverture de l'onglet Côtes : on tente la localisation, sauf si un lieu a déjà été choisi
+  // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
-    if (onglet === "cotes" && !dejaLocalise.current && depart === DEPART_DEFAUT) {
+    if ((page === "cotes" || page === "entrainement") && !dejaLocalise.current && depart === DEPART_DEFAUT) {
       dejaLocalise.current = true;
       localiser();
     }
-  }, [onglet, depart, localiser]);
+  }, [page, depart, localiser]);
+
+  // confirmation brève à chaque nouveau point de départ (GPS ou lieu choisi)
+  const [annonce, setAnnonce] = useState<string | null>(null);
+  useEffect(() => {
+    if (depart === DEPART_DEFAUT) return;
+    setAnnonce(depart.gps ? `Position mise à jour${depart.detail.includes("±") ? ` (${depart.detail.replace("GPS, à ", "")})` : ""}`
+      : `Départ : ${depart.nom}`);
+    const t = setTimeout(() => setAnnonce(null), 2500);
+    return () => clearTimeout(t);
+  }, [depart]);
 
   // mon allure selon la pente, apprise de mes sorties GPX validées
   const modele = useMemo(() => (profil ? modeleAllure(fusionner(profil.activites.filter((a) => a.statut === "validee").map((a) => a.allures))) : null),
@@ -120,9 +150,13 @@ function Contenu() {
 
   useEffect(() => setRavitos([]), [parcours]);
 
-  const aller = (o: Onglet) => {
+  const aller = (d: Destination) => {
     setDetail(null);
-    setOnglet(o);
+    setMenu(false);
+    setRecherche(false);
+    if (d.page === "cotes" && d.mode) setModeCotes(d.mode as Sens);
+    if (d.page === "entrainement" && d.mode) setModeEntrainement(d.mode as ModeEntrainement);
+    setPage(d.page);
   };
   const ouvrirCote = (cote: CoteProche, rang: number) => setDetail({ cote, rang });
 
@@ -148,32 +182,75 @@ function Contenu() {
   }
   if (!profil) return null;
 
+  const commun = { toutes: COTES, depart, localisation, onLocaliser: localiser, onRecherche: () => setRecherche(true),
+                   onLieu: choisirLieu, zones: ZONES, allurePlat: ALLURE_PLAT_MIN_KM, onChoisir: ouvrirCote };
   let ecran;
   if (detail) {
     ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} depart={depart.position}
                          nomDepart={depart.nom} retour={() => setDetail(null)}
                          passages={mesPassages(profil.activites, detail.cote)} />;
-  } else if (onglet === "accueil") {
-    ecran = <EcranAccueil profil={profil} proches={proches} lieu={depart.nom} nbCotes={COTES.length} allerA={aller}
-                          ouvrirCotes={(m) => { setModeCotes(m); aller("cotes"); }}
-                          ouvrirCote={ouvrirCote} />;
-  } else if (onglet === "cotes") {
-    ecran = <EcranCotes toutes={COTES} depart={depart} localisation={localisation} filtres={filtres} setFiltres={setFiltres}
-                        onChoisir={ouvrirCote} allurePlat={ALLURE_PLAT_MIN_KM} onLocaliser={localiser} onLieu={choisirLieu}
-                        recents={recents} zones={ZONES} source={SOURCE} mode={modeCotes} setMode={setModeCotes} />;
-  } else if (onglet === "course") {
+  } else if (page === "accueil") {
+    ecran = <EcranAccueil profil={profil} proches={proches} lieu={depart.nom} nbCotes={COTES.length} aller={aller}
+                          ouvrirCote={ouvrirCote} courses={courses} />;
+  } else if (page === "cotes") {
+    ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} source={SOURCE} mode={modeCotes} setMode={setModeCotes} />;
+  } else if (page === "entrainement") {
+    ecran = <EcranEntrainement {...commun} mode={modeEntrainement} setMode={setModeEntrainement} filtres={filtres}
+                               activites={profil.activites} modele={modele} onAjouterSortie={() => aller({ page: "profil" })} />;
+  } else if (page === "course") {
     ecran = <EcranCourse parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
-                         objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
-                         prefs={prefs} setPrefs={setPrefs} cotes={COTES} position={depart.position} nomDepart={depart.nom}
-                         onChoisir={ouvrirCote} modele={modele} />;
+                         objectif={objectif} setObjectif={setObjectif} onNutrition={() => aller({ page: "nutrition" })}
+                         cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele} />;
+  } else if (page === "nutrition") {
+    ecran = <EcranNutrition parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
+                            prefs={prefs} setPrefs={setPrefs} onPreparer={() => aller({ page: "course" })} />;
+  } else if (page === "courses") {
+    ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
+      if (c.objectif) setObjectif(c.objectif);
+      aller({ page: "course" });
+    }} />;
+  } else if (page === "profil") {
+    ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)} />;
   } else {
-    ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)} modele={modele} />;
+    ecran = <EcranSources />;
   }
+  const avatar = <Avatar a={profil.apparence} taille={44} cadrage="buste" />;
   return (
     <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top }}>
       <StatusBar style="dark" />
+      {!detail && (
+        <BarreHaut titre={TITRES[page]} onMenu={() => setMenu(true)} onProfil={() => aller({ page: "profil" })} avatar={avatar} />
+      )}
       <View style={{ flex: 1 }}>{ecran}</View>
-      <Navigation actif={detail ? "cotes" : onglet} basSur={bords.bottom} onChange={aller} />
+      <Navigation actif={detail ? page : page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />
+      {annonce && (
+        <View pointerEvents="none" accessibilityLiveRegion="polite"
+              style={{ position: "absolute", bottom: 96 + bords.bottom, left: 20, right: 20, alignItems: "center" }}>
+          <Text pointerEvents="none" style={{ backgroundColor: C.encre, color: C.fond, fontWeight: "700", fontSize: 14, paddingVertical: 10,
+                                              paddingHorizontal: 16, borderRadius: 999, overflow: "hidden" }}>{annonce}</Text>
+        </View>
+      )}
+      {recherche && (
+        <View style={{ position: "absolute", left: 0, right: 0, top: bords.top, bottom: 0 }}>
+          <RechercheLieu pres={depart.position} recents={recents} zones={ZONES} onLieu={choisirLieu} onLocaliser={localiser}
+                         onFermer={() => setRecherche(false)} />
+        </View>
+      )}
+      {menu && (
+        <View style={{ position: "absolute", left: 0, right: 0, top: bords.top, bottom: 0 }}>
+          <Menu actuelle={{ page, mode: page === "cotes" ? modeCotes : page === "entrainement" ? modeEntrainement : undefined }}
+                onAller={aller} onFermer={() => setMenu(false)}
+                entete={(
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <View style={{ borderRadius: 24, overflow: "hidden" }}><Avatar a={profil.apparence} taille={48} cadrage="buste" /></View>
+                    <View>
+                      <Text style={{ fontSize: 17, fontWeight: "800", color: C.encre }}>{profil.prenom}</Text>
+                      <Text style={{ fontSize: 12, color: C.gris }}>Trail-côtes</Text>
+                    </View>
+                  </View>
+                )} />
+        </View>
+      )}
     </View>
   );
 }

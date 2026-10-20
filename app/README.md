@@ -13,27 +13,22 @@ npm run typecheck
 
 ## Organisation
 
-Quatre onglets, chacun avec un seul rôle :
+En bas, cinq onglets ; en haut à gauche, le menu ☰ qui range **toutes** les sections par
+catégorie ; en haut à droite, l'avatar ouvre le profil.
 
-- **Accueil** : mon coureur et mes points, les trois actions (trouver une côte, préparer une
-  course, ajouter une sortie), les 3 côtes les plus proches, ma semaine.
-- **Côtes** : un point de départ (ma position, ou une ville / une adresse), un résumé des filtres
-  et un bouton *Filtres* (panneau pente, distance, type de voie, avec le nombre de côtes en direct),
-  puis *Carte* (Plan IGN, côtes tracées et numérotées) ou *Liste*. Chaque côte : adresse du pied,
-  temps estimé en voiture et en courant.
-  - Recherche plein écran : **toutes les communes de France** (35 000, par nom ou code postal,
-    sans accents ni réseau — « Coueron » trouve Couëron) ; adresses précises par le géocodage IGN
-    quand le réseau répond ; ma position, lieux récents, zones déjà calculées.
-  - Hors des zones calculées (côte la plus proche à plus de 30 km), l'écran le dit et propose
-    la zone la plus proche au lieu d'une carte vide.
-- **Course** : vide tant qu'aucun parcours n'est importé (GPX, ou l'exemple de l'Alpe d'Huez),
-  puis trois vues : *Parcours* (profil, montées / descentes / plats), *Passages* (temps estimés selon
-  la pente) et *Nutrition* (ravitos, eau, glucides, sodium par tronçon). Altitudes IGN RGE ALTI,
-  repli sur celles du GPX si le service ne répond pas.
-- **Profil** : avatar, points, ajout d'une sortie (GPX vérifié ou capture en attente), sorties,
-  classement, barème.
-- **Détail d'une côte** : adresse et GPS du départ, temps pour y aller (itinéraires IGN), profil,
-  pente tous les 50 m, séance de répétitions, ouverture dans l'appli de cartes, export GPX.
+| Catégorie | Section | Ce qu'on y fait |
+|---|---|---|
+| — | **Accueil** (onglet) | coureur, points, semaine ; accès à tout, rangé par catégorie ; côtes proches |
+| Explorer | **Côtes** (onglet) | point de départ (GPS, ville, adresse), Montées / Descentes, filtres (pente, longueur, D+, distance, voie, routes passantes), carte ou liste, carte hors ligne |
+| S'entraîner | **S'entraîner** (onglet) | *Séance* (« 8 × 400 m à 10 % » → 3 endroits), *Boucle* (distance, côtes, D+, sans route → GPX), *Mes progrès* (chronos par côte, allure selon la pente) |
+| Courses | **Course** (onglet) | GPX de la course : *Profil*, *Passages* (à mon allure si connue), *Prépa* (côtes équivalentes près de chez moi) |
+| Courses | **Nutrition** (onglet) | pour la course chargée (plan par ravito) ou pour une simple durée ; tout est expliqué et sourcé |
+| Courses | **Mes courses** (menu) | calendrier de l'année, statut, dossard et logement, budget, compte à rebours, « Préparer » |
+| Moi | **Profil** (menu, avatar) | avatar, points, sorties GPX ou capture, classement |
+| Infos | **Données et confidentialité** (menu) | sources des chiffres, ce qui reste sur le téléphone |
+
+Le **détail d'une côte** : adresse et GPS du départ, trafic, trajets, profil, pente tous les
+50 m, mes passages chronométrés, séance de répétitions, export GPX.
 
 Au premier lancement : présentation, puis création du coureur — silhouette, corpulence, taille,
 peau, yeux (forme et couleur), sourcils, expression, barbe, taches de rousseur, coupe et couleur

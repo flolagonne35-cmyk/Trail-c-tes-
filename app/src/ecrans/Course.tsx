@@ -1,25 +1,23 @@
 // Onglet « Course » : un parcours (GPX importé ou exemple), puis trois vues :
-// Parcours (profil et segments), Passages (temps estimés), Nutrition (ravitos et quantités).
+// Profil (segments), Passages (temps estimés), Prépa (où s'entraîner près de chez soi) ; la nutrition
+// de la course est dans l'onglet Nutrition.
 
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import {
-  besoinsParHeure, construirePlan, fourchetteGlucides, heuresLisibles, lireObjectif, NIVEAUX, pourquoiGlucides, recommandation,
-  routineHoraire, tempsDePassage, type Niveau, type Preferences, type Ravito,
-} from "../calcul/nutrition.ts";
+import { heuresLisibles, lireObjectif, tempsDePassage } from "../calcul/nutrition.ts";
 import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { tempsPrevu, type Modele } from "../calcul/allure.ts";
 import { analyserGpx } from "../calcul/parcours.ts";
 import { passagesCles } from "../calcul/seances.ts";
 import type { Parcours } from "../calcul/profil.ts";
-import { Ajusteur, Icone, nombre, Section, Segments, Tuiles } from "../composants/communs.tsx";
+import { Icone, nombre, Section, Segments, Tuiles } from "../composants/communs.tsx";
 import { ProfilParcours } from "../composants/graphiques.tsx";
-import { choisirGpx, partagerTexte } from "../fichiers.ts";
+import { choisirGpx } from "../fichiers.ts";
 import { C, COULEUR_TYPE, S } from "../theme.ts";
 
-type Vue = "parcours" | "passages" | "nutrition" | "prepa";
+type Vue = "parcours" | "passages" | "prepa";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 46, fontSize: 16,
                 color: C.encre } as const;
@@ -208,183 +206,10 @@ function VuePrepa({ parcours, cotes, position, nomDepart, onChoisir }: {
   );
 }
 
-function Reglage({ etiquette, valeur, unite, pas, min, max, conseil, horsPlage, onChange }: {
-  etiquette: string; valeur: number; unite: string; pas: number; min?: number; max?: number; conseil: string;
-  horsPlage?: string | null; onChange: (v: number) => void;
-}) {
-  return (
-    <View style={{ gap: 4 }}>
-      <Ajusteur etiquette={etiquette} valeur={valeur} unite={unite} pas={pas} min={min} max={max} onChange={onChange} />
-      <Text style={S.petit}>{conseil}</Text>
-      {horsPlage ? <Text style={{ fontSize: 12, color: C.monteeFonce, fontWeight: "600" }}>{horsPlage}</Text> : null}
-    </View>
-  );
-}
-
-function VueNutrition({ parcours, heures, ravitos, setRavitos, prefs: brutes, setPrefs }: {
-  parcours: Parcours; heures: number; ravitos: Ravito[]; setRavitos: (r: Ravito[]) => void;
-  prefs: Preferences; setPrefs: (p: Preferences) => void;
-}) {
-  const [km, setKm] = useState("");
-  const [nom, setNom] = useState("");
-  const [produits, setProduits] = useState(false);
-  // tant que rien n'est réglé à la main, les besoins suivent la durée et l'habitude
-  const prefs = useMemo(() => (brutes.perso ? brutes : { ...brutes, ...recommandation(heures, brutes.niveau) }), [brutes, heures]);
-  const regler = (partiel: Partial<Preferences>) => setPrefs({ ...prefs, ...partiel, perso: true });
-  const plan = useMemo(() => construirePlan(parcours, heures, ravitos, prefs), [parcours, heures, ravitos, prefs]);
-  const [gBas, gHaut] = fourchetteGlucides(heures);
-  const besoins = besoinsParHeure(prefs);
-  const total = plan.reduce((t, x) => ({ g: t.g + x.glucides_g, eau: t.eau + x.eau_ml, gels: t.gels + x.gels, barres: t.barres + x.barres }),
-                            { g: 0, eau: 0, gels: 0, barres: 0 });
-  function ajouter() {
-    const k = parseFloat(km.replace(",", "."));
-    if (!Number.isFinite(k) || k <= 0 || k >= parcours.distance_km) return;
-    setRavitos([...ravitos, { km: k, nom: nom.trim() || `km ${nombre(k, 1)}` }].sort((a, b) => a.km - b.km));
-    setKm("");
-    setNom("");
-  }
-  const texte = () => [`Plan nutrition — ${parcours.nom} (objectif ${heuresLisibles(heures)})`,
-    `Par heure : ${besoins.glucides} g de glucides, ${besoins.eau} ml d'eau, ${besoins.sodium} mg de sodium`,
-    ...plan.map((t) => `${t.de} → ${t.a} (km ${nombre(t.km_debut, 1)}–${nombre(t.km_fin, 1)}, passage ${t.passage}) : ${t.resume.join(", ")}`)].join("\n");
-  const kmInvalide = km.trim() !== "" && !(parseFloat(km.replace(",", ".")) > 0 && parseFloat(km.replace(",", ".")) < parcours.distance_km);
-
-  return (
-    <>
-      <View style={[S.carte, { gap: 8 }]}>
-        <Text style={S.h2}>Comment c'est calculé</Text>
-        <Text style={[S.petit, { fontSize: 13, lineHeight: 19, color: C.encre }]}>
-          Ton objectif de {heuresLisibles(heures)} fixe la durée d'effort. {pourquoiGlucides(heures)} Le temps de chaque
-          tronçon (selon sa pente) multiplié par tes besoins horaires donne ce qu'il faut emporter jusqu'au ravito suivant.
-        </Text>
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 4 }}>
-          {[["Glucides", `${besoins.glucides} g/h`], ["Eau", `${besoins.eau} ml/h`], ["Sodium", `${besoins.sodium} mg/h`]].map(([t, v]) => (
-            <View key={t} style={{ flex: 1, backgroundColor: C.fond, borderRadius: 12, padding: 10 }}>
-              <Text style={S.petit}>{t}</Text>
-              <Text style={[S.fort, { fontSize: 17 }]}>{v}</Text>
-            </View>
-          ))}
-        </View>
-        <Text style={S.petit}>{brutes.perso ? "Réglages personnalisés." : `Recommandé pour ${heuresLisibles(heures)}, profil « ${NIVEAUX.find((n) => n[0] === prefs.niveau)![1]} », ${prefs.temperature} °C.`}</Text>
-      </View>
-
-      <Section titre="Pendant la course, chaque heure">
-        <View style={[S.carte, { marginTop: 0, gap: 8 }]}>
-          {routineHoraire(prefs).map((l) => (
-            <View key={l} style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.montee, marginTop: 7 }} />
-              <Text style={[S.petit, { flex: 1, fontSize: 14, color: C.encre }]}>{l}</Text>
-            </View>
-          ))}
-        </View>
-      </Section>
-
-      <Section titre="Ce que tu emportes">
-        <Text style={S.petit}>
-          Au total : {nombre(total.g)} g de glucides ({total.gels} gel{total.gels > 1 ? "s" : ""}{total.barres ? `, ${total.barres} barre${total.barres > 1 ? "s" : ""}` : ""}) et {nombre(total.eau / 1000, 1)} L d'eau.
-          {ravitos.length ? "" : " Ajoute tes ravitaillements plus bas pour découper le plan."}
-        </Text>
-        <View style={{ gap: 8 }}>
-          {plan.map((t) => (
-            <View key={t.n} style={{ backgroundColor: C.blanc, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 14 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                <Text style={[S.fort, { flex: 1 }]}>{t.de} → {t.a}</Text>
-                <Text style={S.petit}>km {nombre(t.km_debut, 1)} – {nombre(t.km_fin, 1)}</Text>
-              </View>
-              <Text style={[S.petit, { marginTop: 2 }]}>
-                {heuresLisibles(t.duree_h)} de course · arrivée estimée à {t.passage} · D+ {nombre(t.dplus_m)} m
-              </Text>
-              <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-                {t.resume.map((r) => (
-                  <Text key={r} style={{ fontSize: 13, fontWeight: "600", paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999,
-                                         overflow: "hidden", backgroundColor: C.sable, color: C.encre }}>{r}</Text>
-                ))}
-              </View>
-              <Text style={[S.petit, { marginTop: 6 }]}>= {nombre(t.glucides_g)} g de glucides, {nombre(t.eau_ml)} ml d'eau, {nombre(t.sodium_mg)} mg de sodium</Text>
-            </View>
-          ))}
-          <Pressable onPress={() => partagerTexte("Plan nutrition", texte())} accessibilityRole="button" style={S.boutonClair}>
-            <Text style={S.boutonClairTexte}>Partager le plan</Text>
-          </Pressable>
-        </View>
-      </Section>
-
-      <Section titre="Ravitaillements">
-        <View style={[S.carte, { marginTop: 0, gap: 8 }]}>
-          <Text style={S.petit}>Points où tu peux recharger (eau, nourriture) : le plan se découpe entre eux.</Text>
-          {ravitos.map((r, i) => (
-            <View key={`${r.km}-${i}`} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Text style={[S.fort, { flex: 1 }]}>km {nombre(r.km, 1)} · {r.nom}</Text>
-              <Pressable onPress={() => setRavitos(ravitos.filter((_, k) => k !== i))} accessibilityRole="button"
-                         accessibilityLabel={`Supprimer le ravitaillement ${r.nom}`}
-                         style={{ minHeight: 44, minWidth: 44, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ fontSize: 22, color: C.gris }}>×</Text>
-              </Pressable>
-            </View>
-          ))}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <TextInput value={km} onChangeText={setKm} placeholder="km" keyboardType="decimal-pad"
-                       style={[champ, { width: 64, backgroundColor: C.fond }]} accessibilityLabel="Kilomètre du ravitaillement" />
-            <TextInput value={nom} onChangeText={setNom} placeholder="Nom (facultatif)" onSubmitEditing={ajouter}
-                       style={[champ, { flex: 1, minWidth: 0, backgroundColor: C.fond }]} accessibilityLabel="Nom du ravitaillement" />
-            <Pressable onPress={ajouter} disabled={!km.trim() || kmInvalide} accessibilityRole="button"
-                       style={[S.bouton, { minHeight: 46, paddingHorizontal: 14, opacity: !km.trim() || kmInvalide ? 0.4 : 1 }]}>
-              <Text style={S.boutonTexte}>Ajouter</Text>
-            </Pressable>
-          </View>
-          {kmInvalide && <Text style={{ fontSize: 12, color: C.monteeFonce }}>Le km doit être entre 0 et {nombre(parcours.distance_km, 1)}.</Text>}
-        </View>
-      </Section>
-
-      <Section titre="Mes réglages" action={brutes.perso ? "Recommandations" : undefined}
-               onAction={() => setPrefs({ ...brutes, perso: false })}>
-        <View style={[S.carte, { marginTop: 0, gap: 14 }]}>
-          <View style={{ gap: 6 }}>
-            <Text style={S.fort}>Manger en courant, tu as l'habitude ?</Text>
-            <Segments options={NIVEAUX.map(([v, n]) => [v, n] as [Niveau, string])} valeur={prefs.niveau}
-                      onChange={(niveau) => setPrefs({ ...brutes, niveau, perso: false })} />
-            <Text style={S.petit}>{NIVEAUX.find((n) => n[0] === prefs.niveau)![2]}. Choisir un profil remet les recommandations.</Text>
-          </View>
-          <Reglage etiquette="Température" valeur={prefs.temperature} unite="°C" pas={1} min={-10} max={45}
-                   onChange={(temperature) => setPrefs({ ...brutes, temperature })}
-                   conseil="Prévue le jour J. Au-dessus de 15 °C, l'eau et le sodium augmentent de 10 % par 5 °C." />
-          <Reglage etiquette="Glucides" valeur={prefs.glucides} unite="g/h" pas={5} max={120} onChange={(glucides) => regler({ glucides })}
-                   conseil={`Le carburant des muscles (gels, barres, boisson sucrée). Conseillé pour ta durée : ${gBas} à ${gHaut} g/h.`}
-                   horsPlage={prefs.glucides > gHaut ? "Au-dessus de la fourchette : à tester d'abord à l'entraînement (risque digestif)."
-                     : prefs.glucides < gBas ? "En dessous de la fourchette : risque de coup de barre en fin de course." : null} />
-          <Reglage etiquette="Eau" valeur={prefs.eau} unite="ml/h" pas={50} max={1200} onChange={(eau) => regler({ eau })}
-                   conseil="À 15 °C. Conseillé : 450 à 750 ml/h. Pour te mesurer : pèse-toi avant et après 1 h de course sans boire ; 1 kg perdu ≈ 1 L de sueur."
-                   horsPlage={prefs.eau > 900 ? "Boire beaucoup plus que la sueur perdue peut diluer le sodium du sang (hyponatrémie)." : null} />
-          <Reglage etiquette="Sodium" valeur={prefs.sodium} unite="mg/h" pas={50} max={1500} onChange={(sodium) => regler({ sodium })}
-                   conseil={`Le sel perdu dans la sueur. Conseillé : 500 à 700 mg par litre bu, soit ${Math.round(prefs.eau * 0.5)} à ${Math.round(prefs.eau * 0.7)} mg/h avec ton eau. Plus si ta sueur laisse des traces blanches.`} />
-          <Pressable onPress={() => setProduits(!produits)} accessibilityRole="button" style={{ minHeight: 40, justifyContent: "center" }}>
-            <Text style={{ fontSize: 14, fontWeight: "700", color: C.montee }}>{produits ? "Masquer mes produits" : "Mes produits (taille des gels, barres, pastilles)"}</Text>
-          </Pressable>
-          {produits && <>
-            <Reglage etiquette="Un gel" valeur={prefs.gelG} unite="g" pas={5} min={10} max={60} onChange={(gelG) => regler({ gelG })}
-                     conseil="Glucides par gel, écrits sur l'emballage (souvent 20 à 30 g)." />
-            <Reglage etiquette="Une barre" valeur={prefs.barreG} unite="g" pas={5} min={10} max={80} onChange={(barreG) => regler({ barreG })}
-                     conseil="Glucides par barre (souvent 25 à 45 g)." />
-            <Reglage etiquette="Part en solide" valeur={Math.round(prefs.partSolide * 100)} unite="%" pas={10} min={0} max={100}
-                     onChange={(v) => regler({ partSolide: v / 100 })}
-                     conseil="Part des glucides en barres ou salé : utile au-delà de 4 h pour éviter l'écœurement des gels." />
-            <Reglage etiquette="Une pastille de sel" valeur={prefs.pastilleMg} unite="mg" pas={50} min={50} max={1000}
-                     onChange={(pastilleMg) => regler({ pastilleMg })} conseil="Sodium par pastille ou capsule (souvent 200 à 300 mg)." />
-          </>}
-        </View>
-      </Section>
-      <Text style={[S.petit, { marginTop: 14 }]}>
-        Sources : ACSM / Thomas et al. 2016 (glucides selon la durée) ; Jeukendrup 2014 (au-delà de 60 g/h, glucose + fructose) ;
-        ISSN, Tiller et al. 2019 (eau et sodium en ultra). Ces repères ne remplacent pas un avis médical ; teste toujours ton plan à l'entraînement.
-      </Text>
-    </>
-  );
-}
-
-export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, ravitos, setRavitos, prefs, setPrefs,
+export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, onNutrition,
                               cotes, position, nomDepart, onChoisir, modele }: {
   parcours: Parcours | null; onParcours: (p: Parcours) => void; onExemple: () => void;
-  objectif: string; setObjectif: (v: string) => void; ravitos: Ravito[]; setRavitos: (r: Ravito[]) => void;
-  prefs: Preferences; setPrefs: (p: Preferences) => void;
+  objectif: string; setObjectif: (v: string) => void; onNutrition: () => void;
   cotes: Cote[]; position: Position; nomDepart: string; onChoisir: (c: CoteProche, rang: number) => void;
   modele: Modele | null;
 }) {
@@ -440,15 +265,20 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
       )}
 
       <View style={{ marginTop: 16 }}>
-        <Segments options={[["parcours", "Profil"], ["passages", "Passages"], ["nutrition", "Nutrition"], ["prepa", "Prépa"]]}
+        <Segments options={[["parcours", "Profil"], ["passages", "Passages"], ["prepa", "Prépa"]]}
                   valeur={vue} onChange={setVue} />
       </View>
+      <Pressable onPress={onNutrition} accessibilityRole="button" style={[S.ligne, { marginTop: 10 }]}>
+        <Icone nom="nutrition" couleur={C.montee} />
+        <View style={{ flex: 1 }}>
+          <Text style={S.fort}>Nutrition de cette course</Text>
+          <Text style={S.petit}>Glucides, eau et sel entre chaque ravitaillement</Text>
+        </View>
+        <Icone nom="fleche" couleur={C.gris} taille={18} />
+      </Pressable>
       {vue === "parcours" && <VueParcours parcours={parcours} />}
       {vue === "prepa" && <VuePrepa parcours={parcours} cotes={cotes} position={position} nomDepart={nomDepart} onChoisir={onChoisir} />}
       {vue === "passages" && objectifOk && <VuePassages parcours={parcours} heures={heures} />}
-      {vue === "nutrition" && objectifOk && (
-        <VueNutrition parcours={parcours} heures={heures} ravitos={ravitos} setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} />
-      )}
     </ScrollView>
   );
 }

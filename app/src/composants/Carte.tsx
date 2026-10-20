@@ -10,6 +10,7 @@ import type { Position } from "../calcul/geo.ts";
 import {
   metresParPixel, SOURCE_IGN, SOURCE_LOCALE, surEcran, tuilesVisibles, versPixel, versPosition,
 } from "../calcul/tuiles.ts";
+import { tuileLocale } from "../cartesHorsLigne.ts";
 import { C } from "../theme.ts";
 
 // version de test sans réseau : tuiles publiées avec la page
@@ -82,7 +83,7 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
           accessibilityLabel={`Carte : ${traces.length} côte${traces.length > 1 ? "s" : ""}`}>
       <View style={[{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }, decalage]} {...glissement.panHandlers}>
         {tuiles.map((t) => (
-          <Image key={t.cle} source={{ uri: t.url }} accessibilityIgnoresInvertColors
+          <Image key={t.cle} source={{ uri: SOURCE === SOURCE_IGN ? tuileLocale(...t.zxy) ?? t.url : t.url }} accessibilityIgnoresInvertColors
                  style={{ position: "absolute", left: t.gauche, top: t.haut, width: t.taille, height: t.taille }} />
         ))}
         {largeur > 0 && (

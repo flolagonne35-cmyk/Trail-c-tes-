@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { Avatar } from "../avatar/Avatar.tsx";
-import { allureLisible, TRANCHES, type Modele } from "../calcul/allure.ts";
 import type { Cote } from "../calcul/cotes.ts";
 import { activiteDepuisGpx, activiteDepuisPhoto, BAREME, score, type Activite } from "../calcul/points.ts";
 import { Icone, nombre, Section, Tuiles } from "../composants/communs.tsx";
@@ -22,39 +21,8 @@ const STATUT: Record<Activite["statut"], [string, string, string]> = {
   refusee: ["Refusée", C.monteeClair, C.monteeFonce],
 };
 
-function MonAllure({ modele }: { modele: Modele | null }) {
-  return (
-    <Section titre="Mon allure selon la pente">
-      <View style={[S.carte, { marginTop: 0, gap: 6 }]}>
-        {!modele ? (
-          <Text style={S.petit}>
-            Ajoute des sorties GPX horodatées : l'appli mesure ton allure réelle par tranche de pente (au moins 500 m courus
-            dans une tranche) et s'en sert pour prévoir tes temps de course.
-          </Text>
-        ) : (
-          <>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-              {TRANCHES.map((t) => (
-                <View key={t} style={{ width: "18%", minWidth: 58, backgroundColor: modele.connues.includes(t) ? C.monteeClair : C.fond,
-                                       borderRadius: 10, padding: 6, alignItems: "center" }}>
-                  <Text style={S.petit}>{t > 0 ? "+" : ""}{t} %</Text>
-                  <Text style={[S.fort, { fontSize: 14 }]}>{allureLisible(modele.secondesParMetre(t))}</Text>
-                </View>
-              ))}
-            </View>
-            <Text style={S.petit}>
-              min/km. En couleur : mesuré sur tes sorties ; le reste est estimé (coût énergétique de la pente, Minetti 2002),
-              recalé sur toi. {nombre(modele.metres / 1000, 0)} km analysés.
-            </Text>
-          </>
-        )}
-      </View>
-    </Section>
-  );
-}
-
-export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser, modele }: {
-  profil: Profil; setProfil: (p: Profil) => void; cotes: Cote[]; onPersonnaliser: () => void; modele: Modele | null;
+export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser }: {
+  profil: Profil; setProfil: (p: Profil) => void; cotes: Cote[]; onPersonnaliser: () => void;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -134,8 +102,6 @@ export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser, modele 
                             accessibilityRole="alert">{message}</Text>}
         </View>
       </Section>
-
-      <MonAllure modele={modele} />
 
       <Section titre="Classement">
         <View style={[S.carte, { marginTop: 0, gap: 8 }]}>

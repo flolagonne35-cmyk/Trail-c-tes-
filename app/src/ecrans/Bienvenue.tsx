@@ -8,9 +8,10 @@ import { Icone } from "../composants/communs.tsx";
 import { C, S } from "../theme.ts";
 
 const POINTS: [Parameters<typeof Icone>[0]["nom"], string, string][] = [
-  ["cotes", "Des côtes près de chez toi", "Longueur, pente tous les 50 m et adresse du pied, mesurées sur les altitudes IGN."],
-  ["course", "Ta course préparée", "Importe le GPX : profil découpé, temps de passage et plan de nutrition."],
-  ["trophee", "Des points à chaque sortie", "Kilomètres, dénivelé et montées de côtes, comptés dès la création du compte."],
+  ["boucle", "Des boucles sur mesure", "« 10 km, 3 côtes, sans route » : composée en un instant, envoyée à ta montre."],
+  ["seance", "La séance du coach", "« 8 × 400 m à 10 % » : les endroits les plus proches qui collent, au mètre près (altitudes IGN)."],
+  ["course", "Ta course préparée", "Profil découpé, temps de passage à ton allure, nutrition, et où t'entraîner près de chez toi."],
+  ["trophee", "Tes progrès", "Tes chronos sur chaque côte, ta vitesse ascensionnelle et des points à chaque sortie."],
 ];
 
 export function EcranBienvenue({ apparence, onCreer, onPasser }: { apparence: Apparence; onCreer: () => void; onPasser: () => void }) {

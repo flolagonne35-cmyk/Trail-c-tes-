@@ -59,7 +59,7 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
 }) {
   const bouton = (signe: -1 | 1) => (
     <Pressable accessibilityRole="button" accessibilityLabel={`${signe < 0 ? "Moins" : "Plus"} ${pas} ${unite}, ${etiquette}`}
-               onPress={() => onChange(Math.min(max, Math.max(min, valeur + signe * pas)))}
+               onPress={() => onChange(Math.min(max, Math.max(min, Math.round((valeur + signe * pas) / pas) * pas)))}
                style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.sable, alignItems: "center",
                         justifyContent: "center" }}>
       <Text style={{ fontSize: 22, fontWeight: "700", color: C.encre }}>{signe < 0 ? "−" : "+"}</Text>
@@ -70,20 +70,28 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
       <Text style={[S.fort, { flex: 1, fontWeight: "600" }]}>{etiquette}</Text>
       {bouton(-1)}
       <Text style={{ fontSize: 16, fontWeight: "700", color: C.encre, minWidth: 76, textAlign: "center" }}>
-        {valeur} {unite}
+        {nombre(valeur, pas < 1 && valeur % 1 ? 2 : 0)} {unite}
       </Text>
       {bouton(1)}
     </View>
   );
 }
 
-export type Onglet = "accueil" | "cotes" | "course" | "profil";
+/** Onglets de la barre du bas. */
+export type Onglet = "accueil" | "cotes" | "entrainement" | "course" | "nutrition";
+/** Toutes les pages : les onglets, plus celles du menu. */
+export type Page = Onglet | "courses" | "profil" | "sources";
 
 export const ICONES = {
   accueil: <Path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />,
   cotes: <><Path d="M3 19l6-9 4 5 3-4 5 8z" /><Circle cx={16.5} cy={5.5} r={1.5} /></>,
   course: <><Path d="M5 21V4" /><Path d="M5 4h11l-2 4 2 4H5" /></>,
   profil: <><Circle cx={12} cy={8} r={4} /><Path d="M4 21c1-4 4-6 8-6s7 2 8 6" /></>,
+  entrainement: <><Circle cx={14} cy={4.5} r={1.8} /><Path d="M9 21l2.5-5.5L14 17v4M11.5 15.5L13 9l-3 1.5-1.5 3M13 9l2.5 2.5H19" /></>,
+  menu: <Path d="M4 7h16M4 12h16M4 17h16" />,
+  calendrier: <><Path d="M5 5h14v15H5z" /><Path d="M5 10h14M9 3v4M15 3v4" /></>,
+  info: <><Circle cx={12} cy={12} r={9} /><Path d="M12 11v6M12 7.5v.5" /></>,
+  fermer: <Path d="M6 6l12 12M18 6L6 18" />,
   recherche: <><Circle cx={11} cy={11} r={6.5} /><Path d="M16 16l5 5" /></>,
   filtres: <Path d="M4 6h16M7 12h10M10 18h4" />,
   plus: <Path d="M12 5v14M5 12h14" />,
@@ -104,7 +112,9 @@ export function Icone({ nom, couleur = C.encre, taille = 22 }: { nom: keyof type
   );
 }
 
-const NOMS: Record<Onglet, string> = { accueil: "Accueil", cotes: "Côtes", course: "Course", profil: "Profil" };
+const NOMS: Record<Onglet, string> = {
+  accueil: "Accueil", cotes: "Côtes", entrainement: "S'entraîner", course: "Course", nutrition: "Nutrition",
+};
 
 /** Titre de section, avec une action facultative à droite. */
 export function Section({ titre, action, onAction, children }: {
@@ -145,17 +155,18 @@ export function Segments<T extends string>({ options, valeur, onChange }: {
   );
 }
 
-export function Navigation({ actif, onChange, basSur }: { actif: Onglet; onChange: (o: Onglet) => void; basSur: number }) {
+export function Navigation({ actif, onChange, basSur }: { actif: Page; onChange: (o: Onglet) => void; basSur: number }) {
   return (
     <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.blanc, paddingTop: 8,
-                                               paddingHorizontal: 12, paddingBottom: Math.max(16, basSur) }}>
+                                               paddingHorizontal: 4, paddingBottom: Math.max(16, basSur),
+                                               borderTopWidth: 1, borderTopColor: C.aire }}>
       {(Object.keys(NOMS) as Onglet[]).map((o) => {
         const couleur = o === actif ? C.montee : C.gris;
         return (
           <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={o === actif}
                      style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, minHeight: 44 }}>
             <Icone nom={o} couleur={couleur} />
-            <Text style={{ fontSize: 12, color: couleur, fontWeight: o === actif ? "700" : "400" }}>{NOMS[o]}</Text>
+            <Text style={{ fontSize: 11, color: couleur, fontWeight: o === actif ? "700" : "500" }} numberOfLines={1}>{NOMS[o]}</Text>
           </Pressable>
         );
       })}
@@ -165,3 +176,23 @@ export function Navigation({ actif, onChange, basSur }: { actif: Onglet; onChang
 
 export const nombre = (v: number, decimales = 0) =>
   v.toLocaleString("fr-FR", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
+
+/** Barre du haut de chaque page : menu (toutes les sections), titre, accès au profil. */
+export function BarreHaut({ titre, onMenu, onProfil, avatar }: {
+  titre: string; onMenu: () => void; onProfil: () => void; avatar: ReactNode;
+}) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 6,
+                   backgroundColor: C.fond }}>
+      <Pressable onPress={onMenu} accessibilityRole="button" accessibilityLabel="Menu : toutes les sections"
+                 style={{ width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: C.blanc }}>
+        <Icone nom="menu" />
+      </Pressable>
+      <Text style={{ flex: 1, fontSize: 18, fontWeight: "800", color: C.encre }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
+      <Pressable onPress={onProfil} accessibilityRole="button" accessibilityLabel="Mon profil"
+                 style={{ width: 44, height: 44, borderRadius: 22, overflow: "hidden", backgroundColor: C.blanc }}>
+        {avatar}
+      </Pressable>
+    </View>
+  );
+}

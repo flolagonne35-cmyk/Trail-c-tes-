@@ -1,8 +1,8 @@
 // Onglet « Côtes » : un point de départ (ma position, une ville, une adresse), un résumé des filtres,
 // puis la carte ou la liste des côtes les plus proches. Hors des zones calculées, on le dit clairement.
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 import {
   cotesProches, distanceCouverture, enDescente, kmLisibles, LONGUEURS, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres,
@@ -14,14 +14,11 @@ import { dureeLisible, tempsTrajets } from "../calcul/trajets.ts";
 import { zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { Icone, nombre, Segments } from "../composants/communs.tsx";
-import { RechercheLieu } from "../composants/RechercheLieu.tsx";
-import { VueBoucle } from "./Boucle.tsx";
-import { VueSeance } from "./Seance.tsx";
+import { CarteHorsLigne } from "../composants/HorsLigne.tsx";
+import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { C, S } from "../theme.ts";
 
-export type ModeCotes = Sens | "seance" | "boucle";
-export type Localisation = "inactive" | "en_cours" | "refusee" | "indisponible";
-export type PointDepart = { position: Position; nom: string; detail: string; gps: boolean };
+export type { Localisation, PointDepart } from "../composants/BarreDepart.tsx";
 
 export const FILTRES_DEFAUT: Filtres = {
   rayonM: 5000, penteMin: 4, types: ["route", "piste cyclable", "chemin", "sentier"], longueur: "toutes", dplusMin: 0, eviterPassant: false,
@@ -164,7 +161,7 @@ function LigneCote({ c, rang, position, allurePlat, onPress, adresse }: {
   );
 }
 
-function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDepart; distance: number; zones: Lieu[]; onLieu: (l: Lieu) => void }) {
+export function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDepart; distance: number; zones: Lieu[]; onLieu: (l: Lieu) => void }) {
   return (
     <View style={[S.carte, { gap: 10, padding: 18 }]}>
       <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: C.monteeClair, alignItems: "center", justifyContent: "center" }}>
@@ -185,29 +182,19 @@ function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDepart; di
 }
 
 export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, onChoisir, allurePlat, onLocaliser,
-                             onLieu, recents, zones, source, mode, setMode }: {
+                             onRecherche, onLieu, zones, source, mode, setMode }: {
   toutes: Cote[]; depart: PointDepart; localisation: Localisation; filtres: Filtres; setFiltres: (f: Filtres) => void;
-  onChoisir: (c: CoteProche, rang: number) => void; allurePlat: number; onLocaliser: () => void; onLieu: (l: Lieu) => void;
-  recents: Lieu[]; zones: Lieu[]; source: string; mode: ModeCotes; setMode: (m: ModeCotes) => void;
+  onChoisir: (c: CoteProche, rang: number) => void; allurePlat: number; onLocaliser: () => void; onRecherche: () => void;
+  onLieu: (l: Lieu) => void; zones: Lieu[]; source: string; mode: Sens; setMode: (m: Sens) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
 
   // une descente est une côte parcourue depuis le sommet
-  const sens: Sens = mode === "descente" ? "descente" : "montee";
+  const sens = mode;
   const base = useMemo(() => (sens === "descente" ? toutes.map(enDescente) : toutes), [toutes, sens]);
   const mot = sens === "descente" ? "descente" : "côte";
-  const [panneau, setPanneau] = useState<"recherche" | "filtres" | null>(null);
+  const [filtresOuverts, setFiltresOuverts] = useState(false);
   const position = depart.position;
-
-  // confirmation brève à chaque nouveau point de départ (GPS ou lieu choisi)
-  const [annonce, setAnnonce] = useState<string | null>(null);
-  const premier = useRef(true);
-  useEffect(() => {
-    if (premier.current) { premier.current = false; return; }
-    setAnnonce(depart.gps ? `Position mise à jour${depart.detail.includes("±") ? ` (${depart.detail.replace("GPS, à ", "")})` : ""}` : `Départ : ${depart.nom}`);
-    const t = setTimeout(() => setAnnonce(null), 2500);
-    return () => clearTimeout(t);
-  }, [depart]);
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
   const horsZone = couverture > RAYON_COUVERTURE_M;
@@ -233,11 +220,6 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
     return () => { actif = false; };
   }, [affichees]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sousTitre = localisation === "en_cours" ? "Localisation en cours…"
-    : localisation === "refusee" ? "Localisation refusée : cherchez une ville"
-    : localisation === "indisponible" ? "Position indisponible : cherchez une ville"
-    : depart.detail;
-
   const carte = (
     <Carte hauteur={vue === "carte" ? 380 : 220} centre={position} position={position}
            rayonM={cotes.length ? filtres.rayonM : undefined}
@@ -256,38 +238,17 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-        <Text style={[S.surtitre, { marginTop: 12 }]}>Côtes autour de</Text>
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
-          <Pressable onPress={() => setPanneau("recherche")} accessibilityRole="search"
-                     accessibilityLabel={`Point de départ : ${depart.nom}. Changer`}
-                     style={{ flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.blanc,
-                              borderRadius: 16, paddingHorizontal: 14, minHeight: 56 }}>
-            <Icone nom="recherche" couleur={C.gris} taille={20} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={{ fontSize: 17, fontWeight: "700", color: C.encre }} numberOfLines={1}>{depart.nom}</Text>
-              <Text style={S.petit} numberOfLines={1}>{sousTitre}</Text>
-            </View>
-          </Pressable>
-          <Pressable onPress={onLocaliser} accessibilityRole="button" accessibilityLabel="Me localiser"
-                     style={{ width: 56, height: 56, borderRadius: 16, alignItems: "center", justifyContent: "center",
-                              backgroundColor: depart.gps ? C.montee : C.encre }}>
-            {localisation === "en_cours" ? <ActivityIndicator color={C.fond} /> : <Icone nom="position" couleur={C.fond} />}
-          </Pressable>
-        </View>
+        <BarreDepart titre={sens === "descente" ? "Descentes autour de" : "Côtes autour de"} depart={depart} localisation={localisation}
+                     onRecherche={onRecherche} onLocaliser={onLocaliser} />
 
         {!horsZone && (
           <View style={{ marginTop: 12 }}>
-            <Segments options={[["montee", "Montées"], ["descente", "Descentes"], ["seance", "Séance"], ["boucle", "Boucle"]]}
-                      valeur={mode} onChange={setMode} />
+            <Segments options={[["montee", "Montées"], ["descente", "Descentes"]]} valeur={mode} onChange={setMode} />
           </View>
         )}
 
         {horsZone ? (
           <HorsZone depart={depart} distance={couverture} zones={zones} onLieu={onLieu} />
-        ) : mode === "boucle" ? (
-          <VueBoucle toutes={toutes} position={position} nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} />
-        ) : mode === "seance" ? (
-          <VueSeance toutes={toutes} position={position} filtres={filtres} allurePlat={allurePlat} onChoisir={onChoisir} />
         ) : (
           <>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
@@ -295,7 +256,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                 <Text style={S.fort}>{cotes.length ? `${cotes.length} ${mot}${cotes.length > 1 ? "s" : ""}` : `Aucune ${mot} dans le rayon`}</Text>
                 <Text style={S.petit} numberOfLines={1}>{resumeFiltres(filtres)}</Text>
               </View>
-              <Pressable onPress={() => setPanneau("filtres")} accessibilityRole="button"
+              <Pressable onPress={() => setFiltresOuverts(true)} accessibilityRole="button"
                          accessibilityLabel={`Filtres${nbFiltres ? `, ${nbFiltres} modifiés` : ""}`}
                          style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 14,
                                   borderRadius: 12, backgroundColor: nbFiltres ? C.encre : C.sable }}>
@@ -337,6 +298,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                   ))}
                   <Text style={[S.petit, { flex: 1, textAlign: "right" }]}>Touchez un numéro</Text>
                 </View>
+                <CarteHorsLigne centre={position} nom={depart.nom === "Ma position" ? "ta position" : depart.nom} />
                 <View style={{ gap: 8, marginTop: 14 }}>
                   {affichees.slice(0, 3).map((c, i) => (
                     <LigneCote key={c.id} c={c} rang={i + 1} position={position} allurePlat={allurePlat}
@@ -366,19 +328,8 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
         </Text>
       </ScrollView>
 
-      {annonce && (
-        <View pointerEvents="none" accessibilityLiveRegion="polite"
-              style={{ position: "absolute", bottom: 16, left: 20, right: 20, alignItems: "center" }}>
-          <Text pointerEvents="none" style={{ backgroundColor: C.encre, color: C.fond, fontWeight: "700", fontSize: 14, paddingVertical: 10,
-                         paddingHorizontal: 16, borderRadius: 999, overflow: "hidden" }}>{annonce}</Text>
-        </View>
-      )}
-      {panneau === "filtres" && (
-        <PanneauFiltres filtres={filtres} toutes={base} position={position} onValider={setFiltres} onFermer={() => setPanneau(null)} />
-      )}
-      {panneau === "recherche" && (
-        <RechercheLieu pres={position} recents={recents} zones={zones} onLieu={onLieu} onLocaliser={onLocaliser}
-                       onFermer={() => setPanneau(null)} />
+      {filtresOuverts && (
+        <PanneauFiltres filtres={filtres} toutes={base} position={position} onValider={setFiltres} onFermer={() => setFiltresOuverts(false)} />
       )}
     </View>
   );

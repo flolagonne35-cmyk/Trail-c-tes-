@@ -38,7 +38,7 @@ export function metresParPixel(lat: number, z: number): number {
   return (2 * Math.PI * R * Math.cos((lat * Math.PI) / 180)) / (TAILLE * 2 ** z);
 }
 
-export type TuileVisible = { cle: string; url: string; gauche: number; haut: number; taille: number };
+export type TuileVisible = { cle: string; zxy: [number, number, number]; url: string; gauche: number; haut: number; taille: number };
 
 /**
  * Tuiles couvrant un cadre `largeur` × `hauteur` centré sur `centre` au zoom `z`. Au-delà du zoom
@@ -57,7 +57,8 @@ export function tuilesVisibles(centre: Position, z: number, largeur: number, hau
     for (let ty = Math.floor(y0 / taille); ty <= Math.floor((y0 + hauteur) / taille); ty++) {
       if (ty < 0 || ty >= n) continue;
       const xs = ((tx % n) + n) % n;
-      tuiles.push({ cle: `${zs}/${xs}/${ty}`, url: source.url(zs, xs, ty), gauche: tx * taille - x0, haut: ty * taille - y0, taille });
+      tuiles.push({ cle: `${zs}/${xs}/${ty}`, zxy: [zs, xs, ty], url: source.url(zs, xs, ty), gauche: tx * taille - x0,
+                    haut: ty * taille - y0, taille });
     }
   }
   return tuiles;
@@ -86,4 +87,17 @@ export function centreDe(points: Position[]): Position {
   const lats = points.map((p) => p.lat);
   const lons = points.map((p) => p.lon);
   return { lat: (Math.min(...lats) + Math.max(...lats)) / 2, lon: (Math.min(...lons) + Math.max(...lons)) / 2 };
+}
+
+/** Tuiles (z, x, y) couvrant un carré de `rayonM` autour de `centre`, du zoom zMin à zMax (carte hors ligne). */
+export function tuilesZone(centre: Position, rayonM: number, zMin: number, zMax: number): [number, number, number][] {
+  const dLat = rayonM / 111195;
+  const dLon = rayonM / (111195 * Math.cos((centre.lat * Math.PI) / 180));
+  const res: [number, number, number][] = [];
+  for (let z = zMin; z <= zMax; z++) {
+    const [x0, y0] = versPixel({ lat: centre.lat + dLat, lon: centre.lon - dLon }, z).map((v) => Math.floor(v / TAILLE));
+    const [x1, y1] = versPixel({ lat: centre.lat - dLat, lon: centre.lon + dLon }, z).map((v) => Math.floor(v / TAILLE));
+    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) res.push([z, x, y]);
+  }
+  return res;
 }

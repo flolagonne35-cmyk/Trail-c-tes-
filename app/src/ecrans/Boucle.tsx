@@ -46,6 +46,10 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
   const [enCours, setEnCours] = useState(false);
   const [resultat, setResultat] = useState<Boucle[] | string | null>(null);
   const [choix, setChoix] = useState(0);
+  // réglages de la dernière boucle composée : inutile de relancer le même calcul
+  const reglages = JSON.stringify([position.lat, position.lon, km, nbCotes, dplus, eviterRoutes, eviterPassant]);
+  const [dernier, setDernier] = useState<string | null>(null);
+  const aJour = dernier === reglages && resultat !== null;
 
   const composer = () => {
     setEnCours(true);
@@ -56,6 +60,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
         setResultat(composerBoucles(grapheApp(), toutes, position,
                                     { distanceKm: km, nbCotes, dplusVise: Number(dplus) || null, eviterRoutes, eviterPassant }));
         setChoix(0);
+        setDernier(reglages);
       } catch (e) {
         setResultat(e instanceof Error ? e.message : String(e));
       } finally {
@@ -81,9 +86,10 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
         </View>
         <Interrupteur nom="Le moins de route possible" detail="Préfère chemins, sentiers et voies vertes" valeur={eviterRoutes} onChange={setEviterRoutes} />
         <Interrupteur nom="Éviter les routes passantes" detail="Grands axes et routes rapides" valeur={eviterPassant} onChange={setEviterPassant} />
-        <Pressable onPress={composer} disabled={enCours} accessibilityRole="button" style={[S.bouton, { flexDirection: "row", gap: 8 }]}>
+        <Pressable onPress={composer} disabled={enCours || aJour} accessibilityRole="button"
+                   style={[S.bouton, { flexDirection: "row", gap: 8, opacity: aJour ? 0.45 : 1 }]}>
           {enCours && <ActivityIndicator color={C.fond} />}
-          <Text style={S.boutonTexte}>{enCours ? "Calcul de la boucle…" : "Composer ma boucle"}</Text>
+          <Text style={S.boutonTexte}>{enCours ? "Calcul de la boucle…" : aJour ? "Boucles à jour : change un réglage" : "Composer ma boucle"}</Text>
         </Pressable>
       </View>
 
