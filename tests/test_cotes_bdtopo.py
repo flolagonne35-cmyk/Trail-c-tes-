@@ -189,3 +189,14 @@ def test_penalite_suit_la_grande_route():
     avec = bdtopo.Reseau(route + [raccourci], penalite=lambda t: 3.0 if t.importance >= 5 else 1.0).chemin((0, 0), (100, 100))
     assert abs(geo.longueurs_cumulees(sans)[-1] - 141.4) < 1
     assert abs(geo.longueurs_cumulees(avec)[-1] - 200) < 1
+
+
+def test_cote_sur_reseau_non_relie_au_centre():
+    """Régression : distance infinie → OverflowError dans une tuile de Rennes."""
+    d, z = profil_test()
+    ts = [troncon([[0, 0], [10, 0]]), troncon([[5000, 0], [6700, 0]])]  # le centre et la côte ne sont pas reliés
+    voie = cb.Voie([(1, False)], d, d + 5000, np.zeros_like(d), np.ones(len(d), int), d.copy(), np.zeros(len(d), bool), z)
+    reseau = bdtopo.Reseau(ts)
+    reseau.accrocher(0, 0)
+    cotes = cb.cotes_de_voie(voie, ts, geo.Projection(48, -1.7), reseau, cb.parser_arguments([]))
+    assert cotes and all(c.distance_m >= 5000 for c in cotes)

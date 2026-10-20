@@ -96,6 +96,12 @@ class Cote:
     lonlat: list = field(repr=False, default_factory=list)
 
 
+def distance_depuis_centre(reseau: Reseau, voie: Voie, i: int) -> float:
+    """Distance par le réseau ; à vol d'oiseau si la côte est sur une partie non reliée au centre."""
+    d = reseau.distance(int(voie.troncon[i]), float(voie.offset[i]))
+    return d if np.isfinite(d) else float(np.hypot(voie.x[i], voie.y[i]))
+
+
 def cotes_de_voie(voie: Voie, troncons: list[Troncon], proj: Projection, reseau: Reseau,
                   args: argparse.Namespace) -> list[Cote]:
     d, z = voie.d, voie.z
@@ -118,7 +124,7 @@ def cotes_de_voie(voie: Voie, troncons: list[Troncon], proj: Projection, reseau:
         noms = Counter(troncons[t].nom for t in voie.troncon[sel] if troncons[t].nom)
         cotes.append(Cote(
             id=0,
-            distance_m=round(reseau.distance(int(voie.troncon[sel[0]]), float(voie.offset[sel[0]]))),
+            distance_m=round(distance_depuis_centre(reseau, voie, sel[0])),
             longueur_m=round(float(L)),
             pente_moy_pct=round(float(pente), 1),
             pente_max_pct=max(pentes),

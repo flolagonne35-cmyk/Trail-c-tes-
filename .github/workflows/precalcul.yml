@@ -24,6 +24,7 @@ on:
       - "scripts/precalcul.py"
       - "trailcotes/base.py"
       - "trailcotes/adresses.py"
+      - "scripts/cotes_bdtopo.py"
 
 permissions:
   contents: write
