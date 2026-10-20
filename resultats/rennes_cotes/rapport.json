@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T22:56:17+00:00",
+  "date_utc": "2026-10-20T22:58:51+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -160,7 +160,7 @@
       "paved": 40
     },
     "erreurs": [],
-    "duree_s": 22.8
+    "duree_s": 27.4
   },
   "fond_erreurs": [],
   "wfs": {
@@ -279,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 3.9
+    "duree_s": 4.6
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -290,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30759,
     "points_nodata": 0,
-    "duree_s": 21.2,
+    "duree_s": 22.0,
     "codes_http": {
       "200": 7
     },
