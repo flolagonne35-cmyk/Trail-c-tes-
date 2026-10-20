@@ -1,0 +1,71 @@
+name: Appli iPhone et stores (EAS)
+
+# Fabrication sur les serveurs Expo (EAS Build), pour TestFlight / App Store et Play Store.
+# Prérequis (à faire une fois, voir docs/feuille-de-route.md § 2) :
+#   - secret EXPO_TOKEN (expo.dev → Settings → Access tokens) ;
+#   - iPhone : secrets EXPO_ASC_KEY_ID, EXPO_ASC_ISSUER_ID, EXPO_ASC_API_KEY (contenu du .p8) et
+#     EXPO_APPLE_TEAM_ID (App Store Connect → Utilisateurs et accès → Intégrations → Clés) : EAS crée
+#     alors seul les certificats ;
+#   - Android Play Store : la première fois, EAS ne sait pas créer la clé de signature sans
+#     intervention ; utiliser en attendant le workflow « Appli Android à installer ».
+
+on:
+  workflow_dispatch:
+    inputs:
+      plateforme:
+        description: "ios, android ou all"
+        default: "ios"
+      profil:
+        description: "apercu (test interne) ou production (stores)"
+        default: "production"
+
+permissions:
+  contents: write
+
+jobs:
+  eas:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      # les secrets ne sont pas lisibles dans un « if: » : on passe par l'environnement
+      ASC_P8: ${{ secrets.EXPO_ASC_API_KEY }}
+    steps:
+      - name: Prérequis
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Secret EXPO_TOKEN absent : créer un jeton sur expo.dev (Settings → Access tokens) puis l'ajouter dans GitHub → Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+        working-directory: .
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - name: Projet EAS (créé au premier passage, puis enregistré dans app.json)
+        run: |
+          if ! node -e "process.exit(require('./app.json').expo.extra?.eas?.projectId ? 0 : 1)"; then
+            eas init --non-interactive --force
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app.json && git commit -m "Projet EAS lié (run ${{ github.run_id }})" && git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Clé App Store Connect
+        if: env.ASC_P8 != ''
+        run: |
+          printf '%s' "$ASC_P8" > "$RUNNER_TEMP/asc.p8"
+          echo "EXPO_ASC_API_KEY_PATH=$RUNNER_TEMP/asc.p8" >> "$GITHUB_ENV"
+          echo "EXPO_ASC_KEY_ID=${{ secrets.EXPO_ASC_KEY_ID }}" >> "$GITHUB_ENV"
+          echo "EXPO_ASC_ISSUER_ID=${{ secrets.EXPO_ASC_ISSUER_ID }}" >> "$GITHUB_ENV"
+          echo "EXPO_APPLE_TEAM_ID=${{ secrets.EXPO_APPLE_TEAM_ID }}" >> "$GITHUB_ENV"
+      - name: Fabrication sur EAS
+        run: eas build --platform "${{ inputs.plateforme }}" --profile "${{ inputs.profil }}" --non-interactive --no-wait

@@ -1,0 +1,60 @@
+name: Appli Android à installer (APK de test)
+
+# Fabrique l'APK sur GitHub (sans compte Expo) et le publie dans une « Release » du dépôt :
+# l'ouvrir depuis le téléphone Android, télécharger le .apk, autoriser l'installation.
+# Signé avec la clé de test : pour le Play Store, on passera par EAS avec le compte développeur.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/android-apk.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - name: Projet Android natif
+        run: npx expo prebuild --platform android --no-install
+      - name: Compilation (arm64, la quasi-totalité des téléphones récents)
+        working-directory: app/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+      - name: Version
+        id: v
+        run: echo "nom=trail-cotes-$(node -p "require('./app.json').expo.version")-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+      - name: APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk "${{ steps.v.outputs.nom }}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.v.outputs.nom }}
+          path: app/${{ steps.v.outputs.nom }}.apk
+      - name: Release à télécharger depuis le téléphone
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "apk-${{ github.run_number }}" "${{ steps.v.outputs.nom }}.apk" \
+            --target "${GITHUB_SHA}" --prerelease --title "Trail-côtes — test Android n°${{ github.run_number }}" \
+            --notes "APK de test (branche ${GITHUB_REF_NAME}). Sur le téléphone Android : ouvrir cette page, télécharger le .apk, autoriser l'installation depuis le navigateur. Les données restent sur le téléphone."

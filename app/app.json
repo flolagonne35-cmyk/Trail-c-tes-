@@ -2,21 +2,45 @@
   "expo": {
     "name": "Trail-côtes",
     "slug": "trail-cotes",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "fr.trailcotes.app",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "fr",
+        "LSApplicationQueriesSchemes": [
+          "maps",
+          "comgooglemaps"
+        ]
+      }
     },
     "android": {
+      "package": "fr.trailcotes.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#1B2A22",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -25,6 +49,35 @@
       "lang": "fr",
       "themeColor": "#1B2A22",
       "backgroundColor": "#F4F1EA"
-    }
+    },
+    "scheme": "trailcotes",
+    "backgroundColor": "#F4F1EA",
+    "primaryColor": "#D9541E",
+    "description": "Côtes et descentes mesurées au mètre près (altitudes IGN), séances et boucles sur mesure, préparation de course et nutrition pour les traileurs.",
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Trail-côtes utilise ta position, quand l'appli est ouverte, pour trouver les côtes, séances et boucles autour de toi. Tu peux refuser et chercher une ville."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Trail-côtes ouvre tes photos seulement quand tu ajoutes une capture d'écran de sortie (Strava, Garmin) pour tes points.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#1B2A22"
+        }
+      ]
+    ]
   }
 }

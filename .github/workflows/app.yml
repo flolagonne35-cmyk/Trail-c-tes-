@@ -23,6 +23,8 @@ jobs:
       - name: Calculs (identiques aux scripts Python)
         run: npm test
       - name: Vérification des types
-        run: npx tsc --noEmit
+        run: npm run typecheck
+      - name: Contrôle du projet Expo (expo-doctor)
+        run: npx -y expo-doctor@latest
       - name: Compilation web
         run: npx expo export --platform web --output-dir dist
