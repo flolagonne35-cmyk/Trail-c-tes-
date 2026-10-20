@@ -1,0 +1,82 @@
+name: Précalcul des côtes (zone)
+
+on:
+  workflow_dispatch:
+    inputs:
+      zone:
+        description: "lat_min,lon_min,lat_max,lon_max"
+        default: "48.085,-1.715,48.140,-1.640"
+      nom:
+        description: "Nom de la base (resultats/base/<nom>.sqlite)"
+        default: "rennes"
+      max_tuiles:
+        description: "Tuiles par passage (0 = toutes) ; relancer pour continuer"
+        default: "0"
+      taille_lot:
+        description: "Points par requête altimétrique"
+        default: "150"
+      paralleles:
+        description: "Requêtes altimétriques simultanées"
+        default: "1"
+  push:
+    paths:
+      - ".github/workflows/precalcul.yml"
+      - "scripts/precalcul.py"
+      - "trailcotes/base.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: precalcul-${{ inputs.nom || 'rennes' }}
+  cancel-in-progress: false
+
+jobs:
+  precalcul:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      ZONE: ${{ inputs.zone || '48.085,-1.715,48.140,-1.640' }}
+      BASE: resultats/base/${{ inputs.nom || 'rennes' }}.sqlite
+      MAX_TUILES: ${{ inputs.max_tuiles || '0' }}
+      TAILLE_LOT: ${{ inputs.taille_lot || '150' }}
+      PARALLELES: ${{ inputs.paralleles || '1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Précalcul (reprend les tuiles déjà faites)
+        id: calcul
+        run: |
+          set +e
+          python scripts/precalcul.py --zone "$ZONE" --base "$BASE" --max-tuiles "$MAX_TUILES" \
+            --taille-lot "$TAILLE_LOT" --paralleles "$PARALLELES"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+      - name: Résumé
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path("resultats/base/rapport.json")
+          out = open(os.environ["GITHUB_STEP_SUMMARY"], "a")
+          if p.exists():
+              r = json.loads(p.read_text())
+              out.write(f"## Précalcul — `{r['statut']}`\n\n" + "".join(f"- {k} : **{v}**\n" for k, v in r["resume"].items()))
+          PY
+          python scripts/precalcul.py --cherche 48.1113,-1.68 --rayon 3000 --base "$BASE" | head -15 || true
+      - name: Enregistrer la base
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resultats/base
+          git diff --cached --quiet && exit 0
+          git commit -m "Base de côtes $(basename "$BASE" .sqlite) (run ${{ github.run_id }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

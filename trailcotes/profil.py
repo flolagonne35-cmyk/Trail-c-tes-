@@ -93,3 +93,42 @@ def pentes_par_tranche(d: np.ndarray, z: np.ndarray, tranche: float = 50.0) -> l
     bornes = np.append(bornes, d[-1])
     zb = np.interp(bornes, d, z)
     return [round(float(v), 1) for v in np.diff(zb) / np.diff(bornes) * 100]
+
+
+def montees(d: np.ndarray, z: np.ndarray, pente_min: float, tolerance: float = 3.0, plat: float = 1.5,
+            plat_long: float = 150.0, fusion_ecart: float = 200.0, fusion_chute: float = 10.0,
+            fenetre: float = 50.0) -> list[tuple[int, int]]:
+    """Montées d'un profil, dans les deux sens : liste de (indice du pied, indice du sommet).
+
+    1. sommets et creux successifs (contre-pentes < `tolerance` m ignorées) ;
+    2. chaque jambe montante est rognée de ses bouts plats et coupée aux replats ;
+    3. deux montées qui se suivent dans le même sens sont réunies si l'écart fait moins de
+       `fusion_ecart` m, la chute moins de `fusion_chute` m, et si l'ensemble garde `pente_min` :
+       un petit pont ou une épingle ne coupe pas l'Alpe d'Huez en cinq, mais deux rampes séparées
+       par un long plat restent distinctes.
+    """
+    sommets = extrema(z, tolerance)
+    par_sens: dict[int, list[tuple[int, int]]] = {1: [], -1: []}
+    for a, b in zip(sommets, sommets[1:]):
+        sens = 1 if z[b] > z[a] else -1  # une descente est une montée dans l'autre sens
+        idx = np.arange(a, b + 1) if sens > 0 else np.arange(b, a - 1, -1)
+        dd = np.abs(d[idx] - d[idx[0]])
+        for i, k in decouper_montee(dd, z[idx], pente_min / 2, plat, plat_long, fenetre):
+            par_sens[sens].append((int(idx[i]), int(idx[k])))
+
+    resultat = []
+    for sens, liste in par_sens.items():
+        liste.sort(key=lambda m: sens * d[m[0]])  # dans l'ordre où on les monte
+        fusion: list[tuple[int, int]] = []
+        for s, e in liste:
+            if fusion:
+                s0, e0 = fusion[-1]
+                ecart = sens * (d[s] - d[e0])
+                chute = z[e0] - z[s]
+                pente = (z[e] - z[s0]) / max(abs(d[e] - d[s0]), 1e-9) * 100
+                if 0 <= ecart <= fusion_ecart and chute <= fusion_chute and pente >= pente_min:
+                    fusion[-1] = (s0, e)
+                    continue
+            fusion.append((s, e))
+        resultat += fusion
+    return resultat

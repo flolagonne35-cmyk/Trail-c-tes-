@@ -22,7 +22,8 @@ COUCHE = "BDTOPO_V3:troncon_de_route"
 
 
 # nature BD TOPO → type de voie affiché. Les natures absentes sont ignorées :
-# Type autoroutier, Bretelle, Rond-point, Bac ou liaison maritime, Escalier.
+# Type autoroutier, Bretelle, Bac ou liaison maritime. Les « liaisons » (ronds-points, escaliers)
+# relient les voies dans le réseau, pour les distances et les itinéraires, sans donner de côtes.
 TYPE_VOIE = {
     "Route à 1 chaussée": "route",
     "Route à 2 chaussées": "route",
@@ -30,6 +31,8 @@ TYPE_VOIE = {
     "Chemin": "chemin",
     "Sentier": "sentier",
     "Piste cyclable": "piste cyclable",
+    "Rond-point": "liaison",
+    "Escalier": "liaison",
 }
 
 

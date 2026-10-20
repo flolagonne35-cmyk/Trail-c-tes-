@@ -22,6 +22,7 @@ scripts/cotes_bdtopo.py           chemins BD TOPO → profils IGN tous les 10 m 
 scripts/valider_cotes.py          validation sur des montées de référence (Ventoux, Alpe d'Huez) + débit de l'API
 scripts/segmenter_gpx.py          GPX → segments montée / descente / plat (fonctionnalité 1)
 scripts/plan_nutrition.py         segments + objectif + ravitos → eau, glucides, sodium par tronçon (fonctionnalité 2)
+scripts/precalcul.py              zone découpée en tuiles → base SQLite de côtes, reprise, recherche « côtes proches »
 tests/                            tests sans réseau (relief fictif, formats de réponse de l'API)
 resultats/rennes/, rennes_cotes/  sorties du dernier run GitHub Actions (CSV, GeoJSON, PNG, rapport JSON)
 .github/workflows/cotes-rennes.yml  run automatique sur Rennes + signalement des erreurs
@@ -143,9 +144,31 @@ python scripts/plan_nutrition.py resultats/mon_parcours/parcours.json --objectif
   au-dessus de 15 °C ; conversion en gels, barres, litres et pastilles. Sorties `plan.csv`,
   `plan.json`, `plan.md`.
 
+## Précalcul à l'échelle d'un département
+
+Interroger les services à chaque ouverture de l'application serait trop lent (≈ 3 min pour
+4 km × 4 km). `precalcul.py` calcule une zone tuile par tuile (4 km, marge de 500 m pour ne pas
+couper les côtes à cheval) et remplit une base SQLite (`trailcotes/base.py`) :
+
+```bash
+python scripts/precalcul.py --zone 48.085,-1.715,48.140,-1.640 --base resultats/base/rennes.sqlite
+python scripts/precalcul.py --zone ... --max-tuiles 20     # un passage partiel ; relancer pour continuer
+python scripts/precalcul.py --cherche 48.1113,-1.68 --rayon 3000 --base resultats/base/rennes.sqlite
+```
+
+L'état de chaque tuile est gardé : une tuile en échec est reprise au passage suivant, les doublons
+entre tuiles sont écartés. `cotes_proches()` répond en quelques millisecondes (index sur la
+position de départ). Workflow « Précalcul des côtes (zone) » : à la main, avec zone, nom et
+nombre de tuiles par passage.
+
+Débit mesuré de l'API altimétrique (run du 20/10/2026) : 140 points/s en GET par lots de 150 ;
+GET de 400 points refusé (414, URL trop longue) ; POST en formulaire refusé (500). Les essais
+GET 300 points, POST JSON et requêtes parallèles sont mesurés à chaque validation.
+
 ## GitHub Actions
 
-Le workflow **Côtes Rennes (API IGN)** lance les deux scripts en parallèle (`grille` et `bdtopo`).
+Le workflow **Côtes Rennes (API IGN)** lance trois jobs en parallèle : `grille`, `bdtopo` et
+`validation` (montées de référence, puis segmentation et plan nutrition sur la trace obtenue).
 Il se lance à la main (onglet *Actions* → *Run workflow*, avec rayon et seuil réglables), à chaque modification du script, et le 1er de chaque mois.
 Il :
 

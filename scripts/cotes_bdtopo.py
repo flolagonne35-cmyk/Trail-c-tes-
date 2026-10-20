@@ -51,9 +51,7 @@ from trailcotes.bdtopo import (  # noqa: E402
 from trailcotes.geo import Projection  # noqa: E402
 from trailcotes.ign import RENNES_LAT, RENNES_LON, RESSOURCE_DEFAUT, StatsApi, altitudes_ign  # noqa: E402
 from trailcotes.osm import StatsOsm, fond_plan_ign, qualifier_revetement, voies_osm  # noqa: E402
-from trailcotes.profil import (  # noqa: E402
-    boucher_et_lisser, decouper_montee, extrema, pentes_par_tranche,
-)
+from trailcotes.profil import boucher_et_lisser, montees, pentes_par_tranche  # noqa: E402
 
 
 # --------------------------------------------------------------------------- géométrie
@@ -99,44 +97,42 @@ class Cote:
 def cotes_de_voie(voie: Voie, troncons: list[Troncon], proj: Projection, reseau: Reseau,
                   args: argparse.Namespace) -> list[Cote]:
     d, z = voie.d, voie.z
-    sommets = extrema(z, args.tolerance)
     cotes = []
-    for a, b in zip(sommets, sommets[1:]):
-        # une descente dans le sens de la voie est une montée dans l'autre sens
-        idx = np.arange(a, b + 1) if z[b] > z[a] else np.arange(b, a - 1, -1)
-        dd = np.abs(d[idx] - d[idx[0]])
+    for s, e in montees(d, z, args.pente_min, args.tolerance, args.plat, args.plat_long,
+                        args.fusion_ecart, args.fusion_chute):
+        idx = np.arange(s, e + 1) if e >= s else np.arange(s, e - 1, -1)
+        dd = np.abs(d[idx] - d[s])
         zz = z[idx]
-        for i, k in decouper_montee(dd, zz, args.pente_min / 2, args.plat, args.plat_long, 50.0):
-            L = dd[k] - dd[i]
-            pente = (zz[k] - zz[i]) / L * 100 if L > 0 else 0
-            dplus = float(np.clip(np.diff(zz[i:k + 1]), 0, None).sum())
-            if L < args.longueur_min or pente < args.pente_min or dplus < args.dplus_min:
-                continue
-            sel = idx[i:k + 1]
-            lon, lat = proj.lonlat(voie.x[sel], voie.y[sel])
-            pentes = pentes_par_tranche(dd[i:k + 1], zz[i:k + 1])
-            t_dep = troncons[voie.troncon[sel[0]]]
-            natures = Counter(troncons[t].nature for t in voie.troncon[sel])
-            noms = Counter(troncons[t].nom for t in voie.troncon[sel] if troncons[t].nom)
-            cotes.append(Cote(
-                id=0,
-                distance_m=round(reseau.distance(int(voie.troncon[sel[0]]), float(voie.offset[sel[0]]))),
-                longueur_m=round(float(L)),
-                pente_moy_pct=round(float(pente), 1),
-                pente_max_pct=max(pentes),
-                dplus_m=round(dplus, 1),
-                alt_depart_m=round(float(zz[i]), 1),
-                alt_arrivee_m=round(float(zz[k]), 1),
-                type_voie=t_dep.type_voie,
-                nature=natures.most_common(1)[0][0],
-                nom=noms.most_common(1)[0][0] if noms else "",
-                lat_depart=round(float(lat[0]), 6), lon_depart=round(float(lon[0]), 6),
-                lat_arrivee=round(float(lat[-1]), 6), lon_arrivee=round(float(lon[-1]), 6),
-                pentes_50m=pentes,
-                profil_d=[round(float(v - dd[i]), 1) for v in dd[i:k + 1]],
-                profil_z=[round(float(v), 2) for v in zz[i:k + 1]],
-                lonlat=[[round(float(o), 6), round(float(a_), 6)] for o, a_ in zip(lon, lat)],
-            ))
+        L = dd[-1]
+        pente = (zz[-1] - zz[0]) / L * 100 if L > 0 else 0
+        dplus = float(np.clip(np.diff(zz), 0, None).sum())
+        if L < args.longueur_min or pente < args.pente_min or dplus < args.dplus_min:
+            continue
+        sel = idx
+        lon, lat = proj.lonlat(voie.x[sel], voie.y[sel])
+        pentes = pentes_par_tranche(dd, zz)
+        t_dep = troncons[voie.troncon[sel[0]]]
+        natures = Counter(troncons[t].nature for t in voie.troncon[sel])
+        noms = Counter(troncons[t].nom for t in voie.troncon[sel] if troncons[t].nom)
+        cotes.append(Cote(
+            id=0,
+            distance_m=round(reseau.distance(int(voie.troncon[sel[0]]), float(voie.offset[sel[0]]))),
+            longueur_m=round(float(L)),
+            pente_moy_pct=round(float(pente), 1),
+            pente_max_pct=max(pentes),
+            dplus_m=round(dplus, 1),
+            alt_depart_m=round(float(zz[0]), 1),
+            alt_arrivee_m=round(float(zz[-1]), 1),
+            type_voie=t_dep.type_voie,
+            nature=natures.most_common(1)[0][0],
+            nom=noms.most_common(1)[0][0] if noms else "",
+            lat_depart=round(float(lat[0]), 6), lon_depart=round(float(lon[0]), 6),
+            lat_arrivee=round(float(lat[-1]), 6), lon_arrivee=round(float(lon[-1]), 6),
+            pentes_50m=pentes,
+            profil_d=[round(float(v), 1) for v in dd],
+            profil_z=[round(float(v), 2) for v in zz],
+            lonlat=[[round(float(o), 6), round(float(a_), 6)] for o, a_ in zip(lon, lat)],
+        ))
     return cotes
 
 
@@ -222,7 +218,7 @@ def dessiner_carte(chemin: Path, troncons, cotes, proj, accroche, rayon, pente_m
         ax.text(0.99, 0.005, "Fond : Plan IGN · Revêtements : © contributeurs OpenStreetMap",
                 transform=ax.transAxes, ha="right", va="bottom", fontsize=7, color="#333")
     styles = {"route": ("#9a9a9a", 0.9), "chemin": ("#b08a5a", 0.8), "sentier": ("#7a9a6a", 0.8),
-              "piste cyclable": ("#6a8fb0", 0.8)}
+              "piste cyclable": ("#6a8fb0", 0.8), "liaison": ("#9a9a9a", 0.6)}
     for tv, (couleur, lw) in styles.items():
         segs = [t.xy for t in troncons if t.type_voie == tv]
         if segs:
@@ -254,11 +250,26 @@ def dessiner_carte(chemin: Path, troncons, cotes, proj, accroche, rayon, pente_m
 
 # --------------------------------------------------------------------------- main
 
-def analyser(args: argparse.Namespace) -> int:
-    sortie = Path(args.sortie)
-    sortie.mkdir(parents=True, exist_ok=True)
+@dataclass
+class Calcul:
+    """Tout ce que produit le calcul autour d'un point, avant écriture des fichiers."""
+    source: str
+    proj: Projection
+    nb_features: int
+    troncons: list
+    wfs: StatsWfs
+    alti: StatsApi
+    osm: StatsOsm
+    accroche: dict = field(default_factory=dict)
+    nb_voies: int = 0
+    nb_points: int = 0
+    taux_valide: float = 0.0
+    cotes: list = field(default_factory=list)
+
+
+def calculer(args: argparse.Namespace) -> Calcul:
     proj = Projection(args.lat, args.lon)
-    wfs, alti = StatsWfs(), StatsApi(ressource=args.ressource)
+    wfs, alti, osm = StatsWfs(), StatsApi(ressource=args.ressource), StatsOsm()
 
     if args.demo:
         features = reseau_fictif(proj, args.rayon)
@@ -268,28 +279,21 @@ def analyser(args: argparse.Namespace) -> int:
         source = f"IGN Géoplateforme : {COUCHE} + {args.ressource}"
     wfs.axes_inverses = axes_inverses(features, args.lat, args.lon)
     troncons = lire_troncons(features, proj, wfs.axes_inverses, wfs)
+    calcul = Calcul(source, proj, len(features), troncons, wfs, alti, osm)
     print(f"{len(features)} tronçons reçus, {len(troncons)} retenus")
-
-    rapport = {
-        "date_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "statut": "ok", "source": source,
-        "parametres": {k: v for k, v in vars(args).items() if k != "sortie"},
-    }
     if not troncons:
-        rapport.update(statut="echec_wfs", wfs=asdict(wfs),
-                       resume={"Tronçons BD TOPO retenus": 0, "Requêtes WFS": wfs.requetes})
-        (sortie / "rapport.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2) + "\n")
-        print("ÉCHEC : aucun tronçon exploitable renvoyé par le WFS", file=sys.stderr)
-        return 2
+        return calcul
 
     reseau = Reseau(troncons)
     accroche = reseau.accrocher(0.0, 0.0)
     lon_a, lat_a = proj.lonlat(accroche["x"], accroche["y"])
     accroche.update(lat=round(float(lat_a), 6), lon=round(float(lon_a), 6),
                     distance_m=round(accroche["distance_m"], 1))
+    calcul.accroche = accroche
     print(f"Position accrochée à {accroche['distance_m']} m, sur « {accroche['nature']} »")
 
-    voies = [echantillonner(ch, troncons, args.pas) for ch in chainer(troncons, args.angle_max)]
+    voies = [echantillonner(ch, troncons, args.pas) for ch in chainer(troncons, args.angle_max)
+             if troncons[ch[0][0]].type_voie != "liaison"]
     voies = [v for v in voies if v.d[-1] >= args.longueur_min]
     print(f"{len(voies)} voies d'au moins {args.longueur_min:g} m, "
           f"{sum(len(v.d) for v in voies)} points à {args.pas:g} m")
@@ -306,10 +310,10 @@ def analyser(args: argparse.Namespace) -> int:
         z_u = relief_xy(ux, uy) + np.random.default_rng(0).normal(0, 0.3, len(ux))
     else:
         z_u = altitudes_ign(uniques[:, 1], uniques[:, 0], args.ressource, args.taille_lot,
-                            args.pause, args.essais, alti) if len(uniques) else np.zeros(0)
+                            args.pause, args.essais, alti, args.methode, args.decimales,
+                            args.paralleles) if len(uniques) else np.zeros(0)
     z = np.full(len(x), np.nan)
     z[sol] = z_u[inverse.ravel()]
-    taux_valide = float(np.isfinite(z_u).mean()) if len(z_u) else 0.0
 
     cotes: list[Cote] = []
     debut = 0
@@ -324,9 +328,32 @@ def analyser(args: argparse.Namespace) -> int:
     for n, c in enumerate(cotes, start=1):
         c.id = n
 
-    osm = StatsOsm()
     voies_o = [] if args.demo or args.sans_osm else voies_osm(args.lat, args.lon, args.rayon, osm)
     qualifier_revetement(cotes, voies_o, proj)
+    calcul.nb_voies, calcul.nb_points, calcul.cotes = len(voies), int(len(uniques)), cotes
+    calcul.taux_valide = float(np.isfinite(z_u).mean()) if len(z_u) else 0.0
+    return calcul
+
+
+def analyser(args: argparse.Namespace) -> int:
+    sortie = Path(args.sortie)
+    sortie.mkdir(parents=True, exist_ok=True)
+    calcul = calculer(args)
+    source, proj, troncons, cotes = calcul.source, calcul.proj, calcul.troncons, calcul.cotes
+    wfs, alti, osm, accroche = calcul.wfs, calcul.alti, calcul.osm, calcul.accroche
+    taux_valide = calcul.taux_valide
+    rapport = {
+        "date_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "statut": "ok", "source": source,
+        "parametres": {k: v for k, v in vars(args).items() if k != "sortie"},
+    }
+    if not troncons:
+        rapport.update(statut="echec_wfs", wfs=asdict(wfs),
+                       resume={"Tronçons BD TOPO retenus": 0, "Requêtes WFS": wfs.requetes})
+        (sortie / "rapport.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2) + "\n")
+        print("ÉCHEC : aucun tronçon exploitable renvoyé par le WFS", file=sys.stderr)
+        return 2
+
     erreurs_fond: list[str] = []
     fond = None if args.demo or args.sans_fond else fond_plan_ign(proj, args.rayon, erreurs_fond)
 
@@ -340,9 +367,9 @@ def analyser(args: argparse.Namespace) -> int:
     rapport.update(
         statut="echec_api" if echec else "ok",
         resume={
-            "Tronçons BD TOPO reçus / retenus": f"{len(features)} / {len(troncons)}",
-            "Voies raccordées (≥ longueur mini)": len(voies),
-            "Points altimétriques demandés": int(len(uniques)),
+            "Tronçons BD TOPO reçus / retenus": f"{calcul.nb_features} / {len(troncons)}",
+            "Voies raccordées (≥ longueur mini)": calcul.nb_voies,
+            "Points altimétriques demandés": calcul.nb_points,
             "Points valides": f"{100 * taux_valide:.2f} %",
             "Accrochage de la position": f"{accroche['distance_m']} m ({accroche['nature']})",
             "Côtes trouvées": len(cotes),
@@ -389,10 +416,18 @@ def parser_arguments(argv=None) -> argparse.Namespace:
     p.add_argument("--plat", type=float, default=1.5, help="pente sous laquelle une portion est un replat (défaut 1.5)")
     p.add_argument("--plat-long", type=float, default=150,
                    help="longueur de replat qui coupe une côte en deux, en m (défaut 150)")
+    p.add_argument("--fusion-ecart", type=float, default=200,
+                   help="écart maxi entre deux montées réunies en une, en m (défaut 200)")
+    p.add_argument("--fusion-chute", type=float, default=10,
+                   help="chute maxi entre deux montées réunies en une, en m (défaut 10)")
     p.add_argument("--angle-max", type=float, default=45,
                    help="virage maxi pour prolonger une voie à une intersection, en degrés (défaut 45)")
     p.add_argument("--ressource", default=RESSOURCE_DEFAUT)
     p.add_argument("--taille-lot", type=int, default=150)
+    p.add_argument("--methode", choices=("GET", "POST", "POST_JSON"), default="GET",
+                   help="requêtes altimétriques (défaut GET)")
+    p.add_argument("--decimales", type=int, default=6, help="décimales des coordonnées envoyées (défaut 6)")
+    p.add_argument("--paralleles", type=int, default=1, help="requêtes altimétriques simultanées (défaut 1)")
     p.add_argument("--pause", type=float, default=0.25)
     p.add_argument("--essais", type=int, default=4)
     p.add_argument("--max-echec", type=float, default=0.05)

@@ -63,61 +63,88 @@ def _parser_reponse(donnees: dict, n_attendu: int, stats: StatsApi) -> list[floa
 
 
 def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: int,
-                  pause: float, essais: int, stats: StatsApi, methode: str = "GET") -> np.ndarray:
+                  pause: float, essais: int, stats: StatsApi, methode: str = "GET",
+                  decimales: int = 6, paralleles: int = 1) -> np.ndarray:
     """Interroge l'API par lots. Renvoie un tableau de z (NaN pour les points sans donnée ou en échec).
 
-    `methode` : "GET" (paramètres dans l'URL) ou "POST" (formulaire, sans limite de longueur d'URL)."""
+    `methode` : "GET" (paramètres dans l'URL, ~150 points au plus à 6 décimales : au-delà,
+    erreur 414), "POST" (formulaire) ou "POST_JSON" (corps JSON).
+    `decimales` : 5 décimales ≈ 1 m, ce qui raccourcit l'URL. `paralleles` : requêtes simultanées
+    (à garder faible : service public partagé).
+    """
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
     import requests
 
-    session = requests.Session()
-    session.headers["User-Agent"] = "trail-cotes/0.1 (+https://github.com/flolagonne35-cmyk/Trail-c-tes-)"
+    local = threading.local()
+    verrou = threading.Lock()
     lat_f, lon_f = lat.ravel(), lon.ravel()
     z = np.full(lat_f.size, np.nan)
     stats.ressource = ressource
     stats.points_demandes = int(lat_f.size)
     t0 = time.monotonic()
 
-    for debut in range(0, lat_f.size, taille_lot):
+    def compter(**champs):
+        with verrou:
+            for k, v in champs.items():
+                if k == "code":
+                    stats.codes_http[v] = stats.codes_http.get(v, 0) + 1
+                elif k == "erreur":
+                    stats.erreurs.append(v)
+                else:
+                    setattr(stats, k, getattr(stats, k) + v)
+
+    def lot(debut: int) -> None:
+        if not hasattr(local, "session"):
+            local.session = requests.Session()
+            local.session.headers["User-Agent"] = "trail-cotes/0.1 (+https://github.com/flolagonne35-cmyk/Trail-c-tes-)"
         fin = min(debut + taille_lot, lat_f.size)
         params = {
-            "lon": "|".join(f"{v:.6f}" for v in lon_f[debut:fin]),
-            "lat": "|".join(f"{v:.6f}" for v in lat_f[debut:fin]),
-            "resource": ressource,
-            "delimiter": "|",
-            "indent": "false",
-            "measures": "false",
-            "zonly": "false",
+            "lon": "|".join(f"{v:.{decimales}f}" for v in lon_f[debut:fin]),
+            "lat": "|".join(f"{v:.{decimales}f}" for v in lat_f[debut:fin]),
+            "resource": ressource, "delimiter": "|", "indent": "false", "measures": "false", "zonly": "false",
         }
         for essai in range(essais):
-            stats.requetes += 1
+            compter(requetes=1)
             try:
-                if methode == "POST":
-                    r = session.post(API_URL, data=params, timeout=120)
+                if methode == "POST_JSON":
+                    r = local.session.post(API_URL, json=params, timeout=120)
+                elif methode == "POST":
+                    r = local.session.post(API_URL, data=params, timeout=120)
                 else:
-                    r = session.get(API_URL, params=params, timeout=60)
-                code = str(r.status_code)
-                stats.codes_http[code] = stats.codes_http.get(code, 0) + 1
+                    r = local.session.get(API_URL, params=params, timeout=60)
+                compter(code=str(r.status_code))
                 if r.status_code == 200:
-                    if not stats.exemple_reponse:
-                        stats.exemple_reponse = r.text[:500]
-                    z[debut:fin] = _parser_reponse(r.json(), fin - debut, stats)
-                    stats.requetes_ok += 1
+                    with verrou:
+                        if not stats.exemple_reponse:
+                            stats.exemple_reponse = r.text[:500]
+                        z[debut:fin] = _parser_reponse(r.json(), fin - debut, stats)
+                        stats.requetes_ok += 1
                     break
                 message = f"HTTP {r.status_code} lot {debut}-{fin} : {r.text[:300]}"
                 reessayable = r.status_code == 429 or r.status_code >= 500
             except (requests.RequestException, ValueError) as exc:
                 message = f"{type(exc).__name__} lot {debut}-{fin} : {exc}"
                 reessayable = True
-            stats.erreurs.append(message)
+            compter(erreur=message)
             print("  ! " + message, file=sys.stderr)
             if not reessayable or essai == essais - 1:
-                stats.lots_en_echec += 1
+                compter(lots_en_echec=1)
                 break
-            stats.reessais += 1
+            compter(reessais=1)
             time.sleep(2 ** (essai + 1))
         time.sleep(pause)
         if (debut // taille_lot) % 20 == 0:
             print(f"  {fin}/{lat_f.size} points", flush=True)
+
+    debuts = range(0, lat_f.size, taille_lot)
+    if paralleles > 1:
+        with ThreadPoolExecutor(paralleles) as ex:
+            list(ex.map(lot, debuts))
+    else:
+        for debut in debuts:
+            lot(debut)
 
     nodata = z <= NODATA_IGN + 1
     stats.points_nodata = int(nodata.sum())
@@ -127,20 +154,31 @@ def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: 
     return z.reshape(lat.shape)
 
 
+# (méthode, points par requête, décimales, requêtes simultanées, nombre de lots)
+CONFIGS_DEBIT = (
+    ("GET", 150, 6, 1, 3),
+    ("GET", 300, 6, 1, 3),   # ~7,2 Ko d'URL : sous la limite (414 constaté à 400 points)
+    ("GET", 330, 5, 1, 3),
+    ("POST_JSON", 1000, 6, 1, 1),
+    ("POST_JSON", 5000, 6, 1, 1),
+    ("GET", 150, 6, 4, 8),
+)
+
+
 def mesurer_debit(lat: np.ndarray, lon: np.ndarray, ressource: str = RESSOURCE_DEFAUT,
-                  essais_config=(("GET", 150), ("GET", 400), ("POST", 1000), ("POST", 5000))) -> list[dict]:
-    """Une requête par configuration (méthode, taille de lot) : code, durée, points par seconde."""
+                  configs=CONFIGS_DEBIT) -> list[dict]:
+    """Mesure chaque configuration sur quelques lots : codes HTTP, durée, points par seconde."""
     resultats = []
-    for methode, n in essais_config:
-        n = min(n, len(lat))
+    for methode, n, decimales, paralleles, lots in configs:
+        total = min(n * lots, len(lat))
         stats = StatsApi()
         t0 = time.monotonic()
-        z = altitudes_ign(lat[:n], lon[:n], ressource, n, 0, 1, stats, methode)
+        z = altitudes_ign(lat[:total], lon[:total], ressource, n, 0, 1, stats, methode, decimales, paralleles)
         duree = time.monotonic() - t0
         ok = int(np.isfinite(z).sum())
-        resultats.append({"methode": methode, "taille_lot": n, "codes_http": stats.codes_http,
-                          "duree_s": round(duree, 2), "points_ok": ok,
-                          "points_par_s": round(ok / duree, 1) if duree > 0 else None,
+        resultats.append({"methode": methode, "taille_lot": n, "decimales": decimales, "paralleles": paralleles,
+                          "points": total, "codes_http": stats.codes_http, "duree_s": round(duree, 2),
+                          "points_ok": ok, "points_par_s": round(ok / duree, 1) if duree > 0 else None,
                           "erreur": stats.erreurs[0][:200] if stats.erreurs else ""})
-        time.sleep(1)
+        time.sleep(2)
     return resultats

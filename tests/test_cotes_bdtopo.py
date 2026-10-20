@@ -90,9 +90,11 @@ def test_ouvrage_et_natures_exclues():
          "properties": {"nature": "Sentier", "position_par_rapport_au_sol": "1"}},
         {"geometry": {"type": "LineString", "coordinates": [[-1.68, 48.11], [-1.679, 48.11]]},
          "properties": {"nature": "Type autoroutier"}},
+        {"geometry": {"type": "LineString", "coordinates": [[-1.68, 48.11], [-1.679, 48.11]]},
+         "properties": {"nature": "Rond-point"}},
     ]
     ts = bdtopo.lire_troncons(feats, proj, False, bdtopo.StatsWfs())
-    assert len(ts) == 1 and ts[0].ouvrage and ts[0].type_voie == "sentier"
+    assert [t.type_voie for t in ts] == ["sentier", "liaison"] and ts[0].ouvrage
 
 
 def test_demo_bout_en_bout(tmp_path):
@@ -153,3 +155,14 @@ def test_plus_court_chemin():
     assert abs(geo.longueurs_cumulees(xy)[-1] - 180) < 1e-6  # 90 m + 90 m par le coin (100, 0)
     xy = r.chemin((20, 0), (60, 0))  # même tronçon
     assert abs(geo.longueurs_cumulees(xy)[-1] - 40) < 1e-6
+
+
+def test_fusion_des_montees():
+    d = np.arange(0, 3001, 10.0)
+    # 3 km à 8 % avec une contre-pente de 4 m sur 60 m au km 1,5 (petit pont, épingle)
+    z = 0.08 * d - np.interp(d, [1490, 1520, 1550], [0, 4, 0])
+    m = profil.montees(d, z, 5)
+    assert len(m) == 1 and d[m[0][1]] - d[m[0][0]] > 2900
+    # deux rampes à 10 % séparées par 400 m de plat : deux côtes
+    z2 = np.interp(d, [0, 500, 900, 1400, 3000], [0, 50, 50, 100, 100])
+    assert len(profil.montees(d, z2, 5)) == 2

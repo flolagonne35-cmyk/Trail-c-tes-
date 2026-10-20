@@ -66,11 +66,15 @@ jobs:
               grille) python scripts/cotes_rennes.py --rayon "$RAYON" --pente-min "$PENTE_MIN" --sortie resultats/rennes ;;
               bdtopo) python scripts/cotes_bdtopo.py --rayon "$RAYON" --pente-min "$PENTE_MIN" --sortie resultats/rennes_cotes ;;
               validation)
-                # montées de référence, puis segmentation et plan nutrition sur la trace du Ventoux
-                python scripts/valider_cotes.py --sortie resultats/validation \
-                && python scripts/segmenter_gpx.py resultats/validation/ventoux_bedoin.gpx --sortie resultats/parcours_ventoux \
-                && python scripts/plan_nutrition.py resultats/parcours_ventoux/parcours.json \
-                     --objectif 2h45 --ravito "15:Chalet Reynard" --temperature 22 ;;
+                # montées de référence, puis segmentation et plan nutrition sur une des traces obtenues
+                python scripts/valider_cotes.py --sortie resultats/validation; v=$?
+                gpx=$(ls resultats/validation/ventoux_bedoin.gpx resultats/validation/alpe_d_huez.gpx 2>/dev/null | head -1)
+                if [ -n "$gpx" ]; then
+                  python scripts/segmenter_gpx.py "$gpx" --sortie resultats/parcours_ventoux \
+                  && python scripts/plan_nutrition.py resultats/parcours_ventoux/parcours.json \
+                       --objectif 2h45 --ravito "15:Chalet Reynard" --temperature 22
+                fi
+                [ $v -eq 0 ] ;;
             esac
           } 2> >(tee erreurs.log >&2)
           code=$?
