@@ -34,12 +34,14 @@ import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
 import { EcranProfil } from "./src/ecrans/Profil.tsx";
 import { EcranSources } from "./src/ecrans/Sources.tsx";
 import { chargerCourses, enregistrerCourses } from "./src/mesCourses.ts";
+import { chargerPlan, enregistrerPlan, type MonPlan } from "./src/monPlan.ts";
+import type { PresetSortie } from "./src/ecrans/Plan.tsx";
 import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
 
 type Donnees = { source: string; zones?: { nom: string; lat: number; lon: number; cotes: number }[]; cotes: Cote[] };
-const DONNEES = cotesExportees as Donnees;
+const DONNEES = cotesExportees as unknown as Donnees;
 const COTES = DONNEES.cotes;
 const SOURCE = DONNEES.source.includes("sqlite") ? "base précalculée" : "zone de Rennes";
 // zones dont les côtes sont calculées (proposées dans la recherche et hors zone)
@@ -74,9 +76,20 @@ function Contenu() {
   const [recents, setRecents] = useState<Lieu[]>([]);
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
   const [modeCotes, setModeCotes] = useState<Sens>("montee");
+  const [resultatsCotes, setResultatsCotes] = useState(false); // les côtes n'apparaissent qu'après la recherche
   const [modeEntrainement, setModeEntrainement] = useState<ModeEntrainement>("seance");
   const [courses, setCoursesEtat] = useState<CourseInscrite[]>([]);
   const setCourses = (c: CourseInscrite[]) => { setCoursesEtat(c); enregistrerCourses(c); };
+  const [monPlan, setMonPlanEtat] = useState<MonPlan>({ cible: null, questionnaire: null });
+  // mise à jour partielle à partir de la dernière valeur : deux changements de suite ne s'écrasent pas
+  const majPlan = (partiel: Partial<MonPlan>) => setMonPlanEtat((p) => {
+    const n = { ...p, ...partiel };
+    enregistrerPlan(n);
+    return n;
+  });
+  // séance ou sortie demandée depuis le plan d'entraînement (pré-remplit S'entraîner)
+  const [demandeSeance, setDemandeSeance] = useState<{ texte: string; n: number } | null>(null);
+  const [demandeSortie, setDemandeSortie] = useState<(PresetSortie & { n: number }) | null>(null);
 
   useEffect(() => {
     chargerProfil().then((p) => {
@@ -85,6 +98,7 @@ function Contenu() {
     });
     chargerRecents().then(setRecents);
     chargerCourses().then(setCoursesEtat);
+    chargerPlan().then(setMonPlanEtat);
   }, []);
   const changerProfil = (p: Profil) => {
     setProfil(p);
@@ -197,20 +211,28 @@ function Contenu() {
     ecran = <EcranAccueil profil={profil} proches={proches} lieu={depart.nom} nbCotes={COTES.length} aller={aller}
                           ouvrirCote={ouvrirCote} courses={courses} />;
   } else if (page === "cotes") {
-    ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} source={SOURCE} mode={modeCotes} setMode={setModeCotes} />;
+    ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} source={SOURCE} mode={modeCotes} setMode={setModeCotes}
+                        resultats={resultatsCotes} setResultats={setResultatsCotes} />;
   } else if (page === "entrainement") {
     ecran = <EcranEntrainement {...commun} mode={modeEntrainement} setMode={setModeEntrainement} filtres={filtres}
-                               activites={profil.activites} modele={modele} onAjouterSortie={() => aller({ page: "profil" })} />;
+                               activites={profil.activites} modele={modele} onAjouterSortie={() => aller({ page: "profil" })}
+                               demandeSeance={demandeSeance} demandeSortie={demandeSortie} />;
   } else if (page === "course") {
     ecran = <EcranCourse parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                          objectif={objectif} setObjectif={setObjectif} onNutrition={() => aller({ page: "nutrition" })}
-                         cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele} />;
+                         cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
+                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })}
+                         questionnaire={monPlan.questionnaire} setQuestionnaire={(questionnaire) => majPlan({ questionnaire })}
+                         mesCourses={courses} allurePlat={ALLURE_PLAT_MIN_KM}
+                         onSeance={(texte) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "entrainement", mode: "seance" }); }}
+                         onSortie={(p) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "entrainement", mode: "boucle" }); }} />;
   } else if (page === "nutrition") {
     ecran = <EcranNutrition parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
                             prefs={prefs} setPrefs={setPrefs} onPreparer={() => aller({ page: "course" })} />;
   } else if (page === "courses") {
     ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
       if (c.objectif) setObjectif(c.objectif);
+      majPlan({ cible: { nom: c.nom, distance_km: c.distance_km, dplus_m: c.dplus_m, date: c.date, site: c.lien || undefined } });
       aller({ page: "course" });
     }} />;
   } else if (page === "profil") {

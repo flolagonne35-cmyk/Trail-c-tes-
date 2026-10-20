@@ -27,7 +27,10 @@ reste à construire**, par étapes.
 | Prévisions à mon allure | ✅ | allure apprise par tranche de pente dans mes GPX (S'entraîner → Mes progrès) ; Course → « À ton allure » |
 | Plus d'onglets, bien rangés | ✅ | 5 onglets en bas + menu ☰ par catégorie (Explorer, S'entraîner, Courses, Moi, Infos) |
 | Nutrition visible | ✅ | onglet à part entière, aussi sans GPX (pour une durée) |
-| Courses dans le coin | 🟡 | « Mes courses » : calendrier perso, budget, compte à rebours. Calendrier national : aucune base ouverte n'existe (vérifié sur data.gouv.fr) → inscription par les organisateurs |
+| Courses dans le coin | 🟡 | « Mes courses » : calendrier perso, budget, compte à rebours. Calendrier national / mondial : voir § 2.6 (partenariats) |
+| Trouver sa course, plan personnalisé | ✅ | Course : par nom (catalogue de référence), par format (« trail 30 km 1500 m ») ou GPX ; questionnaire (niveau, séances, volume, objectif, date) ; plan semaine par semaine dont chaque séance ouvre l'endroit où la faire |
+| Sortie sur mesure (« 2 h sur du plat ») | ✅ | S'entraîner → Sortie : durée ou distance, plat / vallonné / avec côtes, chemins, GPX |
+| Côtes seulement après la recherche | ✅ | Côtes : « Que cherches-tu ? » puis les résultats |
 | Points d'eau, position partagée, état des sentiers | 🔜 | voir 3.2 |
 | Ponts, tunnels, autoroutes | ✅ | exclus du calcul des pentes depuis le début (BD TOPO `position_par_rapport_au_sol`, natures) |
 | Données qui partent sans le savoir | ✅ aujourd'hui | tout reste sur le téléphone ; à garder avec les comptes (voir 2.4) |
@@ -93,6 +96,20 @@ Les deux stores demandent ton identité (ou celle d'une société), une adresse 
   obligatoire mais protège en cas de litige.
 - **Encaisser de l'argent** (abonnement) : il faut un statut, la micro-entreprise suffit au
   début. Apple et Google prennent 15 % (programmes « petites entreprises »).
+
+### 2.6 Calendrier de toutes les courses (avec dates d'inscription)
+
+Aucune base ouverte et réutilisable ne recense les courses du monde avec leurs inscriptions :
+ITRA et UTMB publient leurs calendriers sans licence de réutilisation, et recopier leurs sites
+(ou un jeu de données qui l'a fait) n'est pas permis. L'appli contient un **catalogue de
+référence** (formats indicatifs, lien vers le site officiel) et « Mes courses ». Pour aller plus loin,
+c'est une démarche commerciale, à faire par toi :
+1. **Contacter l'ITRA** (itra.run) et **UTMB World** pour un accès partenaire à leur calendrier ;
+2. **Contacter les plateformes d'inscription** utilisées par les organisateurs français (njuko, et
+   les autres que tu croises sur les pages d'inscription) : elles ont les dates d'ouverture des
+   inscriptions et peuvent proposer une API partenaire ;
+3. **Ouvrir l'appli aux organisateurs** : un formulaire où ils déclarent leur course (je le construis
+   avec les comptes en ligne, étape 3.1).
 
 ### 2.5 Décider
 

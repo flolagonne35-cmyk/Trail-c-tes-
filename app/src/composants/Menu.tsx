@@ -16,7 +16,7 @@ export const CATEGORIES: { titre: string; entrees: Entree[] }[] = [
   ] },
   { titre: "S'entraîner", entrees: [
     { page: "entrainement", mode: "seance", icone: "seance", titre: "Séance du coach", detail: "« 8 × 400 m à 10 % » : où la faire" },
-    { page: "entrainement", mode: "boucle", icone: "boucle", titre: "Boucle sur mesure", detail: "Distance, côtes, D+, GPX montre" },
+    { page: "entrainement", mode: "boucle", icone: "boucle", titre: "Sortie sur mesure", detail: "« 2 h sur du plat », « 10 km avec 3 côtes » : boucle et GPX" },
     { page: "entrainement", mode: "progres", icone: "chrono", titre: "Mes progrès", detail: "Chronos sur mes côtes, allure selon la pente" },
   ] },
   { titre: "Courses", entrees: [

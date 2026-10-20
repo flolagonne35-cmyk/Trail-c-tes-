@@ -74,10 +74,11 @@ function CarteProposition({ p, rang, reps, onOuvrir }: { p: Proposition; rang: n
   );
 }
 
-export function VueSeance({ toutes, position, filtres, allurePlat, onChoisir }: {
+export function VueSeance({ toutes, position, filtres, allurePlat, onChoisir, texteInitial }: {
   toutes: Cote[]; position: Position; filtres: Filtres; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void;
+  texteInitial?: string;
 }) {
-  const [texte, setTexte] = useState("8 × 400 m à 10 %");
+  const [texte, setTexte] = useState(texteInitial ?? "8 × 400 m à 10 %");
   const [sens, setSens] = useState<Sens>("montee");
   const seance = lireSeance(texte);
   const propositions = useMemo(

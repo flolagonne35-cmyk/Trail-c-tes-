@@ -15,6 +15,7 @@ import { couleurPente } from "../composants/Carte.tsx";
 import { C, S } from "../theme.ts";
 import { VueBoucle } from "./Boucle.tsx";
 import { HorsZone } from "./Cotes.tsx";
+import type { PresetSortie } from "./Plan.tsx";
 import { VueSeance } from "./Seance.tsx";
 
 export type ModeEntrainement = "seance" | "boucle" | "progres";
@@ -99,11 +100,12 @@ function MesCotes({ cotes, activites, position, onChoisir }: {
 }
 
 export function EcranEntrainement({ mode, setMode, toutes, depart, localisation, onRecherche, onLocaliser, onLieu, zones,
-                                    filtres, allurePlat, onChoisir, activites, modele, onAjouterSortie }: {
+                                    filtres, allurePlat, onChoisir, activites, modele, onAjouterSortie, demandeSeance, demandeSortie }: {
   mode: ModeEntrainement; setMode: (m: ModeEntrainement) => void; toutes: Cote[]; depart: PointDepart;
   localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; onLieu: (l: Lieu) => void; zones: Lieu[];
   filtres: Filtres; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void; activites: Activite[];
   modele: Modele | null; onAjouterSortie: () => void;
+  demandeSeance: { texte: string; n: number } | null; demandeSortie: (PresetSortie & { n: number }) | null;
 }) {
   const position = depart.position;
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
@@ -111,7 +113,7 @@ export function EcranEntrainement({ mode, setMode, toutes, depart, localisation,
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
       <View style={{ marginTop: 4 }}>
-        <Segments options={[["seance", "Séance"], ["boucle", "Boucle"], ["progres", "Mes progrès"]]} valeur={mode} onChange={setMode} />
+        <Segments options={[["seance", "Séance"], ["boucle", "Sortie"], ["progres", "Mes progrès"]]} valeur={mode} onChange={setMode} />
       </View>
       {mode !== "progres" && (
         <View style={{ marginTop: 10 }}>
@@ -122,9 +124,11 @@ export function EcranEntrainement({ mode, setMode, toutes, depart, localisation,
       {horsZone ? (
         <HorsZone depart={depart} distance={couverture} zones={zones} onLieu={onLieu} />
       ) : mode === "seance" ? (
-        <VueSeance toutes={toutes} position={position} filtres={filtres} allurePlat={allurePlat} onChoisir={onChoisir} />
+        <VueSeance key={demandeSeance?.n ?? 0} texteInitial={demandeSeance?.texte} toutes={toutes} position={position} filtres={filtres}
+                   allurePlat={allurePlat} onChoisir={onChoisir} />
       ) : mode === "boucle" ? (
-        <VueBoucle toutes={toutes} position={position} nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} />
+        <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
+                   nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele} />
       ) : (
         <>
           <Pressable onPress={onAjouterSortie} accessibilityRole="button" style={[S.bouton, { marginTop: 14 }]}>

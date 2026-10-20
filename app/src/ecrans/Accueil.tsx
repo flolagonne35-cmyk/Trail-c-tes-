@@ -97,7 +97,7 @@ export function EcranAccueil({ profil, proches, lieu, nbCotes, aller, ouvrirCote
       <Bandeau profil={profil} onPress={() => aller({ page: "profil" })} />
 
       <Categorie titre="S'entraîner">
-        <Tuile accent icone="boucle" titre="Créer une boucle" texte="Distance, côtes, D+ : GPX pour la montre"
+        <Tuile accent icone="boucle" titre="Préparer une sortie" texte="2 h sur du plat, 10 km avec côtes… : GPX pour la montre"
                onPress={() => aller({ page: "entrainement", mode: "boucle" })} />
         <Tuile icone="seance" titre="Séance du coach" texte="« 8 × 400 m à 10 % » : où la faire"
                onPress={() => aller({ page: "entrainement", mode: "seance" })} />

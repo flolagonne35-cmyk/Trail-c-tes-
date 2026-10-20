@@ -1,10 +1,11 @@
-// Côtes → Boucle : « 10 km, 3 côtes, 300 m de D+, retour à la voiture, pas de route ».
-// La boucle est composée sur le téléphone, sans réseau, puis exportée en GPX pour la montre.
+// S'entraîner → Sortie : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
+// « 10 km avec 3 côtes ». La boucle est composée sur le téléphone, sans réseau, puis exportée en GPX.
 
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Switch, Text, View } from "react-native";
 
 import { composerBoucles, pointsBoucle, type Boucle } from "../calcul/boucles.ts";
+import type { Modele } from "../calcul/allure.ts";
 import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
 import { distanceM, type Position } from "../calcul/geo.ts";
 import { ecrireGpx } from "../calcul/gpx.ts";
@@ -17,6 +18,10 @@ import { partagerFichier } from "../fichiers.ts";
 import { C, S } from "../theme.ts";
 
 const DPLUS: [string, string][] = [["0", "Libre"], ["100", "100 m"], ["200", "200 m"], ["300", "300 m"]];
+type Relief = "plat" | "vallonne" | "cotes";
+const RELIEFS: [Relief, string][] = [["plat", "Plat"], ["vallonne", "Vallonné"], ["cotes", "Avec des côtes"]];
+// D+ visé par km : plat le moins possible ; vallonné ≈ 15 m/km (un parcours « roulant-vallonné »)
+const DPLUS_PAR_KM: Record<Exclude<Relief, "cotes">, number> = { plat: 0, vallonne: 15 };
 
 function Interrupteur({ nom, detail, valeur, onChange }: { nom: string; detail: string; valeur: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -35,10 +40,19 @@ function exporter(b: Boucle, i: number) {
   return partagerFichier(`boucle-${i + 1}.gpx`, ecrireGpx(nom, pointsBoucle(b)));
 }
 
-export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }: {
+export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, modele, preset }: {
   toutes: Cote[]; position: Position; nomDepart: string; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void;
+  modele: Modele | null; preset?: { km: number; relief: "plat" | "vallonne" | "cotes" };
 }) {
-  const [km, setKm] = useState(10);
+  // une sortie du plan d'entraînement arrive avec sa distance et son relief
+  const [objectif, setObjectif] = useState<"duree" | "distance">(preset ? "distance" : "duree");
+  const [heures, setHeures] = useState(1.25);
+  const [kmSaisis, setKmSaisis] = useState(preset ? Math.min(40, Math.max(3, preset.km)) : 10);
+  const [relief, setRelief] = useState<Relief>(preset?.relief ?? "plat");
+  // allure du plat : la mienne (apprise de mes GPX) sinon l'allure par défaut ; un peu plus lente en vallonné
+  const allureMinKm = modele ? (modele.secondesParMetre(0) * 1000) / 60 : allurePlat;
+  const kmDeDuree = Math.max(3, Math.round((heures * 60) / (allureMinKm * (relief === "plat" ? 1 : 1.08)) * 2) / 2);
+  const km = objectif === "duree" ? kmDeDuree : kmSaisis;
   const [nbCotes, setNbCotes] = useState(3);
   const [dplus, setDplus] = useState("0");
   const [eviterRoutes, setEviterRoutes] = useState(false);
@@ -47,7 +61,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
   const [resultat, setResultat] = useState<Boucle[] | string | null>(null);
   const [choix, setChoix] = useState(0);
   // réglages de la dernière boucle composée : inutile de relancer le même calcul
-  const reglages = JSON.stringify([position.lat, position.lon, km, nbCotes, dplus, eviterRoutes, eviterPassant]);
+  const reglages = JSON.stringify([position.lat, position.lon, km, relief, nbCotes, dplus, eviterRoutes, eviterPassant]);
   const [dernier, setDernier] = useState<string | null>(null);
   const aJour = dernier === reglages && resultat !== null;
 
@@ -57,8 +71,10 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
     // on laisse l'indicateur s'afficher avant le calcul (0,2 à 0,5 s)
     setTimeout(() => {
       try {
-        setResultat(composerBoucles(grapheApp(), toutes, position,
-                                    { distanceKm: km, nbCotes, dplusVise: Number(dplus) || null, eviterRoutes, eviterPassant }));
+        const demande = relief === "cotes"
+          ? { nbCotes, dplusVise: Number(dplus) || null }
+          : { nbCotes: 0, dplusVise: DPLUS_PAR_KM[relief] * km };
+        setResultat(composerBoucles(grapheApp(), toutes, position, { distanceKm: km, ...demande, eviterRoutes, eviterPassant }));
         setChoix(0);
         setDernier(reglages);
       } catch (e) {
@@ -72,24 +88,46 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
   const b = Array.isArray(resultat) ? resultat[choix] : null;
   const pts = b ? pointsBoucle(b) : [];
   // temps : allure du plat sur la distance, + 1 min par 10 m de D+ (règle des « km-effort » : 100 m de D+ ≈ 1 km)
-  const minutes = b ? (b.distance_m / 1000 + b.dplus_m / 100) * allurePlat : 0;
+  const minutes = b ? (b.distance_m / 1000 + b.dplus_m / 100) * allureMinKm : 0;
 
   return (
     <View style={{ marginTop: 14, gap: 10 }}>
       <View style={[S.carte, { marginTop: 0, gap: 12 }]}>
         <Text style={S.petit}>Départ et arrivée : {nomDepart} (ta voiture, ta porte). Change-le avec la barre de recherche.</Text>
-        <Ajusteur etiquette="Distance" valeur={km} unite="km" pas={1} min={3} max={40} onChange={setKm} />
-        <Ajusteur etiquette="Côtes à enchaîner" valeur={nbCotes} unite="" pas={1} min={0} max={5} onChange={setNbCotes} />
+        <Segments options={[["duree", "Une durée"], ["distance", "Une distance"]]} valeur={objectif} onChange={setObjectif} />
+        {objectif === "duree" ? (
+          <>
+            <Ajusteur etiquette="Durée" valeur={heures} unite="h" pas={0.25} min={0.5} max={6} onChange={setHeures} />
+            <Text style={S.petit}>
+              ≈ {nombre(kmDeDuree, 1)} km à {Math.floor(allureMinKm)}:{String(Math.round((allureMinKm % 1) * 60)).padStart(2, "0")} /km
+              {modele ? " (ton allure, apprise de tes sorties)" : " (allure par défaut ; ajoute tes sorties GPX pour la tienne)"}.
+            </Text>
+          </>
+        ) : (
+          <Ajusteur etiquette="Distance" valeur={kmSaisis} unite="km" pas={1} min={3} max={40} onChange={setKmSaisis} />
+        )}
         <View style={{ gap: 6 }}>
-          <Text style={[S.fort, { fontWeight: "600" }]}>Dénivelé visé</Text>
-          <Segments options={DPLUS} valeur={dplus} onChange={setDplus} />
+          <Text style={[S.fort, { fontWeight: "600" }]}>Relief</Text>
+          <Segments options={RELIEFS} valeur={relief} onChange={setRelief} />
+          <Text style={S.petit}>
+            {relief === "plat" ? "Le moins de dénivelé possible : sortie d'endurance, allure régulière."
+              : relief === "vallonne" ? "Environ 15 m de D+ par km, sans chercher les côtes."
+              : "Enchaîne des côtes mesurées de l'appli."}
+          </Text>
         </View>
+        {relief === "cotes" && <>
+          <Ajusteur etiquette="Côtes à enchaîner" valeur={nbCotes} unite="" pas={1} min={1} max={5} onChange={setNbCotes} />
+          <View style={{ gap: 6 }}>
+            <Text style={[S.fort, { fontWeight: "600" }]}>Dénivelé visé</Text>
+            <Segments options={DPLUS} valeur={dplus} onChange={setDplus} />
+          </View>
+        </>}
         <Interrupteur nom="Le moins de route possible" detail="Préfère chemins, sentiers et voies vertes" valeur={eviterRoutes} onChange={setEviterRoutes} />
         <Interrupteur nom="Éviter les routes passantes" detail="Grands axes et routes rapides" valeur={eviterPassant} onChange={setEviterPassant} />
         <Pressable onPress={composer} disabled={enCours || aJour} accessibilityRole="button"
                    style={[S.bouton, { flexDirection: "row", gap: 8, opacity: aJour ? 0.45 : 1 }]}>
           {enCours && <ActivityIndicator color={C.fond} />}
-          <Text style={S.boutonTexte}>{enCours ? "Calcul de la boucle…" : aJour ? "Boucles à jour : change un réglage" : "Composer ma boucle"}</Text>
+          <Text style={S.boutonTexte}>{enCours ? "Calcul de la sortie…" : aJour ? "Sorties à jour : change un réglage" : "Préparer ma sortie"}</Text>
         </Pressable>
       </View>
 
@@ -132,7 +170,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
           <View style={[S.carte, { marginTop: 0, gap: 6 }]}>
             <Text style={S.petit}>
               {Math.round(b.partRoute * 100)} % de route{b.partPassant > 0.02 ? `, dont ${Math.round(b.partPassant * 100)} % passante ⚠` : ""} ·
-              {" "}{Math.round((1 - b.partRoute) * 100)} % chemins, sentiers et pistes{b.detour ? " · passe par un détour pour tenir la distance" : ""}
+              {" "}{Math.round((1 - b.partRoute) * 100)} % chemins, sentiers et pistes{b.partRepassee > 0.1 ? ` · ${Math.round(b.partRepassee * 100)} % sur des rues déjà empruntées` : ""}
             </Text>
             {b.cotes.map((c, i) => (
               <Pressable key={c.id} onPress={() => onChoisir({ ...c, distance_m: distanceM(position, c) }, i + 1)} accessibilityRole="button"
@@ -149,7 +187,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
             <Text style={S.boutonTexte}>Envoyer à ma montre (GPX)</Text>
           </Pressable>
           <Text style={S.petit}>
-            * À {Math.floor(allurePlat)}:{String(Math.round((allurePlat % 1) * 60)).padStart(2, "0")} /km sur le plat, 100 m de D+ comptant
+            * À {Math.floor(allureMinKm)}:{String(Math.round((allureMinKm % 1) * 60)).padStart(2, "0")} /km sur le plat, 100 m de D+ comptant
             comme 1 km (« km-effort », la mesure de l'ITRA). Le GPX s'ouvre dans Garmin Connect, Coros, Suunto ou Strava (« Importer un parcours »).
           </Text>
         </View>

@@ -35,8 +35,9 @@ const TYPES: [TypeVoie, string, string][] = [
 
 const LEGENDE: [string, string][] = [[C.monteeDouce, "< 7 %"], [C.montee, "7 – 10 %"], [C.monteeFonce, "≥ 10 %"]];
 
-function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
-  filtres: Filtres; toutes: Cote[]; position: Position; onValider: (f: Filtres) => void; onFermer: () => void;
+/** « Que cherches-tu ? » : les côtes n'apparaissent qu'une fois la recherche lancée. */
+function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
+  filtres: Filtres; toutes: Cote[]; position: Position; mot: string; onValider: (f: Filtres) => void;
 }) {
   const [f, setF] = useState(filtres);
   const n = useMemo(() => cotesProches(toutes, position, f).length, [toutes, position, f]);
@@ -46,13 +47,9 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
     setF({ ...f, types: f.types.includes(t) ? f.types.filter((x) => !groupe.includes(x)) : [...f.types, ...groupe] });
   };
   return (
-    <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "#1B2A2266",
-                   justifyContent: "flex-end" }}>
-      <Pressable style={{ flex: 1 }} onPress={onFermer} accessibilityLabel="Fermer les filtres" />
-      <ScrollView style={{ backgroundColor: C.fond, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "78%" }}
-                  contentContainerStyle={{ padding: 20, gap: 18 }}>
+    <View style={{ marginTop: 14, gap: 18 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={[S.h2, { flex: 1, fontSize: 20 }]} accessibilityRole="header">Filtres</Text>
+          <Text style={[S.h2, { flex: 1, fontSize: 20 }]} accessibilityRole="header">Que cherches-tu ?</Text>
           <Pressable onPress={() => setF(FILTRES_DEFAUT)} disabled={parDefaut} aria-disabled={parDefaut} accessibilityRole="button" hitSlop={10}>
             <Text style={{ fontSize: 14, fontWeight: "700", color: parDefaut ? C.gris : C.montee }}>Réinitialiser</Text>
           </Pressable>
@@ -109,12 +106,10 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
             {f.eviterPassant && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
           </View>
         </Pressable>
-      </ScrollView>
-      <View style={{ backgroundColor: C.fond, padding: 16, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.sable }}>
-        <Pressable onPress={() => { onValider(f); onFermer(); }} accessibilityRole="button" style={S.bouton}>
-          <Text style={S.boutonTexte}>{n ? `Voir ${n} résultat${n > 1 ? "s" : ""}` : "Aucun résultat avec ces filtres"}</Text>
+        <Pressable onPress={() => onValider(f)} disabled={!n} accessibilityRole="button" style={[S.bouton, { minHeight: 54, opacity: n ? 1 : 0.45 }]}>
+          <Text style={[S.boutonTexte, { fontSize: 16 }]}>{n ? `Voir ${n === 1 ? `la ${mot}` : `les ${n} ${mot}s`}` : `Aucune ${mot} avec ces critères`}</Text>
         </Pressable>
-      </View>
+        {!n && <Text style={S.petit}>Élargis la distance, baisse la pente minimale ou ajoute des types de voie.</Text>}
     </View>
   );
 }
@@ -183,10 +178,11 @@ export function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDep
 }
 
 export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, onChoisir, allurePlat, onLocaliser,
-                             onRecherche, onLieu, zones, source, mode, setMode }: {
+                             onRecherche, onLieu, zones, source, mode, setMode, resultats, setResultats }: {
   toutes: Cote[]; depart: PointDepart; localisation: Localisation; filtres: Filtres; setFiltres: (f: Filtres) => void;
   onChoisir: (c: CoteProche, rang: number) => void; allurePlat: number; onLocaliser: () => void; onRecherche: () => void;
   onLieu: (l: Lieu) => void; zones: Lieu[]; source: string; mode: Sens; setMode: (m: Sens) => void;
+  resultats: boolean; setResultats: (v: boolean) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
 
@@ -194,7 +190,6 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   const sens = mode;
   const base = useMemo(() => (sens === "descente" ? toutes.map(enDescente) : toutes), [toutes, sens]);
   const mot = sens === "descente" ? "descente" : "côte";
-  const [filtresOuverts, setFiltresOuverts] = useState(false);
   const position = depart.position;
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
@@ -250,6 +245,9 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
 
         {horsZone ? (
           <HorsZone depart={depart} distance={couverture} zones={zones} onLieu={onLieu} />
+        ) : !resultats ? (
+          <RechercheCotes filtres={filtres} toutes={base} position={position} mot={mot}
+                          onValider={(f) => { setFiltres(f); setResultats(true); }} />
         ) : (
           <>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
@@ -257,14 +255,12 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                 <Text style={S.fort}>{cotes.length ? `${cotes.length} ${mot}${cotes.length > 1 ? "s" : ""}` : `Aucune ${mot} dans le rayon`}</Text>
                 <Text style={S.petit} numberOfLines={1}>{resumeFiltres(filtres)}</Text>
               </View>
-              <Pressable onPress={() => setFiltresOuverts(true)} accessibilityRole="button"
-                         accessibilityLabel={`Filtres${nbFiltres ? `, ${nbFiltres} modifiés` : ""}`}
+              <Pressable onPress={() => setResultats(false)} accessibilityRole="button"
+                         accessibilityLabel={`Modifier la recherche${nbFiltres ? `, ${nbFiltres} critères` : ""}`}
                          style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 14,
-                                  borderRadius: 12, backgroundColor: nbFiltres ? C.encre : C.sable }}>
-                <Icone nom="filtres" couleur={nbFiltres ? C.fond : C.encre} taille={18} />
-                <Text style={{ fontSize: 14, fontWeight: "700", color: nbFiltres ? C.fond : C.encre }}>
-                  Filtres{nbFiltres ? ` · ${nbFiltres}` : ""}
-                </Text>
+                                  borderRadius: 12, backgroundColor: C.sable }}>
+                <Icone nom="filtres" couleur={C.encre} taille={18} />
+                <Text style={{ fontSize: 14, fontWeight: "700", color: C.encre }}>Modifier</Text>
               </Pressable>
             </View>
 
@@ -328,10 +324,6 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
           réseau BD TOPO, adresses BAN (Licence Ouverte) · revêtements © contributeurs OpenStreetMap (ODbL) · {source}
         </Text>
       </ScrollView>
-
-      {filtresOuverts && (
-        <PanneauFiltres filtres={filtres} toutes={base} position={position} onValider={setFiltres} onFermer={() => setFiltresOuverts(false)} />
-      )}
     </View>
   );
 }
