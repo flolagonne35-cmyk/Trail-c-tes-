@@ -27,12 +27,12 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour 
   cote: CoteProche; rang: number; allurePlat: number; depart: Position; nomDepart: string; retour: () => void;
 }) {
   const pied = { lat: cote.lat, lon: cote.lon };
-  const [adresse, setAdresse] = useState<string | null | undefined>(undefined);
+  const [adresse, setAdresse] = useState<string | null | undefined>(cote.adresse || undefined);
   const [trajets, setTrajets] = useState<TempsTrajet[]>(() => tempsTrajets(depart, pied, allurePlat));
   const [calcul, setCalcul] = useState(true);
   useEffect(() => {
     let actif = true;
-    adresseDe(pied).then((a) => actif && setAdresse(a));
+    if (!cote.adresse) adresseDe(pied).then((a) => actif && setAdresse(a));
     Promise.all([itineraire(depart, pied, "car"), itineraire(depart, pied, "pedestrian")])
       .then(([voiture, pieton]) => { if (actif) setTrajets(tempsTrajets(depart, pied, allurePlat, voiture, pieton)); })
       .finally(() => actif && setCalcul(false));

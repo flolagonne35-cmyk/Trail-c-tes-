@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "app",
-    "slug": "app",
+    "name": "Trail-côtes",
+    "slug": "trail-cotes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,7 +19,12 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Trail-côtes",
+      "shortName": "Trail-côtes",
+      "lang": "fr",
+      "themeColor": "#1B2A22",
+      "backgroundColor": "#F4F1EA"
     }
   }
 }

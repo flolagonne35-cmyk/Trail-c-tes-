@@ -16,6 +16,15 @@ import { C, S } from "../theme.ts";
 const PENTES = [5, 8, 10];
 const RAYONS = [2000, 5000, 10000, 25000];
 const TYPES: [TypeVoie, string][] = [["route", "Route"], ["chemin", "Chemin"], ["sentier", "Sentier"]];
+// points de départ rapides, utiles sans localisation ni réseau (centres de quartier approximatifs)
+const LIEUX_RAPIDES: Lieu[] = [
+  { label: "Rennes centre (Mairie)", detail: "", lat: 48.1113, lon: -1.6800 },
+  { label: "Parc du Thabor", detail: "", lat: 48.1144, lon: -1.6697 },
+  { label: "Les Gayeulles", detail: "", lat: 48.1336, lon: -1.6372 },
+  { label: "Villejean", detail: "", lat: 48.1210, lon: -1.7020 },
+  { label: "Bréquigny", detail: "", lat: 48.0885, lon: -1.6840 },
+  { label: "Cesson-Sévigné", detail: "", lat: 48.1210, lon: -1.6030 },
+];
 
 function Recherche({ position, onLieu, onLocaliser, enCours }: {
   position: Position; onLieu: (l: Lieu) => void; onLocaliser: () => void; enCours: boolean;
@@ -71,6 +80,11 @@ function Recherche({ position, onLieu, onLocaliser, enCours }: {
         </View>
       )}
       {erreur && q.trim().length >= 3 && !lieux.length && <Text style={[S.petit, { marginTop: 6 }]}>{erreur}</Text>}
+      {!lieux.length && (
+        <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+          {LIEUX_RAPIDES.map((l) => <Puce key={l.label} texte={l.label} onPress={() => onLieu(l)} />)}
+        </View>
+      )}
     </View>
   );
 }
@@ -135,7 +149,7 @@ export function EcranCotes({ cotes, toutes, position, sourcePosition, filtres, s
   useEffect(() => {
     let actif = true;
     affichees.slice(0, 10).forEach((c) => {
-      if (c.id in adresses) return;
+      if (c.id in adresses || c.adresse) return; // déjà connue (précalcul ou requête précédente)
       adresseDe({ lat: c.lat, lon: c.lon }).then((a) => { if (actif) setAdresses((x) => ({ ...x, [c.id]: a })); });
     });
     return () => { actif = false; };
@@ -177,7 +191,7 @@ export function EcranCotes({ cotes, toutes, position, sourcePosition, filtres, s
       <View style={{ gap: 8, marginTop: 12 }}>
         {affichees.map((c, i) => (
           <LigneCote key={c.id} c={c} rang={i + 1} position={position} allurePlat={allurePlat}
-                     adresse={adresses[c.id]} onPress={() => onChoisir(c, i + 1)} />
+                     adresse={c.adresse || adresses[c.id]} onPress={() => onChoisir(c, i + 1)} />
         ))}
       </View>
       <Text style={[S.petit, { marginTop: 16 }]}>

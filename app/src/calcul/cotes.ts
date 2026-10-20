@@ -18,6 +18,7 @@ export type Cote = {
   nom: string;
   revetement: string;
   technicite: string;
+  adresse?: string; // adresse du pied, calculée au précalcul (géocodage inverse IGN)
   pentes_50m: number[];
   profil: { d: number[]; z: number[] };
   geometrie: [number, number][]; // [lon, lat]

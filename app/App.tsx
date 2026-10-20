@@ -51,13 +51,16 @@ function Contenu() {
 
   const localiser = useCallback(async () => {
     setSourcePosition("localisation…");
+    // certains navigateurs ne répondent jamais à la demande : on abandonne après 8 s
+    const delai = <T,>(p: Promise<T>) =>
+      Promise.race([p, new Promise<never>((_, non) => setTimeout(() => non(new Error("délai")), 8000))]);
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await delai(Location.requestForegroundPermissionsAsync());
       if (status !== "granted") {
         setSourcePosition("localisation refusée : cherchez une ville ou une adresse");
         return;
       }
-      const p = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const p = await delai(Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
       setPosition({ lat: p.coords.latitude, lon: p.coords.longitude });
       setSourcePosition(`ma position (± ${Math.round(p.coords.accuracy ?? 0)} m)`);
     } catch {
