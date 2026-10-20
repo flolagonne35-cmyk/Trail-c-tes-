@@ -88,7 +88,9 @@ def valider(ref: dict, args, sortie: Path) -> dict:
         troncons = [t for t in tous if garder(t)]
         if not troncons:
             continue
-        reseau = Reseau(troncons)
+        # comme un calcul d'itinéraire : les dessertes (importance 5 et 6) comptent triple, pour
+        # suivre la route de la montée plutôt qu'un raccourci par un village
+        reseau = Reseau(troncons, penalite=lambda t: 3.0 if t.importance >= 5 else 1.0)
         xy = reseau.chemin((float(x0), float(y0)), (float(x1), float(y1)))
         res.setdefault("diagnostic", {})[reseau_nom] = diagnostic(reseau, (x0, y0), (x1, y1))
         if xy is not None:
@@ -120,6 +122,8 @@ def valider(ref: dict, args, sortie: Path) -> dict:
         "pente_pts": round(pente - ref["pente_moy_pct"], 2),
         "alt_arrivee_m": round(float(z_brut[np.isfinite(z_brut)][-1]) - ref["alt_arrivee_m"], 1),
     }
+    if abs(ecarts["alt_arrivee_m"]) > 150:
+        res["alerte"] = "arrivée non atteinte : réseau coupé dans l'emprise ou point d'arrivée mal placé"
     conforme = (abs(ecarts["longueur_pct"]) <= 100 * TOL_RELATIVE and abs(ecarts["denivele_pct"]) <= 100 * TOL_RELATIVE
                 and abs(ecarts["pente_pts"]) <= TOL_PENTE)
     res.update(
@@ -164,7 +168,8 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--pas", type=float, default=10)
     p.add_argument("--lissage", type=float, default=20)
-    p.add_argument("--marge", type=float, default=1500, help="marge autour du départ et de l'arrivée, en m")
+    p.add_argument("--marge", type=float, default=3000,
+                   help="marge autour du départ et de l'arrivée, en m (la route peut faire un détour)")
     p.add_argument("--ressource", default=RESSOURCE_DEFAUT)
     p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT,
                    help="points par requête altimétrique (défaut %(default)s)")

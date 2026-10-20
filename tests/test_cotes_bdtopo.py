@@ -176,3 +176,16 @@ def test_arrivee_accrochee_a_la_partie_reliee():
     xy = r.chemin((0, 0), (1005, 5))
     assert xy is not None and abs(geo.longueurs_cumulees(xy)[-1] - 1000) < 1
     assert r.accrocher(1005, 5)["distance_m"] > 4  # accroché à la route, pas au bout isolé
+
+
+def test_penalite_suit_la_grande_route():
+    # grande route en L (200 m) ou raccourci par une desserte (141 m) : la pénalité fait suivre la route
+    route = [troncon([[0, 0], [100, 0]], "Route à 1 chaussée"), troncon([[100, 0], [100, 100]], "Route à 1 chaussée")]
+    for t in route:
+        t.importance = 3
+    raccourci = troncon([[0, 0], [100, 100]], "Route à 1 chaussée")
+    raccourci.importance = 5
+    sans = bdtopo.Reseau(route + [raccourci]).chemin((0, 0), (100, 100))
+    avec = bdtopo.Reseau(route + [raccourci], penalite=lambda t: 3.0 if t.importance >= 5 else 1.0).chemin((0, 0), (100, 100))
+    assert abs(geo.longueurs_cumulees(sans)[-1] - 141.4) < 1
+    assert abs(geo.longueurs_cumulees(avec)[-1] - 200) < 1

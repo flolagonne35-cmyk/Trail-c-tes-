@@ -45,6 +45,7 @@ class Troncon:
     ouvrage: bool  # pont ou tunnel : l'altitude du MNT n'est pas celle de la voie
     xy: np.ndarray
     longueur: float
+    importance: int = 6  # BD TOPO : 1 (grand axe) à 6 (desserte, chemin)
 
 
 @dataclass
@@ -142,6 +143,13 @@ def axes_inverses(features: list[dict], lat0: float, lon0: float) -> bool:
     return False
 
 
+def _importance(valeur) -> int:
+    try:
+        return min(6, max(1, int(str(valeur).strip())))
+    except (TypeError, ValueError):
+        return 6
+
+
 def _est_ouvrage(position) -> bool:
     try:
         return int(str(position).strip()) != 0
@@ -200,7 +208,7 @@ def lire_troncons(features: list[dict], proj: Projection, inverse: bool, stats: 
                 id=f"{p.get('cleabs') or f.get('id')}" + (f"#{n}" if n else ""),
                 nature=nature, type_voie=type_voie, nom=nom,
                 ouvrage=_est_ouvrage(p.get("position_par_rapport_au_sol")),
-                xy=xy, longueur=longueur))
+                xy=xy, longueur=longueur, importance=_importance(p.get("importance"))))
     stats.natures = dict(natures.most_common())
     stats.troncons_retenus = len(troncons)
     return troncons
@@ -304,7 +312,10 @@ def echantillonner(chaine: list[tuple[int, bool]], troncons: list[Troncon], pas:
 class Reseau:
     """Graphe des tronçons pour accrocher une position et mesurer des distances par les chemins."""
 
-    def __init__(self, troncons: list[Troncon]):
+    def __init__(self, troncons: list[Troncon], penalite=None):
+        """`penalite(tronçon) → facteur` alourdit certaines voies pour le calcul des chemins
+        (par exemple les petites routes, pour suivre une montée routière) ; sans elle, le graphe
+        mesure des distances réelles."""
         self.troncons = troncons
         noeuds: dict[tuple[float, float], int] = {}
         self.a = np.array([noeuds.setdefault(cle_noeud(t.xy[0]), len(noeuds)) for t in troncons])
@@ -312,7 +323,8 @@ class Reseau:
         self.L = np.array([t.longueur for t in troncons])
         aretes: dict[tuple[int, int], float] = {}
         self.arete: dict[tuple[int, int], int] = {}  # arête → tronçon le plus court
-        for k, (a, b, L) in enumerate(zip(self.a, self.b, self.L)):
+        couts = self.L * (np.array([penalite(t) for t in troncons]) if penalite else 1.0)
+        for k, (a, b, L) in enumerate(zip(self.a, self.b, couts)):
             cle = (min(a, b), max(a, b))
             if L < aretes.get(cle, math.inf):
                 aretes[cle], self.arete[cle] = L, k
