@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T15:16:11+00:00",
+  "date_utc": "2026-10-20T15:36:48+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -37,8 +37,8 @@
     "Accrochage de la position": "18.0 m (Route à 1 chaussée)",
     "Côtes trouvées": 7,
     "Tronçons exclus (privés / interdits aux piétons)": 86,
-    "Revêtement": "nature BD TOPO : 7",
-    "OpenStreetMap": "échec (0 voies)",
+    "Revêtement": "OSM surface : 7",
+    "OpenStreetMap": "ok (14816 voies)",
     "Fond Plan IGN": "ok",
     "Requêtes WFS / altimétrie": "6 / 7"
   },
@@ -61,9 +61,9 @@
       "pente_max_pct": 6.9,
       "dplus_m": 16.2,
       "type_voie": "route",
-      "revetement": "goudronné (supposé)",
-      "technicite": "",
-      "nom": "R GAMBETTA"
+      "revetement": "goudronné",
+      "technicite": "roulant",
+      "nom": "Rue Gambetta"
     },
     {
       "id": 2,
@@ -73,8 +73,8 @@
       "pente_max_pct": 10.3,
       "dplus_m": 16.6,
       "type_voie": "sentier",
-      "revetement": "non revêtu (supposé)",
-      "technicite": "",
+      "revetement": "stabilisé",
+      "technicite": "correct",
       "nom": ""
     },
     {
@@ -85,9 +85,9 @@
       "pente_max_pct": 6.2,
       "dplus_m": 10.0,
       "type_voie": "sentier",
-      "revetement": "non revêtu (supposé)",
+      "revetement": "goudronné",
       "technicite": "",
-      "nom": ""
+      "nom": "Parc Saint-Martin"
     },
     {
       "id": 4,
@@ -97,9 +97,9 @@
       "pente_max_pct": 6.2,
       "dplus_m": 9.0,
       "type_voie": "route",
-      "revetement": "goudronné (supposé)",
-      "technicite": "",
-      "nom": "R PAUL FEVAL"
+      "revetement": "goudronné",
+      "technicite": "correct",
+      "nom": "Rue Paul Féval"
     },
     {
       "id": 5,
@@ -109,9 +109,9 @@
       "pente_max_pct": 7.2,
       "dplus_m": 10.4,
       "type_voie": "sentier",
-      "revetement": "non revêtu (supposé)",
-      "technicite": "",
-      "nom": "PAS ANITA CONTI"
+      "revetement": "goudronné",
+      "technicite": "roulant",
+      "nom": "Passerelle Anita Conti"
     },
     {
       "id": 6,
@@ -121,9 +121,9 @@
       "pente_max_pct": 11.9,
       "dplus_m": 14.2,
       "type_voie": "route",
-      "revetement": "goudronné (supposé)",
+      "revetement": "goudronné",
       "technicite": "",
-      "nom": "ALL SUZANNE LENGLEN"
+      "nom": "Rue du Père Bourdon"
     },
     {
       "id": 7,
@@ -133,23 +133,34 @@
       "pente_max_pct": 6.7,
       "dplus_m": 11.8,
       "type_voie": "route",
-      "revetement": "goudronné (supposé)",
-      "technicite": "",
-      "nom": "R MICHELET"
+      "revetement": "goudronné",
+      "technicite": "roulant",
+      "nom": "Rue Michelet"
     }
   ],
   "osm": {
-    "statut": "échec",
-    "url": "",
-    "nb_voies": 0,
-    "valeurs_surface": {},
-    "erreurs": [
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a",
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a",
-      "https://overpass.kumi.systems/api/interpreter ReadTimeout : HTTPSConnectionPool(host='overpass.kumi.systems', port=443): Read timed out. (read timeout=180)",
-      "https://overpass.kumi.systems/api/interpreter ReadTimeout : HTTPSConnectionPool(host='overpass.kumi.systems', port=443): Read timed out. (read timeout=180)"
-    ],
-    "duree_s": 393.0
+    "statut": "ok",
+    "url": "https://overpass-api.de/api/interpreter",
+    "nb_voies": 14816,
+    "valeurs_surface": {
+      "asphalt": 6915,
+      "—": 4185,
+      "paving_stones": 1002,
+      "concrete": 828,
+      "compacted": 614,
+      "sett": 336,
+      "fine_gravel": 210,
+      "wood": 157,
+      "concrete:plates": 122,
+      "ground": 91,
+      "grass": 64,
+      "dirt": 55,
+      "metal": 53,
+      "gravel": 50,
+      "paved": 40
+    },
+    "erreurs": [],
+    "duree_s": 43.6
   },
   "fond_erreurs": [],
   "wfs": {
@@ -268,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 5.1
+    "duree_s": 4.5
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -279,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30759,
     "points_nodata": 0,
-    "duree_s": 25.7,
+    "duree_s": 33.7,
     "codes_http": {
       "200": 7
     },
