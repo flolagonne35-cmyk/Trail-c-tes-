@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T15:17:56+00:00",
+  "date_utc": "2026-10-20T15:36:25+00:00",
   "statut": "ok",
   "parametres": {
     "gpx": "resultats/validation/alpe_d_huez.gpx",
@@ -16,7 +16,7 @@
     "essais": 4
   },
   "resume": {
-    "Parcours": "12.84 km, D+ 1097 m, D− 6 m",
+    "Parcours": "13.26 km, D+ 1097 m, D− 7 m",
     "Altitudes": "IGN RGE ALTI",
     "Segments": 2,
     "Montées / descentes / plats": "1/0/1"
@@ -41,12 +41,12 @@
       "n": 2,
       "type": "montée",
       "km_debut": 0.7,
-      "km_fin": 12.84,
-      "distance_km": 12.14,
-      "dplus_m": 1090,
+      "km_fin": 13.26,
+      "distance_km": 12.56,
+      "dplus_m": 1091,
       "dmoins_m": 6,
-      "pente_moy_pct": 8.9,
-      "pente_max_pct": 19.9,
+      "pente_moy_pct": 8.6,
+      "pente_max_pct": 19.6,
       "alt_debut_m": 723,
       "alt_fin_m": 1808,
       "difficulte": "très difficile",
@@ -60,14 +60,14 @@
     "reessais": 0,
     "lots_en_echec": 0,
     "replis_get": 0,
-    "points_demandes": 1285,
+    "points_demandes": 1328,
     "points_nodata": 0,
-    "duree_s": 2.9,
+    "duree_s": 1.7,
     "codes_http": {
       "200": 1
     },
     "precisions": {
-      "Variable suivant la source de mesure": 1285
+      "Variable suivant la source de mesure": 1328
     },
     "erreurs": [],
     "exemple_reponse": "{\"elevations\": [{\"lon\": 6.038667, \"lat\": 45.060598, \"z\": 717.45, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.0386, \"lat\": 45.060522, \"z\": 717.46, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.038497, \"lat\": 45.060469, \"z\": 717.48, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.038388, \"lat\": 45.060423, \"z\": 717.44, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": 6.038275, \"lat\": 45.060381, \"z\": 717.56, \"acc\": \"Variable suivant la source de mesure\"}, {"
