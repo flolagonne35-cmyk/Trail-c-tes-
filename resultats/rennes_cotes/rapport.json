@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-20T14:33:15+00:00",
+  "date_utc": "2026-10-20T14:41:53+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -20,16 +20,22 @@
     "pause": 0.25,
     "essais": 4,
     "max_echec": 0.05,
+    "sans_osm": false,
+    "sans_fond": false,
     "demo": false
   },
   "resume": {
-    "Tronçons BD TOPO reçus / retenus": "5892 / 5674",
-    "Voies raccordées (≥ longueur mini)": 771,
-    "Points altimétriques demandés": 31225,
+    "Tronçons BD TOPO reçus / retenus": "5892 / 5598",
+    "Voies raccordées (≥ longueur mini)": 756,
+    "Points altimétriques demandés": 30759,
     "Points valides": "100.00 %",
     "Accrochage de la position": "18.0 m (Route à 1 chaussée)",
     "Côtes trouvées": 7,
-    "Requêtes WFS / altimétrie": "6 / 209"
+    "Tronçons exclus (privés / interdits aux piétons)": 76,
+    "Revêtement": "OSM surface : 7",
+    "OpenStreetMap": "ok (14816 voies)",
+    "Fond Plan IGN": "ok",
+    "Requêtes WFS / altimétrie": "6 / 206"
   },
   "accroche": {
     "troncon": "TRONROUT0000000047479795",
@@ -50,6 +56,8 @@
       "pente_max_pct": 6.9,
       "dplus_m": 16.2,
       "type_voie": "route",
+      "revetement": "goudronné",
+      "technicite": "roulant",
       "nom": "R GAMBETTA"
     },
     {
@@ -60,6 +68,8 @@
       "pente_max_pct": 10.3,
       "dplus_m": 16.6,
       "type_voie": "sentier",
+      "revetement": "stabilisé",
+      "technicite": "correct",
       "nom": ""
     },
     {
@@ -70,6 +80,8 @@
       "pente_max_pct": 6.2,
       "dplus_m": 10.0,
       "type_voie": "sentier",
+      "revetement": "goudronné",
+      "technicite": "",
       "nom": ""
     },
     {
@@ -80,6 +92,8 @@
       "pente_max_pct": 6.2,
       "dplus_m": 9.0,
       "type_voie": "route",
+      "revetement": "goudronné",
+      "technicite": "correct",
       "nom": "R PAUL FEVAL"
     },
     {
@@ -90,6 +104,8 @@
       "pente_max_pct": 7.2,
       "dplus_m": 10.4,
       "type_voie": "sentier",
+      "revetement": "goudronné",
+      "technicite": "roulant",
       "nom": "PAS ANITA CONTI"
     },
     {
@@ -100,6 +116,8 @@
       "pente_max_pct": 11.9,
       "dplus_m": 14.2,
       "type_voie": "route",
+      "revetement": "goudronné",
+      "technicite": "",
       "nom": "ALL SUZANNE LENGLEN"
     },
     {
@@ -110,9 +128,36 @@
       "pente_max_pct": 6.7,
       "dplus_m": 11.8,
       "type_voie": "route",
+      "revetement": "goudronné",
+      "technicite": "roulant",
       "nom": "R MICHELET"
     }
   ],
+  "osm": {
+    "statut": "ok",
+    "url": "https://overpass-api.de/api/interpreter",
+    "nb_voies": 14816,
+    "valeurs_surface": {
+      "asphalt": 6915,
+      "—": 4185,
+      "paving_stones": 1002,
+      "concrete": 828,
+      "compacted": 614,
+      "sett": 336,
+      "fine_gravel": 210,
+      "wood": 157,
+      "concrete:plates": 122,
+      "ground": 91,
+      "grass": 64,
+      "dirt": 55,
+      "metal": 53,
+      "gravel": 50,
+      "paved": 40
+    },
+    "erreurs": [],
+    "duree_s": 35.0
+  },
+  "fond_erreurs": [],
   "wfs": {
     "requetes": 6,
     "codes_http": {
@@ -131,7 +176,16 @@
       "Escalier": 27,
       "Chemin": 10
     },
-    "troncons_retenus": 5674,
+    "troncons_retenus": 5598,
+    "exclus_acces": 76,
+    "valeurs_acces": {
+      "prive=False / acces_pieton=None": 4905,
+      "prive=False / acces_pieton=Libre": 674,
+      "prive=True / acces_pieton=None": 72,
+      "prive=True / acces_pieton=Libre": 4,
+      "prive=None / acces_pieton=Libre": 3,
+      "prive=None / acces_pieton=None": 16
+    },
     "exemple_proprietes": {
       "cleabs": "TRONROUT0000000047464760",
       "nature": "Sentier",
@@ -220,22 +274,22 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 5.1
+    "duree_s": 22.3
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
-    "requetes": 209,
-    "requetes_ok": 209,
+    "requetes": 206,
+    "requetes_ok": 206,
     "reessais": 0,
     "lots_en_echec": 0,
-    "points_demandes": 31225,
+    "points_demandes": 30759,
     "points_nodata": 0,
-    "duree_s": 149.8,
+    "duree_s": 155.6,
     "codes_http": {
-      "200": 209
+      "200": 206
     },
     "precisions": {
-      "Variable suivant la source de mesure": 31225
+      "Variable suivant la source de mesure": 30759
     },
     "erreurs": [],
     "exemple_reponse": "{\"elevations\": [{\"lon\": -1.709265, \"lat\": 48.124426, \"z\": 60.09, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.70913, \"lat\": 48.124434, \"z\": 60.03, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.708996, \"lat\": 48.124441, \"z\": 59.93, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.708862, \"lat\": 48.124449, \"z\": 59.88, \"acc\": \"Variable suivant la source de mesure\"}, {\"lon\": -1.708728, \"lat\": 48.124457, \"z\": 59.73, \"acc\": \"Variable suivant la source de mesure\"}, "
