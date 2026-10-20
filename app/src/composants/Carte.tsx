@@ -56,9 +56,10 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
   const ecran = (p: Position) => surEcran(p, centre, zoom, largeur, hauteur);
   const tuiles = largeur ? tuilesVisibles(centre, zoom, largeur, hauteur, SOURCE) : [];
   const decalage = { transform: [{ translateX: glisse.dx }, { translateY: glisse.dy }] };
-  const bouton = (texte: string, label: string, action: () => void) => (
-    <Pressable onPress={action} accessibilityRole="button" accessibilityLabel={label}
-               style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: C.blanc, alignItems: "center",
+  const bouton = (texte: string, label: string, action: () => void, inactif = false) => (
+    <Pressable onPress={action} disabled={inactif} accessibilityRole="button" accessibilityLabel={label}
+               accessibilityState={{ disabled: inactif }}
+               style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: C.blanc, alignItems: "center", opacity: inactif ? 0.45 : 1,
                         justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 3,
                         shadowOffset: { width: 0, height: 1 }, elevation: 2 }}>
       <Text style={{ fontSize: 20, fontWeight: "700", color: C.encre }}>{texte}</Text>
@@ -99,7 +100,8 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
         )}
         {largeur > 0 && marqueurs.map((m) => {
           const [x, y] = ecran(m.position);
-          if (x < -20 || y < -20 || x > largeur + 20 || y > hauteur + 20) return null;
+          // entièrement visible et hors de la colonne des boutons (sinon on ne peut pas le toucher)
+          if (x < 13 || y < 13 || x > largeur - 13 || y > hauteur - 13 || (x > largeur - 62 && y < 150)) return null;
           return (
             <Pressable key={m.id} onPress={m.onPress} accessibilityRole={m.onPress ? "button" : "image"} accessibilityLabel={m.label}
                        hitSlop={8}
@@ -112,9 +114,10 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
         })}
       </View>
       <View style={{ position: "absolute", right: 8, top: 8, gap: 6 }}>
-        {bouton("+", "Zoomer", () => zoomer(1))}
-        {bouton("−", "Dézoomer", () => zoomer(-1))}
-        {bouton("◎", "Recentrer", () => { setCentre(centreInitial); setZoom(zoomInitial); })}
+        {bouton("+", "Zoomer", () => zoomer(1), zoom >= Z_MAX)}
+        {bouton("−", "Dézoomer", () => zoomer(-1), zoom <= SOURCE.zMin)}
+        {bouton("◎", "Recentrer", () => { setCentre(centreInitial); setZoom(zoomInitial); },
+                centre.lat === centreInitial.lat && centre.lon === centreInitial.lon && zoom === zoomInitial)}
       </View>
       <Text style={{ position: "absolute", left: 6, bottom: 4, fontSize: 10, color: C.encre, backgroundColor: "rgba(255,255,255,0.75)",
                      paddingHorizontal: 4, borderRadius: 3 }}>Plan IGN © IGN</Text>

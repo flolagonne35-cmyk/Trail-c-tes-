@@ -30,7 +30,15 @@ export function tempsTrajets(depart: Position, arrivee: Position, allureMinKm: n
   ].map((t) => ({ ...t, minutes: Math.max(1, Math.round(t.minutes)) })) as TempsTrajet[];
 }
 
+/** « 45 s », « 7 min », « 1 h 05 » : arrondi à la seconde sous 1 min, à la minute au-delà. */
 export function dureeLisible(min: number): string {
-  if (min < 60) return `${min} min`;
-  return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, "0")}`;
+  if (!Number.isFinite(min)) return "—";
+  if (min < 1) return `${Math.max(1, Math.round(min * 60))} s`;
+  if (min < 10) {
+    const s = Math.round(min * 60);
+    return s % 60 ? `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, "0")}` : `${s / 60} min`;
+  }
+  const m = Math.round(min);
+  if (m < 60) return `${m} min`;
+  return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
 }

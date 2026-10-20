@@ -92,6 +92,8 @@ export const ICONES = {
   chrono: <><Circle cx={12} cy={13} r={8} /><Path d="M12 9v4l3 2M10 2h4" /></>,
   trophee: <><Path d="M8 4h8v5a4 4 0 0 1-8 0z" /><Path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4" /></>,
   fleche: <Path d="M9 6l6 6-6 6" />,
+  boucle: <><Path d="M20 12a8 8 0 1 1-2.4-5.7" /><Path d="M20 4v4h-4" /><Circle cx={12} cy={12} r={1.5} /></>,
+  seance: <Path d="M5 20v-6M10 20V8M15 20v-9M20 20V5" />,
   position: <><Circle cx={12} cy={12} r={7} /><Circle cx={12} cy={12} r={2.5} /><Path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></>,
 } as const;
 

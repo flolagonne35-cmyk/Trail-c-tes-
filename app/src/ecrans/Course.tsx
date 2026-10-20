@@ -166,8 +166,8 @@ function VuePrepa({ parcours, cotes, position, nomDepart, onChoisir }: {
   return (
     <Section titre="S'entraîner près de chez toi">
       <Text style={S.petit}>
-        Les plus grosses montées et descentes de la course, et pour chacune la côte proche de {nomDepart} la plus semblable
-        en pente. Les répétitions redonnent le dénivelé du passage.
+        Les plus grosses montées et descentes de la course, et pour chacune la côte proche {nomDepart === "Ma position" ? "de toi" : `de ${nomDepart}`} la
+        plus semblable en pente. Les répétitions redonnent le dénivelé du passage, réparties en séances de 15 montées au plus.
       </Text>
       {equivalents.length === 0 && (
         <Text style={[S.petit, { color: C.encre }]}>Aucun passage de plus de 50 m de dénivelé, ou aucune côte calculée à moins de 25 km.</Text>
@@ -188,8 +188,12 @@ function VuePrepa({ parcours, cotes, position, nomDepart, onChoisir }: {
             <Pressable onPress={() => onChoisir(e.cote, i + 1)} accessibilityRole="button"
                        style={{ backgroundColor: C.fond, borderRadius: 12, padding: 12, gap: 2 }}>
               <Text style={S.fort}>
-                {e.repetitions} × {nombre(Math.round(e.cote.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(e.cote.pente_moy_pct, 1)} %
+                {e.repetitions > 15 ? `${Math.ceil(e.repetitions / 15)} séances de ${Math.ceil(e.repetitions / Math.ceil(e.repetitions / 15))}` : e.repetitions}
+                {" "}× {nombre(Math.round(e.cote.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(e.cote.pente_moy_pct, 1)} %
               </Text>
+              {e.repetitions > 15 && (
+                <Text style={S.petit}>{e.repetitions} montées au total pour {nombre(descente ? s.dmoins_m : s.dplus_m)} m : un bloc par semaine dans les 6 semaines avant la course.</Text>
+              )}
               <Text style={S.petit} numberOfLines={1}>{e.cote.adresse || e.cote.nom || e.cote.type_voie} · à {kmLisibles(e.cote.distance_m)}</Text>
               {e.ecartPente > 2 && (
                 <Text style={{ fontSize: 12, color: C.monteeFonce }}>Pas de pente aussi forte près d'ici : la plus proche est retenue.</Text>

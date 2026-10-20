@@ -1,6 +1,7 @@
-// Onglet « Accueil » : mon coureur et mes points, les trois actions principales, les côtes proches.
+// Onglet « Accueil » : mon coureur et ma semaine, les quatre usages de l'appli, les côtes proches.
 
 import { Pressable, ScrollView, Text, View } from "react-native";
+import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { Avatar } from "../avatar/Avatar.tsx";
 import { kmLisibles, type CoteProche } from "../calcul/cotes.ts";
@@ -9,6 +10,7 @@ import { Icone, nombre, Section, type Onglet } from "../composants/communs.tsx";
 import { couleurPente } from "../composants/Carte.tsx";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
+import type { ModeCotes } from "./Cotes.tsx";
 
 function semaine(profil: Profil) {
   const lundi = new Date();
@@ -19,56 +21,92 @@ function semaine(profil: Profil) {
            points: a.reduce((s, x) => s + x.points, 0), sorties: a.length };
 }
 
-function Action({ icone, titre, texte, onPress, fonce }: {
-  icone: Parameters<typeof Icone>[0]["nom"]; titre: string; texte: string; onPress: () => void; fonce?: boolean;
-}) {
+function Bandeau({ profil, onPress }: { profil: Profil; onPress: () => void }) {
+  const { valides } = score(profil.activites);
+  const s = semaine(profil);
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${titre}. ${texte}`}
-               style={{ flex: 1, minWidth: 0, borderRadius: 18, padding: 16, gap: 10, backgroundColor: fonce ? C.encre : C.blanc }}>
-      <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
-                     backgroundColor: fonce ? "#FFFFFF1F" : C.monteeClair }}>
-        <Icone nom={icone} couleur={fonce ? C.blanc : C.monteeFonce} />
-      </View>
-      <View>
-        <Text style={{ fontSize: 17, fontWeight: "700", color: fonce ? C.blanc : C.encre }}>{titre}</Text>
-        <Text style={{ fontSize: 13, marginTop: 2, color: fonce ? "#FFFFFFB3" : C.gris }}>{texte}</Text>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`Mon profil, ${valides} points`}
+               style={{ marginTop: 12, borderRadius: 24, overflow: "hidden", backgroundColor: C.encre, minHeight: 200 }}>
+      {/* relief en fond : deux lignes de crêtes et le soleil */}
+      <Svg width="100%" height="100%" viewBox="0 0 350 200" preserveAspectRatio="xMidYMax slice"
+           style={{ position: "absolute", left: 0, top: 0 }}>
+        <Defs>
+          <LinearGradient id="crete" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#2E4A3B" /><Stop offset="1" stopColor={C.encre} />
+          </LinearGradient>
+        </Defs>
+        <Circle cx={292} cy={52} r={26} fill={C.montee} opacity={0.9} />
+        <Path d="M0 150 L60 105 L95 130 L150 70 L205 125 L245 98 L300 140 L350 112 L350 200 L0 200 Z" fill="#253D30" />
+        <Path d="M0 175 L45 150 L90 168 L140 128 L190 160 L235 140 L290 170 L350 150 L350 200 L0 200 Z" fill="url(#crete)" />
+        <Path d="M140 128 L150 136 L160 131" stroke="#F4F1EA" strokeWidth={2} fill="none" opacity={0.5} />
+      </Svg>
+      <View style={{ flexDirection: "row", padding: 18, gap: 8 }}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ color: "#F4F1EAB3", fontSize: 13, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" }}>Trail-côtes</Text>
+          <Text style={{ color: C.fond, fontSize: 26, fontWeight: "800" }} numberOfLines={1}>Salut {profil.prenom}</Text>
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, marginTop: 10 }}>
+            <Text style={{ color: C.fond, fontSize: 40, fontWeight: "800" }}>{nombre(valides)}</Text>
+            <Text style={{ color: "#F4F1EAB3", fontSize: 15, fontWeight: "700" }}>points</Text>
+          </View>
+          <Text style={{ color: "#F4F1EAD9", fontSize: 13, marginTop: 6 }}>
+            Cette semaine : {nombre(s.km, 1)} km · {nombre(s.dplus)} m D+ · {s.sorties} sortie{s.sorties > 1 ? "s" : ""}
+          </Text>
+        </View>
+        <Avatar a={profil.apparence} taille={112} fond={false} />
       </View>
     </Pressable>
   );
 }
 
-export function EcranAccueil({ profil, proches, lieu, nbCotes, allerA, ouvrirCote }: {
-  profil: Profil; proches: CoteProche[]; lieu: string; nbCotes: number;
-  allerA: (o: Onglet) => void; ouvrirCote: (c: CoteProche, rang: number) => void;
+function Tuile({ icone, titre, texte, onPress, accent }: {
+  icone: Parameters<typeof Icone>[0]["nom"]; titre: string; texte: string; onPress: () => void; accent?: boolean;
 }) {
-  const { valides } = score(profil.activites);
-  const s = semaine(profil);
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${titre}. ${texte}`}
+               style={({ pressed }) => ({ flex: 1, minWidth: 0, borderRadius: 18, padding: 14, gap: 10, minHeight: 128,
+                                          backgroundColor: accent ? C.montee : C.blanc, opacity: pressed ? 0.85 : 1 })}>
+      <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
+                     backgroundColor: accent ? "#FFFFFF33" : C.monteeClair }}>
+        <Icone nom={icone} couleur={accent ? C.blanc : C.monteeFonce} />
+      </View>
+      <View>
+        <Text style={{ fontSize: 16, fontWeight: "800", color: accent ? C.blanc : C.encre }}>{titre}</Text>
+        <Text style={{ fontSize: 12, marginTop: 2, color: accent ? "#FFFFFFD9" : C.gris }}>{texte}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+export function EcranAccueil({ profil, proches, lieu, nbCotes, allerA, ouvrirCotes, ouvrirCote }: {
+  profil: Profil; proches: CoteProche[]; lieu: string; nbCotes: number;
+  allerA: (o: Onglet) => void; ouvrirCotes: (m: ModeCotes) => void; ouvrirCote: (c: CoteProche, rang: number) => void;
+}) {
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
-      <Pressable onPress={() => allerA("profil")} accessibilityRole="button" accessibilityLabel="Mon profil"
-                 style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 12 }}>
-        <View style={{ borderRadius: 30, overflow: "hidden" }}><Avatar a={profil.apparence} taille={60} cadrage="buste" /></View>
-        <View style={{ flex: 1 }}>
-          <Text style={S.surtitre}>Trail-côtes</Text>
-          <Text style={{ fontSize: 24, fontWeight: "700", color: C.encre }}>Salut {profil.prenom}</Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.blanc, borderRadius: 999,
-                       paddingVertical: 8, paddingHorizontal: 12 }}>
-          <Icone nom="trophee" couleur={C.montee} taille={18} />
-          <Text style={S.fort}>{nombre(valides)} pts</Text>
-        </View>
-      </Pressable>
+      <Bandeau profil={profil} onPress={() => allerA("profil")} />
 
-      <View style={{ gap: 10, marginTop: 20 }}>
-        <Action fonce icone="cotes" titre="Trouver une côte" onPress={() => allerA("cotes")}
-                texte={`${nbCotes} côtes mesurées au mètre près, autour de toi ou d'une ville`} />
+      <View style={{ gap: 10, marginTop: 14 }}>
         <View style={{ flexDirection: "row", gap: 10 }}>
-          <Action icone="course" titre="Préparer une course" texte="Profil, passages, nutrition" onPress={() => allerA("course")} />
-          <Action icone="plus" titre="Ajouter une sortie" texte="Gagne des points" onPress={() => allerA("profil")} />
+          <Tuile accent icone="boucle" titre="Créer une boucle" texte="Distance, côtes, D+ : GPX pour la montre" onPress={() => ouvrirCotes("boucle")} />
+          <Tuile icone="seance" titre="Séance du coach" texte="« 8 × 400 m à 10 % » : où la faire" onPress={() => ouvrirCotes("seance")} />
+        </View>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <Tuile icone="cotes" titre="Côtes et descentes" texte={`${nbCotes} mesurées au mètre près`} onPress={() => ouvrirCotes("montee")} />
+          <Tuile icone="course" titre="Préparer une course" texte="Profil, passages, nutrition, prépa" onPress={() => allerA("course")} />
         </View>
       </View>
 
-      <Section titre={`Près de ${lieu}`} action="Tout voir" onAction={() => allerA("cotes")}>
+      <Pressable onPress={() => allerA("profil")} accessibilityRole="button"
+                 style={[S.ligne, { marginTop: 10, paddingVertical: 14 }]}>
+        <Icone nom="plus" couleur={C.montee} />
+        <View style={{ flex: 1 }}>
+          <Text style={S.fort}>Ajouter une sortie</Text>
+          <Text style={S.petit}>GPX de ta montre : points, côtes montées et chronos</Text>
+        </View>
+        <Icone nom="fleche" couleur={C.gris} taille={18} />
+      </Pressable>
+
+      <Section titre={`Près de ${lieu}`} action="Tout voir" onAction={() => ouvrirCotes("montee")}>
         <View style={{ gap: 8 }}>
           {proches.length === 0 && <Text style={S.petit}>Aucune côte calculée près d'ici pour l'instant.</Text>}
           {proches.slice(0, 3).map((c, i) => (
@@ -83,18 +121,6 @@ export function EcranAccueil({ profil, proches, lieu, nbCotes, allerA, ouvrirCot
             </Pressable>
           ))}
         </View>
-      </Section>
-
-      <Section titre="Ma semaine">
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {[["Distance", `${nombre(s.km, 1)} km`], ["Dénivelé", `${nombre(s.dplus)} m`], ["Points", nombre(s.points)]].map(([t, v]) => (
-            <View key={t} style={{ flex: 1, backgroundColor: C.blanc, borderRadius: 14, padding: 12 }}>
-              <Text style={S.petit}>{t}</Text>
-              <Text style={{ fontSize: 20, fontWeight: "700", color: C.encre, marginTop: 2 }}>{v}</Text>
-            </View>
-          ))}
-        </View>
-        {s.sorties === 0 && <Text style={S.petit}>Ajoute le GPX de ta prochaine sortie pour la voir ici.</Text>}
       </Section>
     </ScrollView>
   );

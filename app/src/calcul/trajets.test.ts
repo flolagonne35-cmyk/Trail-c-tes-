@@ -42,4 +42,9 @@ test("temps de trajet : calculés si les itinéraires sont là, estimés sinon",
   assert.deepEqual(calcules.map((t) => [t.mode, t.minutes, t.estime]),
                    [["voiture", 4, false], ["course", 6, false], ["marche", 16, false], ["velo", 5, true]]);
   assert.equal(dureeLisible(75), "1 h 15");
+  assert.equal(dureeLisible(110.8465), "1 h 51");
+  assert.equal(dureeLisible(2.8200980174787595), "2 min 49");
+  assert.equal(dureeLisible(3), "3 min");
+  assert.equal(dureeLisible(0.5), "30 s");
+  assert.equal(dureeLisible(40.578), "41 min");
 });

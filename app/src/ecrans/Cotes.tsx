@@ -1,7 +1,7 @@
 // Onglet « Côtes » : un point de départ (ma position, une ville, une adresse), un résumé des filtres,
 // puis la carte ou la liste des côtes les plus proches. Hors des zones calculées, on le dit clairement.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 import {
@@ -19,6 +19,7 @@ import { VueBoucle } from "./Boucle.tsx";
 import { VueSeance } from "./Seance.tsx";
 import { C, S } from "../theme.ts";
 
+export type ModeCotes = Sens | "seance" | "boucle";
 export type Localisation = "inactive" | "en_cours" | "refusee" | "indisponible";
 export type PointDepart = { position: Position; nom: string; detail: string; gps: boolean };
 
@@ -50,7 +51,7 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
     <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: "#1B2A2266",
                    justifyContent: "flex-end" }}>
       <Pressable style={{ flex: 1 }} onPress={onFermer} accessibilityLabel="Fermer les filtres" />
-      <ScrollView style={{ backgroundColor: C.fond, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "88%" }}
+      <ScrollView style={{ backgroundColor: C.fond, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "78%" }}
                   contentContainerStyle={{ padding: 20, gap: 18 }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Text style={[S.h2, { flex: 1, fontSize: 20 }]} accessibilityRole="header">Filtres</Text>
@@ -110,10 +111,12 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
             {f.eviterPassant && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
           </View>
         </Pressable>
-        <Pressable onPress={() => { onValider(f); onFermer(); }} accessibilityRole="button" style={S.bouton}>
-          <Text style={S.boutonTexte}>{n ? `Voir ${n} côte${n > 1 ? "s" : ""}` : "Aucune côte avec ces filtres"}</Text>
-        </Pressable>
       </ScrollView>
+      <View style={{ backgroundColor: C.fond, padding: 16, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.sable }}>
+        <Pressable onPress={() => { onValider(f); onFermer(); }} accessibilityRole="button" style={S.bouton}>
+          <Text style={S.boutonTexte}>{n ? `Voir ${n} résultat${n > 1 ? "s" : ""}` : "Aucun résultat avec ces filtres"}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -182,19 +185,29 @@ function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDepart; di
 }
 
 export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, onChoisir, allurePlat, onLocaliser,
-                             onLieu, recents, zones, source }: {
+                             onLieu, recents, zones, source, mode, setMode }: {
   toutes: Cote[]; depart: PointDepart; localisation: Localisation; filtres: Filtres; setFiltres: (f: Filtres) => void;
   onChoisir: (c: CoteProche, rang: number) => void; allurePlat: number; onLocaliser: () => void; onLieu: (l: Lieu) => void;
-  recents: Lieu[]; zones: Lieu[]; source: string;
+  recents: Lieu[]; zones: Lieu[]; source: string; mode: ModeCotes; setMode: (m: ModeCotes) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
-  const [mode, setMode] = useState<Sens | "seance" | "boucle">("montee");
+
   // une descente est une côte parcourue depuis le sommet
   const sens: Sens = mode === "descente" ? "descente" : "montee";
   const base = useMemo(() => (sens === "descente" ? toutes.map(enDescente) : toutes), [toutes, sens]);
   const mot = sens === "descente" ? "descente" : "côte";
   const [panneau, setPanneau] = useState<"recherche" | "filtres" | null>(null);
   const position = depart.position;
+
+  // confirmation brève à chaque nouveau point de départ (GPS ou lieu choisi)
+  const [annonce, setAnnonce] = useState<string | null>(null);
+  const premier = useRef(true);
+  useEffect(() => {
+    if (premier.current) { premier.current = false; return; }
+    setAnnonce(depart.gps ? `Position mise à jour${depart.detail.includes("±") ? ` (${depart.detail.replace("GPS, à ", "")})` : ""}` : `Départ : ${depart.nom}`);
+    const t = setTimeout(() => setAnnonce(null), 2500);
+    return () => clearTimeout(t);
+  }, [depart]);
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
   const horsZone = couverture > RAYON_COUVERTURE_M;
@@ -331,7 +344,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                   ))}
                   {affichees.length > 3 && (
                     <Pressable onPress={() => setVue("liste")} accessibilityRole="button" style={S.boutonClair}>
-                      <Text style={S.boutonClairTexte}>Voir les {affichees.length} côtes</Text>
+                      <Text style={S.boutonClairTexte}>Voir les {affichees.length} {mot}s</Text>
                     </Pressable>
                   )}
                 </View>
@@ -353,6 +366,13 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
         </Text>
       </ScrollView>
 
+      {annonce && (
+        <View pointerEvents="none" accessibilityLiveRegion="polite"
+              style={{ position: "absolute", top: 86, left: 20, right: 20, alignItems: "center" }}>
+          <Text style={{ backgroundColor: C.encre, color: C.fond, fontWeight: "700", fontSize: 14, paddingVertical: 10,
+                         paddingHorizontal: 16, borderRadius: 999, overflow: "hidden" }}>{annonce}</Text>
+        </View>
+      )}
       {panneau === "filtres" && (
         <PanneauFiltres filtres={filtres} toutes={base} position={position} onValider={setFiltres} onFermer={() => setPanneau(null)} />
       )}

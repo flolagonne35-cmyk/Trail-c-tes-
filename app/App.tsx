@@ -19,7 +19,7 @@ import type { Parcours } from "./src/calcul/profil.ts";
 import { Navigation, type Onglet } from "./src/composants/communs.tsx";
 import { EcranAccueil } from "./src/ecrans/Accueil.tsx";
 import { EcranBienvenue } from "./src/ecrans/Bienvenue.tsx";
-import { EcranCotes, FILTRES_DEFAUT, type Localisation, type PointDepart } from "./src/ecrans/Cotes.tsx";
+import { EcranCotes, FILTRES_DEFAUT, type Localisation, type ModeCotes, type PointDepart } from "./src/ecrans/Cotes.tsx";
 import { EcranCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
 import { EcranProfil } from "./src/ecrans/Profil.tsx";
@@ -30,7 +30,7 @@ import { C } from "./src/theme.ts";
 const COTES = (cotesExportees as { source: string; cotes: Cote[] }).cotes;
 const SOURCE = (cotesExportees as { source: string }).source.includes("sqlite") ? "base précalculée" : "zone de Rennes";
 // zones dont les côtes sont calculées (proposées dans la recherche et hors zone)
-const ZONES: Lieu[] = [{ label: "Rennes", detail: "Rennes et 20 km autour", lat: 48.1113, lon: -1.68 }];
+const ZONES: Lieu[] = [{ label: "Rennes", detail: "Rennes et communes proches (≈ 9 × 8 km)", lat: 48.1113, lon: -1.68 }];
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
 
@@ -52,6 +52,7 @@ function Contenu() {
   const [filtres, setFiltres] = useState<Filtres>(FILTRES_DEFAUT);
   const [recents, setRecents] = useState<Lieu[]>([]);
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
+  const [modeCotes, setModeCotes] = useState<ModeCotes>("montee");
 
   useEffect(() => {
     chargerProfil().then((p) => {
@@ -149,11 +150,12 @@ function Contenu() {
                          passages={mesPassages(profil.activites, detail.cote)} />;
   } else if (onglet === "accueil") {
     ecran = <EcranAccueil profil={profil} proches={proches} lieu={depart.nom} nbCotes={COTES.length} allerA={aller}
+                          ouvrirCotes={(m) => { setModeCotes(m); aller("cotes"); }}
                           ouvrirCote={ouvrirCote} />;
   } else if (onglet === "cotes") {
     ecran = <EcranCotes toutes={COTES} depart={depart} localisation={localisation} filtres={filtres} setFiltres={setFiltres}
                         onChoisir={ouvrirCote} allurePlat={ALLURE_PLAT_MIN_KM} onLocaliser={localiser} onLieu={choisirLieu}
-                        recents={recents} zones={ZONES} source={SOURCE} />;
+                        recents={recents} zones={ZONES} source={SOURCE} mode={modeCotes} setMode={setModeCotes} />;
   } else if (onglet === "course") {
     ecran = <EcranCourse parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                          objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
