@@ -15,8 +15,10 @@ import type { Parcours } from "./src/calcul/profil.ts";
 import { Navigation, type Onglet } from "./src/composants/communs.tsx";
 import { EcranCotes } from "./src/ecrans/Cotes.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
+import { EcranMoi } from "./src/ecrans/Moi.tsx";
 import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
 import { EcranParcours } from "./src/ecrans/Parcours.tsx";
+import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
 
 const RENNES: Position = { lat: 48.1113, lon: -1.68 };
@@ -34,6 +36,18 @@ function Contenu() {
   const [sourcePosition, setSourcePosition] = useState("position par défaut : Rennes");
   const [filtres, setFiltres] = useState<Filtres>({ rayonM: 5000, penteMin: 5, types: ["route", "piste cyclable", "chemin", "sentier"] });
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
+  const [profil, setProfil] = useState<Profil | null | undefined>(undefined); // undefined : en cours de chargement
+
+  useEffect(() => {
+    chargerProfil().then((p) => {
+      setProfil(p);
+      if (!p) setOnglet("moi"); // premier lancement : création de l'avatar
+    });
+  }, []);
+  const changerProfil = (p: Profil) => {
+    setProfil(p);
+    enregistrerProfil(p).catch(() => undefined);
+  };
 
   useEffect(() => {
     if (onglet !== "cotes" || sourcePosition.startsWith("position actuelle")) return;
@@ -62,6 +76,9 @@ function Contenu() {
     ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} retour={() => setDetail(null)} />;
   } else if (onglet === "parcours") {
     ecran = <EcranParcours parcours={parcours} onParcours={setParcours} />;
+  } else if (onglet === "moi") {
+    ecran = profil === undefined ? <View style={{ flex: 1 }} />
+      : <EcranMoi profil={profil} setProfil={changerProfil} cotes={COTES} />;
   } else if (onglet === "nutrition") {
     ecran = <EcranNutrition parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos}
                             setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} />;

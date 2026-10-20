@@ -52,7 +52,8 @@ export const heuresLisibles = (h: number) => {
 
 const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
 
-export function construirePlan(parcours: Parcours, objectifH: number, ravitos: Ravito[], prefs: Preferences): Troncon[] {
+/** Temps de course cumulé (h) à chaque point du profil, recalé sur l'objectif. */
+export function tempsCumules(parcours: Parcours, objectifH: number): { d: number[]; z: number[]; t: number[] } {
   let d = parcours.profil.d_km.map((v) => v * 1000);
   let z = parcours.profil.z_m.slice();
   const total = parcours.distance_km * 1000;
@@ -66,7 +67,30 @@ export function construirePlan(parcours: Parcours, objectifH: number, ravitos: R
     tCumul.push(tCumul[k - 1] + (dx * coutMinetti((z[k] - z[k - 1]) / dx)) / coutMinetti(0));
   }
   const echelle = objectifH / tCumul[tCumul.length - 1];
-  const t = tCumul.map((v) => v * echelle);
+  return { d, z, t: tCumul.map((v) => v * echelle) };
+}
+
+export type Passage = { km: number; passage: string; allure: string };
+
+/** Heure de passage et allure (min/km) de chaque tronçon de `pasKm` kilomètres. */
+export function tempsDePassage(parcours: Parcours, objectifH: number, pasKm = 5): Passage[] {
+  const { d, t } = tempsCumules(parcours, objectifH);
+  const bornes: number[] = [];
+  for (let km = pasKm; km < parcours.distance_km; km += pasKm) bornes.push(km);
+  bornes.push(parcours.distance_km);
+  let precedent = { km: 0, h: 0 };
+  return bornes.map((km) => {
+    const h = interp(km * 1000, d, t);
+    const minKm = ((h - precedent.h) * 60) / Math.max(km - precedent.km, 1e-9);
+    precedent = { km, h };
+    const sec = Math.round(minKm * 60);
+    return { km: Math.round(km * 10) / 10, passage: heuresLisibles(h), allure: `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` };
+  });
+}
+
+export function construirePlan(parcours: Parcours, objectifH: number, ravitos: Ravito[], prefs: Preferences): Troncon[] {
+  const { d, z, t } = tempsCumules(parcours, objectifH);
+  const total = parcours.distance_km * 1000;
 
   const chaleur = 1 + 0.1 * Math.max(0, (prefs.temperature - 15) / 5);
   const arrets: Ravito[] = [

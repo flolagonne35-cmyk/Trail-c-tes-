@@ -29,6 +29,7 @@ tests/                            tests sans réseau (relief fictif, formats de 
 resultats/rennes/, rennes_cotes/  sorties du dernier run GitHub Actions (CSV, GeoJSON, PNG, rapport JSON)
 .github/workflows/cotes-rennes.yml  run automatique sur Rennes + signalement des erreurs
 docs/maquette.md                  champs attendus par chaque écran de la maquette
+docs/idees.md                     idées (avatar, points, classement, calendrier…) : fait, à faire, vigilance
 requirements.txt
 ```
 
@@ -191,8 +192,9 @@ Il :
 6. ✅ Segmentation GPX et plan nutrition (scripts et application).
 7. ✅ Précalcul par tuiles dans une base SQLite (Rennes) ; 🚧 à étendre à l'Ille-et-Vilaine puis
    à la France (≈ 620 points/s en POST JSON).
-8. ✅ Application Expo (4 écrans) sur des données de Rennes ; 🚧 brancher la base précalculée
-   (téléchargement par zone) et tester sur téléphone.
+8. ✅ Application Expo (4 écrans + « Moi ») sur la base de Rennes ; 🚧 tester sur téléphone.
+9. ✅ Avatar, points vérifiés par GPX (répétitions de côtes comptées), captures en attente,
+   temps de passage, séances de côtes ; 🚧 serveur pour le classement (voir `docs/idees.md`).
 
 ## Licences des données
 

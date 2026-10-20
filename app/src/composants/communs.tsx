@@ -77,14 +77,15 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
   );
 }
 
-export type Onglet = "parcours" | "nutrition" | "cotes";
+export type Onglet = "parcours" | "nutrition" | "cotes" | "moi";
 
 const ICONES: Record<Onglet, ReactNode> = {
   parcours: <Path d="M3 18l6-9 4 5 3-4 5 8z" />,
   nutrition: <Path d="M7 3v8a3 3 0 0 0 6 0V3M10 11v10M17 3c-2 2-3 5-3 8h3v10" />,
   cotes: <><Path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z" /><Circle cx={12} cy={11} r={2} /></>,
+  moi: <><Circle cx={12} cy={8} r={4} /><Path d="M4 21c1-4 4-6 8-6s7 2 8 6" /></>,
 };
-const NOMS: Record<Onglet, string> = { parcours: "Parcours", nutrition: "Nutrition", cotes: "Côtes" };
+const NOMS: Record<Onglet, string> = { parcours: "Parcours", nutrition: "Nutrition", cotes: "Côtes", moi: "Moi" };
 
 export function Navigation({ actif, onChange, basSur }: { actif: Onglet; onChange: (o: Onglet) => void; basSur: number }) {
   return (

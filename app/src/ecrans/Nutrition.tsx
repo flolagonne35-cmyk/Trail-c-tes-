@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { construirePlan, heuresLisibles, lireObjectif, type Preferences, type Ravito } from "../calcul/nutrition.ts";
+import { construirePlan, heuresLisibles, lireObjectif, tempsDePassage, type Preferences, type Ravito } from "../calcul/nutrition.ts";
 import type { Parcours } from "../calcul/profil.ts";
 import { Ajusteur, EnTete, nombre } from "../composants/communs.tsx";
 import { partagerTexte } from "../fichiers.ts";
@@ -19,6 +19,11 @@ export function EcranNutrition({ parcours, objectif, setObjectif, ravitos, setRa
   const [km, setKm] = useState("");
   const [nom, setNom] = useState("");
   const heures = lireObjectif(objectif);
+  const pasKm = parcours.distance_km <= 15 ? 1 : 5;
+  const passages = useMemo(
+    () => (Number.isFinite(heures) && heures > 0 ? tempsDePassage(parcours, heures, pasKm) : []),
+    [parcours, heures, pasKm],
+  );
   const plan = useMemo(
     () => (Number.isFinite(heures) && heures > 0 ? construirePlan(parcours, heures, ravitos, prefs) : []),
     [parcours, heures, ravitos, prefs],
@@ -107,6 +112,19 @@ export function EcranNutrition({ parcours, objectif, setObjectif, ravitos, setRa
           </View>
         ))}
       </View>
+      {passages.length > 0 && (
+        <View style={[S.carte, { gap: 4 }]}>
+          <Text style={S.surtitre}>Temps de passage · tous les {pasKm} km</Text>
+          <Text style={[S.petit, { marginBottom: 4 }]}>Allure ajustée à la pente de chaque tronçon, route comme trail.</Text>
+          {passages.map((p) => (
+            <View key={p.km} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
+              <Text style={[S.fort, { width: 80 }]}>km {nombre(p.km, p.km % 1 ? 1 : 0)}</Text>
+              <Text style={[S.fort, { flex: 1, textAlign: "center" }]}>{p.passage}</Text>
+              <Text style={[S.petit, { width: 90, textAlign: "right" }]}>{p.allure} /km</Text>
+            </View>
+          ))}
+        </View>
+      )}
       {plan.length > 0 && (
         <Pressable onPress={() => partagerTexte("Plan nutrition", texteDuPlan())} accessibilityRole="button"
                    style={[S.bouton, { marginTop: 14 }]}>

@@ -91,3 +91,13 @@ test("côtes proches : filtres et tri par distance", () => {
   assert.deepEqual(cotesProches(cotes, pos, { rayonM: 5000, penteMin: 8, types: ["route", "sentier"] }).map((c) => c.id), [2]);
   assert.ok(Math.abs(distanceM(pos, { lat: 48.1213, lon: -1.68 }) - 1112) < 2);
 });
+
+test("temps de passage : objectif tenu, côte plus lente que la descente", async () => {
+  const { tempsDePassage } = await import("./nutrition.ts");
+  const parcours = JSON.parse(fixture("parcours_python.json")); // 1 km plat, 2 km à 8 %, 1 km plat, 1,5 km à −10 %
+  const p = tempsDePassage(parcours, 1, 1);
+  assert.equal(p[p.length - 1].passage, "1 h 00");
+  const allure = (s: string) => { const [m, sec] = s.split(":").map(Number); return m + sec / 60; };
+  assert.ok(allure(p[1].allure) > allure(p[0].allure)); // km 2 (montée) plus lent que km 1 (plat)
+  assert.ok(allure(p[5].allure) < allure(p[0].allure)); // dernier tronçon (descente) plus rapide
+});

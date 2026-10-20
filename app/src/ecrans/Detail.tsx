@@ -1,11 +1,13 @@
 // Écran « Détail d'une côte » : chiffres, profil, pente tous les 50 m, itinéraire et export GPX.
 
+import { useState } from "react";
 import { Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import { dureeMontee, kmLisibles, type CoteProche } from "../calcul/cotes.ts";
 import { ecrireGpx } from "../calcul/gpx.ts";
 import { coutMinetti } from "../calcul/nutrition.ts";
-import { EnTete, nombre, Tuiles } from "../composants/communs.tsx";
+import { BAREME, pointsRepetition } from "../calcul/points.ts";
+import { Ajusteur, EnTete, nombre, Tuiles } from "../composants/communs.tsx";
 import { BarresPentes, ProfilCote } from "../composants/graphiques.tsx";
 import { partagerFichier } from "../fichiers.ts";
 import { C, S } from "../theme.ts";
@@ -22,6 +24,11 @@ export function EcranDetail({ cote, rang, allurePlat, retour }: {
   cote: CoteProche; rang: number; allurePlat: number; retour: () => void;
 }) {
   const minutes = dureeMontee(cote, allurePlat, coutMinetti);
+  // séance de répétitions : environ 1,5 km de montées au total, retour en trottinant
+  const [reps, setReps] = useState(Math.min(15, Math.max(4, Math.round(1500 / Math.max(cote.longueur_m, 100)))));
+  const dureeSeance = reps * (minutes + (cote.longueur_m / 1000) * allurePlat * 1.3);
+  const pointsSeance = Math.round(reps * pointsRepetition(cote) + (2 * reps * cote.longueur_m / 1000) * BAREME.parKm
+                                  + (reps * cote.dplus_m / 10) * BAREME.parDplus10m);
   const exporter = () => {
     const z = cote.profil.z;
     const n = cote.geometrie.length;
@@ -53,6 +60,14 @@ export function EcranDetail({ cote, rang, allurePlat, retour }: {
       <View style={[S.carte, { marginTop: 10 }]}>
         <Text style={[S.surtitre, { fontSize: 12, paddingBottom: 6 }]}>Pente tous les 50 m</Text>
         <BarresPentes pentes={cote.pentes_50m} longueur={cote.longueur_m} seuilRaide={SEUIL_RAIDE} />
+      </View>
+
+      <View style={[S.carte, { marginTop: 10, gap: 8 }]}>
+        <Text style={[S.surtitre, { fontSize: 12 }]}>Séance de côtes</Text>
+        <Ajusteur etiquette="Répétitions" valeur={reps} unite="×" pas={1} min={1} max={30} onChange={setReps} />
+        <Text style={S.petit}>Montée à allure soutenue, retour en trottinant. ≈ {nombre(Math.round(dureeSeance))} min,
+          +{nombre(Math.round(reps * cote.dplus_m))} m de D+, ≈ {nombre(pointsSeance)} points avec le GPX de la séance
+          (sans l'échauffement).</Text>
       </View>
 
       <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
