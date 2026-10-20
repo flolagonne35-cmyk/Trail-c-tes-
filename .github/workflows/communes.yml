@@ -1,0 +1,37 @@
+name: Communes de France (recherche hors ligne)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/telecharger_communes.py"
+      - ".github/workflows/communes.yml"
+  schedule:
+    - cron: "41 4 2 1 *" # une fois par an (fusions de communes au 1er janvier)
+
+permissions:
+  contents: write
+
+jobs:
+  communes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python scripts/telecharger_communes.py
+      - name: Enregistrer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/assets/data/communes.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Communes de France pour la recherche hors ligne (run ${{ github.run_id }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
