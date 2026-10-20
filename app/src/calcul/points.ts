@@ -6,6 +6,7 @@
 
 import type { Cote } from "./cotes.ts";
 import { distanceM } from "./geo.ts";
+import { alluresDeTrace, type Allures } from "./allure.ts";
 import { lireGpx } from "./gpx.ts";
 
 /** Barème : à ajuster. Le dénivelé pèse autant que la distance (10 m de D+ = 1 km). */
@@ -47,6 +48,7 @@ export type Activite = {
   empreinte: string; // détecte un même fichier envoyé deux fois
   photo?: string;
   motif?: string;
+  allures?: Allures; // mon allure par tranche de pente (GPX horodaté), pour les prévisions
 };
 
 export function pointsRepetition(c: Pick<Cote, "dplus_m">): number {
@@ -151,6 +153,7 @@ export function activiteDepuisGpx(texte: string, cotes: Cote[], compteCreeLe: st
     id: empreinte, date: new Date(debut ?? Date.now()).toISOString(), source: "gpx", statut: "validee", nom: t.nom,
     distance_km: Math.round(distance / 10) / 100, dplus_m: Math.round(dplus), duree_min: dureeMin && Math.round(dureeMin),
     repetitions, points: calculerPoints(distance / 1000, dplus, repetitions, cotes), empreinte,
+    allures: alluresDeTrace(t.lat, t.lon, t.ele, t.temps),
   };
   const refus = (motif: string): Activite => ({ ...base, statut: "refusee", points: 0, motif });
   if (debut === null) return refus("GPX sans horodatage : impossible de dater la sortie.");

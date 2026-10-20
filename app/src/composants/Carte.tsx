@@ -55,10 +55,19 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
   const zoomer = (pas: number) => setZoom((z) => Math.min(Z_MAX, Math.max(SOURCE.zMin, z + pas)));
   const ecran = (p: Position) => surEcran(p, centre, zoom, largeur, hauteur);
   const tuiles = largeur ? tuilesVisibles(centre, zoom, largeur, hauteur, SOURCE) : [];
+  // numéros touchables : entièrement visibles, hors de la colonne des boutons, sans en recouvrir un
+  // autre plus haut dans la liste (sinon on ne pourrait pas le toucher)
+  const visibles: { m: Marqueur; x: number; y: number }[] = [];
+  for (const m of largeur ? marqueurs : []) {
+    const [x, y] = ecran(m.position);
+    if (x < 13 || y < 13 || x > largeur - 13 || y > hauteur - 13 || (x > largeur - 62 && y < 150)) continue;
+    if (visibles.some((v) => Math.hypot(v.x - x, v.y - y) < 24)) continue;
+    visibles.push({ m, x, y });
+  }
   const decalage = { transform: [{ translateX: glisse.dx }, { translateY: glisse.dy }] };
   const bouton = (texte: string, label: string, action: () => void, inactif = false) => (
     <Pressable onPress={action} disabled={inactif} accessibilityRole="button" accessibilityLabel={label}
-               accessibilityState={{ disabled: inactif }}
+               aria-disabled={inactif}
                style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: C.blanc, alignItems: "center", opacity: inactif ? 0.45 : 1,
                         justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 3,
                         shadowOffset: { width: 0, height: 1 }, elevation: 2 }}>
@@ -98,20 +107,15 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
             )}
           </Svg>
         )}
-        {largeur > 0 && marqueurs.map((m) => {
-          const [x, y] = ecran(m.position);
-          // entièrement visible et hors de la colonne des boutons (sinon on ne peut pas le toucher)
-          if (x < 13 || y < 13 || x > largeur - 13 || y > hauteur - 13 || (x > largeur - 62 && y < 150)) return null;
-          return (
-            <Pressable key={m.id} onPress={m.onPress} accessibilityRole={m.onPress ? "button" : "image"} accessibilityLabel={m.label}
-                       hitSlop={8}
-                       style={{ position: "absolute", left: x - 13, top: y - 13, width: 26, height: 26, borderRadius: 13,
-                                backgroundColor: m.couleur, borderWidth: 2, borderColor: C.blanc, alignItems: "center",
-                                justifyContent: "center" }}>
-              <Text style={{ color: C.blanc, fontSize: 12, fontWeight: "700" }}>{m.texte}</Text>
-            </Pressable>
-          );
-        })}
+        {visibles.map(({ m, x, y }) => (
+          <Pressable key={m.id} onPress={m.onPress} accessibilityRole={m.onPress ? "button" : "image"} accessibilityLabel={m.label}
+                     hitSlop={8}
+                     style={{ position: "absolute", left: x - 13, top: y - 13, width: 26, height: 26, borderRadius: 13,
+                              backgroundColor: m.couleur, borderWidth: 2, borderColor: C.blanc, alignItems: "center",
+                              justifyContent: "center" }}>
+            <Text style={{ color: C.blanc, fontSize: 12, fontWeight: "700" }}>{m.texte}</Text>
+          </Pressable>
+        ))}
       </View>
       <View style={{ position: "absolute", right: 8, top: 8, gap: 6 }}>
         {bouton("+", "Zoomer", () => zoomer(1), zoom >= Z_MAX)}

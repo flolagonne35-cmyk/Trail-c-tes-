@@ -10,6 +10,7 @@ import {
 } from "../calcul/nutrition.ts";
 import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
+import { tempsPrevu, type Modele } from "../calcul/allure.ts";
 import { analyserGpx } from "../calcul/parcours.ts";
 import { passagesCles } from "../calcul/seances.ts";
 import type { Parcours } from "../calcul/profil.ts";
@@ -380,11 +381,12 @@ function VueNutrition({ parcours, heures, ravitos, setRavitos, prefs: brutes, se
 }
 
 export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, ravitos, setRavitos, prefs, setPrefs,
-                              cotes, position, nomDepart, onChoisir }: {
+                              cotes, position, nomDepart, onChoisir, modele }: {
   parcours: Parcours | null; onParcours: (p: Parcours) => void; onExemple: () => void;
   objectif: string; setObjectif: (v: string) => void; ravitos: Ravito[]; setRavitos: (r: Ravito[]) => void;
   prefs: Preferences; setPrefs: (p: Preferences) => void;
   cotes: Cote[]; position: Position; nomDepart: string; onChoisir: (c: CoteProche, rang: number) => void;
+  modele: Modele | null;
 }) {
   const [vue, setVue] = useState<Vue>("parcours");
   const { etat, erreur, importer } = useImport(onParcours);
@@ -415,6 +417,27 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
                    style={[champ, { width: 110, textAlign: "center", backgroundColor: C.fond, fontWeight: "700" }]} />
       </View>
       {!objectifOk && <Text style={{ color: C.monteeFonce, marginTop: 6 }}>Format attendu : 38h, 5h40 ou 90min.</Text>}
+      {modele ? (() => {
+        const prevu = tempsPrevu(parcours, modele);
+        const texteObjectif = `${Math.floor(prevu)}h${String(Math.round((prevu % 1) * 60)).padStart(2, "0")}`;
+        return (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 8 }}>
+            <Text style={[S.petit, { flex: 1 }]}>
+              À ton allure (apprise sur {nombre(modele.metres / 1000, 0)} km de tes sorties, selon la pente) : <Text style={S.fort}>{heuresLisibles(prevu)}</Text>,
+              hors fatigue des très longues distances.
+            </Text>
+            {texteObjectif !== objectif && (
+              <Pressable onPress={() => setObjectif(texteObjectif)} accessibilityRole="button" style={[S.boutonClair, { minHeight: 40 }]}>
+                <Text style={S.boutonClairTexte}>Utiliser</Text>
+              </Pressable>
+            )}
+          </View>
+        );
+      })() : (
+        <Text style={[S.petit, { marginTop: 8 }]}>
+          Ajoute quelques sorties GPX (Profil) : l'appli apprendra ton allure selon la pente et proposera un objectif à ta mesure.
+        </Text>
+      )}
 
       <View style={{ marginTop: 16 }}>
         <Segments options={[["parcours", "Profil"], ["passages", "Passages"], ["nutrition", "Nutrition"], ["prepa", "Prépa"]]}

@@ -82,7 +82,7 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
             {TYPES.map(([t, nom, detail], i) => {
               const actif = f.types.includes(t);
               return (
-                <Pressable key={t} onPress={() => basculer(t)} accessibilityRole="checkbox" accessibilityState={{ checked: actif }}
+                <Pressable key={t} onPress={() => basculer(t)} accessibilityRole="checkbox" aria-checked={actif}
                            style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
                                     borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
                   <View style={{ flex: 1 }}>
@@ -99,7 +99,7 @@ function PanneauFiltres({ filtres, toutes, position, onValider, onFermer }: {
           </View>
         </View>
         <Pressable onPress={() => setF({ ...f, eviterPassant: !f.eviterPassant })} accessibilityRole="switch"
-                   accessibilityState={{ checked: !!f.eviterPassant }}
+                   aria-checked={!!f.eviterPassant}
                    style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
                             backgroundColor: C.blanc, borderRadius: 14 }}>
           <View style={{ flex: 1 }}>
@@ -368,8 +368,8 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
 
       {annonce && (
         <View pointerEvents="none" accessibilityLiveRegion="polite"
-              style={{ position: "absolute", top: 86, left: 20, right: 20, alignItems: "center" }}>
-          <Text style={{ backgroundColor: C.encre, color: C.fond, fontWeight: "700", fontSize: 14, paddingVertical: 10,
+              style={{ position: "absolute", bottom: 16, left: 20, right: 20, alignItems: "center" }}>
+          <Text pointerEvents="none" style={{ backgroundColor: C.encre, color: C.fond, fontWeight: "700", fontSize: 14, paddingVertical: 10,
                          paddingHorizontal: 16, borderRadius: 999, overflow: "hidden" }}>{annonce}</Text>
         </View>
       )}

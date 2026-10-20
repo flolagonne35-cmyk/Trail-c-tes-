@@ -144,7 +144,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir }
           </Pressable>
           <Text style={S.petit}>
             * À {Math.floor(allurePlat)}:{String(Math.round((allurePlat % 1) * 60)).padStart(2, "0")} /km sur le plat, 100 m de D+ comptant
-            comme 1 km. Le GPX s'ouvre dans Garmin Connect, Coros, Suunto ou Strava (« Importer un parcours »).
+            comme 1 km (« km-effort », la mesure de l'ITRA). Le GPX s'ouvre dans Garmin Connect, Coros, Suunto ou Strava (« Importer un parcours »).
           </Text>
         </View>
       )}

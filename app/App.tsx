@@ -15,6 +15,7 @@ import { cotesProches, type Cote, type CoteProche, type Filtres } from "./src/ca
 import type { Lieu } from "./src/calcul/geoservices.ts";
 import { PREFERENCES_DEFAUT, type Ravito } from "./src/calcul/nutrition.ts";
 import { mesPassages } from "./src/calcul/points.ts";
+import { fusionner, modeleAllure } from "./src/calcul/allure.ts";
 import type { Parcours } from "./src/calcul/profil.ts";
 import { Navigation, type Onglet } from "./src/composants/communs.tsx";
 import { EcranAccueil } from "./src/ecrans/Accueil.tsx";
@@ -110,6 +111,10 @@ function Contenu() {
     }
   }, [onglet, depart, localiser]);
 
+  // mon allure selon la pente, apprise de mes sorties GPX validées
+  const modele = useMemo(() => (profil ? modeleAllure(fusionner(profil.activites.filter((a) => a.statut === "validee").map((a) => a.allures))) : null),
+                         [profil]);
+
   // l'accueil montre les côtes proches avec les filtres par défaut
   const proches = useMemo(() => cotesProches(COTES, depart.position, { ...FILTRES_DEFAUT, rayonM: 10000 }), [depart]);
 
@@ -160,9 +165,9 @@ function Contenu() {
     ecran = <EcranCourse parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                          objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
                          prefs={prefs} setPrefs={setPrefs} cotes={COTES} position={depart.position} nomDepart={depart.nom}
-                         onChoisir={ouvrirCote} />;
+                         onChoisir={ouvrirCote} modele={modele} />;
   } else {
-    ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)} />;
+    ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)} modele={modele} />;
   }
   return (
     <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top }}>

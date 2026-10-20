@@ -45,7 +45,7 @@ export function Tuiles({ valeurs }: { valeurs: [string, string][] }) {
 export function Puce({ texte, actif, onPress }: { texte: string; actif?: boolean; onPress?: () => void }) {
   return (
     <Pressable onPress={onPress} accessibilityRole={onPress ? "button" : "text"}
-               accessibilityState={onPress ? { selected: !!actif } : undefined}
+               aria-selected={onPress ? !!actif : undefined}
                style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, minHeight: 36,
                         justifyContent: "center", backgroundColor: actif ? C.encre : C.sable }}>
       <Text style={{ fontSize: 13, fontWeight: "600", color: actif ? C.fond : C.encre }}>{texte}</Text>
@@ -134,7 +134,7 @@ export function Segments<T extends string>({ options, valeur, onChange }: {
       {options.map(([v, nom]) => {
         const actif = v === valeur;
         return (
-          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="tab" accessibilityState={{ selected: actif }}
+          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="tab" aria-selected={actif}
                      style={{ flex: 1, minHeight: 40, borderRadius: 11, alignItems: "center", justifyContent: "center",
                               backgroundColor: actif ? C.blanc : "transparent" }}>
             <Text style={{ fontSize: 14, fontWeight: actif ? "700" : "600", color: actif ? C.encre : C.gris }}>{nom}</Text>
@@ -152,7 +152,7 @@ export function Navigation({ actif, onChange, basSur }: { actif: Onglet; onChang
       {(Object.keys(NOMS) as Onglet[]).map((o) => {
         const couleur = o === actif ? C.montee : C.gris;
         return (
-          <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" accessibilityState={{ selected: o === actif }}
+          <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={o === actif}
                      style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, minHeight: 44 }}>
             <Icone nom={o} couleur={couleur} />
             <Text style={{ fontSize: 12, color: couleur, fontWeight: o === actif ? "700" : "400" }}>{NOMS[o]}</Text>

@@ -28,7 +28,7 @@ function Options<T extends string>({ liste, valeur, onChange }: { liste: Choix<T
       {liste.map((c) => {
         const actif = c.valeur === valeur;
         return (
-          <Pressable key={c.valeur} onPress={() => onChange(c.valeur)} accessibilityRole="button" accessibilityState={{ selected: actif }}
+          <Pressable key={c.valeur} onPress={() => onChange(c.valeur)} accessibilityRole="button" aria-selected={actif}
                      style={{ minHeight: 40, paddingHorizontal: 14, borderRadius: 12, justifyContent: "center",
                               backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
             <Text style={{ fontSize: 14, fontWeight: "600", color: actif ? C.fond : C.encre }}>{c.nom}</Text>
@@ -44,7 +44,7 @@ function Couleurs({ couleurs, valeur, onChange, nom }: { couleurs: string[]; val
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
       {couleurs.map((c, i) => (
         <Pressable key={`${c}${i}`} onPress={() => onChange(i)} accessibilityRole="button" accessibilityLabel={`${nom} ${i + 1}`}
-                   accessibilityState={{ selected: i === valeur }}
+                   aria-selected={i === valeur}
                    style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center",
                             borderWidth: 2.5, borderColor: i === valeur ? C.encre : "transparent" }}>
           <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: c, borderWidth: 1, borderColor: "#0000001F" }} />
@@ -95,7 +95,7 @@ export function EditeurAvatar({ prenomInitial, apparenceInitiale, titre, action,
           <ScrollView horizontal showsHorizontalScrollIndicator={false}
                       contentContainerStyle={{ gap: 6, paddingHorizontal: 20, paddingVertical: 10 }}>
             {CATEGORIES.map((c) => (
-              <Pressable key={c} onPress={() => setCategorie(c)} accessibilityRole="tab" accessibilityState={{ selected: c === categorie }}
+              <Pressable key={c} onPress={() => setCategorie(c)} accessibilityRole="tab" aria-selected={c === categorie}
                          style={{ minHeight: 40, paddingHorizontal: 16, borderRadius: 20, justifyContent: "center",
                                   backgroundColor: c === categorie ? C.montee : C.sable }}>
                 <Text style={{ fontSize: 14, fontWeight: "700", color: c === categorie ? C.blanc : C.encre }}>{c}</Text>
