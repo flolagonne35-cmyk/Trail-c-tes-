@@ -1,15 +1,15 @@
 {
-  "date_utc": "2026-10-20T15:02:58+00:00",
+  "date_utc": "2026-10-20T15:09:49+00:00",
   "statut": "ok",
   "resume": {
-    "Mont Ventoux par Bédoin": "à examiner — 11.63 km, 1581 m, 13.59 % ; écarts {'longueur_pct': -45.9, 'denivele_pct': -1.8, 'pente_pts': 6.09, 'alt_arrivee_m': -1.1}",
+    "Mont Ventoux par Bédoin": "à examiner — 11.84 km, 795 m, 6.72 % ; écarts {'longueur_pct': -44.9, 'denivele_pct': -50.6, 'pente_pts': -0.78, 'alt_arrivee_m': -787.2}",
     "Alpe d'Huez par Le Bourg-d'Oisans": "à examiner — 12.92 km, 1090 m, 8.44 % ; écarts {'longueur_pct': -6.4, 'denivele_pct': -2.6, 'pente_pts': 0.34, 'alt_arrivee_m': -52.1}",
-    "Débit GET lot 150 (6 déc., ×1)": "92.6 pts/s {'200': 3}",
-    "Débit GET lot 300 (6 déc., ×1)": "251.8 pts/s {'200': 3}",
-    "Débit GET lot 330 (5 déc., ×1)": "255.5 pts/s {'200': 3}",
-    "Débit POST_JSON lot 1000 (6 déc., ×1)": "183.0 pts/s {'200': 1}",
-    "Débit POST_JSON lot 5000 (6 déc., ×1)": "620.6 pts/s {'200': 1}",
-    "Débit GET lot 150 (6 déc., ×4)": "388.1 pts/s {'200': 8}"
+    "Débit GET lot 150 (6 déc., ×1)": "149.6 pts/s {'200': 3}",
+    "Débit GET lot 300 (6 déc., ×1)": "197.7 pts/s {'200': 3}",
+    "Débit GET lot 330 (5 déc., ×1)": "342.9 pts/s {'200': 3}",
+    "Débit POST_JSON lot 1000 (6 déc., ×1)": "353.8 pts/s {'200': 1}",
+    "Débit POST_JSON lot 5000 (6 déc., ×1)": "484.1 pts/s {'200': 1}",
+    "Débit GET lot 150 (6 déc., ×4)": "245.7 pts/s {'200': 5, '429': 3}"
   },
   "montees": [
     {
@@ -26,60 +26,45 @@
             "accrochage_m": 2.6,
             "nature": "Route à 1 chaussée",
             "composante": 2,
-            "taille_composante": 973
+            "taille_composante": 961
           },
           "arrivee": {
-            "accrochage_m": 18.7,
-            "nature": "Escalier",
-            "composante": 11,
-            "taille_composante": 2
+            "accrochage_m": 38.6,
+            "nature": "Route à 1 chaussée",
+            "composante": 1,
+            "taille_composante": 110
           },
           "meme_composante": false
-        },
-        "toutes voies": {
-          "depart": {
-            "accrochage_m": 2.6,
-            "nature": "Route à 1 chaussée",
-            "composante": 0,
-            "taille_composante": 3255
-          },
-          "arrivee": {
-            "accrochage_m": 2.6,
-            "nature": "Sentier",
-            "composante": 0,
-            "taille_composante": 3255
-          },
-          "meme_composante": true
         }
       },
-      "reseau": "toutes voies",
-      "longueur_m": 11631,
-      "denivele_m": 1581,
-      "dplus_m": 1609,
-      "pente_moy_pct": 13.59,
-      "alt_depart_m": 325.4,
-      "alt_arrivee_m": 1906.7,
+      "reseau": "routes",
+      "longueur_m": 11840,
+      "denivele_m": 795,
+      "dplus_m": 821,
+      "pente_moy_pct": 6.72,
+      "alt_depart_m": 326.0,
+      "alt_arrivee_m": 1121.0,
       "ref_longueur_m": 21500,
       "ref_denivele_m": 1610,
       "ref_pente_moy_pct": 7.5,
       "ref_alt_arrivee_m": 1909,
       "ecarts": {
-        "longueur_pct": -45.9,
-        "denivele_pct": -1.8,
-        "pente_pts": 6.09,
-        "alt_arrivee_m": -1.1
+        "longueur_pct": -44.9,
+        "denivele_pct": -50.6,
+        "pente_pts": -0.78,
+        "alt_arrivee_m": -787.2
       },
       "plus_grande_montee": {
-        "longueur_m": 11391,
-        "denivele_m": 1597,
-        "part_du_denivele_pct": 101,
-        "nb_montees": 1
+        "longueur_m": 11050,
+        "denivele_m": 808,
+        "part_du_denivele_pct": 102,
+        "nb_montees": 2
       },
-      "points": 1165,
+      "points": 1185,
       "alti_codes": {
-        "200": 8
+        "200": 1
       },
-      "alti_duree_s": 5.5
+      "alti_duree_s": 2.0
     },
     {
       "cle": "alpe_d_huez",
@@ -95,13 +80,13 @@
             "accrochage_m": 23.8,
             "nature": "Route à 1 chaussée",
             "composante": 1,
-            "taille_composante": 968
+            "taille_composante": 966
           },
           "arrivee": {
             "accrochage_m": 17.5,
             "nature": "Route à 1 chaussée",
             "composante": 1,
-            "taille_composante": 968
+            "taille_composante": 966
           },
           "meme_composante": true
         }
@@ -131,9 +116,9 @@
       },
       "points": 1293,
       "alti_codes": {
-        "200": 9
+        "200": 1
       },
-      "alti_duree_s": 6.2
+      "alti_duree_s": 2.4
     }
   ],
   "debit_api": [
@@ -146,9 +131,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 4.83,
+      "duree_s": 2.99,
       "points_ok": 447,
-      "points_par_s": 92.6,
+      "points_par_s": 149.6,
       "erreur": ""
     },
     {
@@ -160,9 +145,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.56,
+      "duree_s": 4.54,
       "points_ok": 897,
-      "points_par_s": 251.8,
+      "points_par_s": 197.7,
       "erreur": ""
     },
     {
@@ -174,9 +159,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.86,
+      "duree_s": 2.88,
       "points_ok": 987,
-      "points_par_s": 255.5,
+      "points_par_s": 342.9,
       "erreur": ""
     },
     {
@@ -188,9 +173,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 5.45,
+      "duree_s": 2.82,
       "points_ok": 997,
-      "points_par_s": 183.0,
+      "points_par_s": 353.8,
       "erreur": ""
     },
     {
@@ -202,9 +187,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 8.02,
+      "duree_s": 10.28,
       "points_ok": 4979,
-      "points_par_s": 620.6,
+      "points_par_s": 484.1,
       "erreur": ""
     },
     {
@@ -214,12 +199,13 @@
       "paralleles": 4,
       "points": 1200,
       "codes_http": {
-        "200": 8
+        "200": 5,
+        "429": 3
       },
-      "duree_s": 3.08,
-      "points_ok": 1197,
-      "points_par_s": 388.1,
-      "erreur": ""
+      "duree_s": 3.04,
+      "points_ok": 747,
+      "points_par_s": 245.7,
+      "erreur": "HTTP 429 lot 750-900 : <html>\r\n<head><title>429 Too Many Requests</title></head>\r\n<body>\r\n<center><h1>429 Too Many Requests</h1></center>\r\n</body>\r\n</html>\r\n"
     }
   ],
   "rayon_terre_m": 6371000.0
