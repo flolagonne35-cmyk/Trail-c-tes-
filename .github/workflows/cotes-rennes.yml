@@ -1,0 +1,130 @@
+name: Côtes Rennes (API IGN)
+
+on:
+  workflow_dispatch:
+    inputs:
+      rayon:
+        description: "Demi-côté du carré analysé (m)"
+        default: "2000"
+      pas:
+        description: "Pas de la grille (m)"
+        default: "20"
+      pente_min:
+        description: "Seuil de pente (%)"
+        default: "5"
+  push:
+    paths:
+      - "scripts/cotes_rennes.py"
+      - ".github/workflows/cotes-rennes.yml"
+  schedule:
+    - cron: "17 5 1 * *" # le 1er du mois : détecte un changement de l'API
+
+permissions:
+  contents: write # commit des résultats
+  issues: write   # signalement des erreurs
+
+concurrency:
+  group: cotes-rennes-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cotes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SORTIE: resultats/rennes
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dépendances
+        run: pip install -r requirements.txt
+
+      - name: Tests (relief fictif, sans réseau)
+        run: pytest -q
+
+      - name: Analyse autour de Rennes
+        id: analyse
+        run: |
+          set +e
+          python scripts/cotes_rennes.py \
+            --rayon "${{ inputs.rayon || '2000' }}" \
+            --pas "${{ inputs.pas || '20' }}" \
+            --pente-min "${{ inputs.pente_min || '5' }}" \
+            --sortie "$SORTIE" 2> >(tee erreurs.log >&2)
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          exit $code
+
+      - name: Résumé et annotations
+        if: always()
+        run: |
+          python - <<'EOF'
+          import json, os, pathlib
+          p = pathlib.Path(os.environ["SORTIE"]) / "rapport.json"
+          out = open(os.environ["GITHUB_STEP_SUMMARY"], "a")
+          if not p.exists():
+              print("::error::rapport.json absent : le script a planté avant la fin (voir le log)")
+              out.write("## Côtes Rennes\n\nLe script a planté avant d'écrire le rapport.\n")
+              raise SystemExit
+          r = json.loads(p.read_text())
+          api = r.get("api") or {}
+          out.write(f"## Côtes Rennes — statut `{r['statut']}`\n\n")
+          out.write(f"- Points valides : **{r['points_valides_pct']} %**\n")
+          out.write(f"- Altitudes : {r['altitude_min_m']} → {r['altitude_max_m']} m\n")
+          out.write(f"- Zones pentues : **{r['nb_zones']}** (pente P95 : {r['pente_p95_pct']} %)\n")
+          out.write(f"- Requêtes : {api.get('requetes')} (OK {api.get('requetes_ok')}, réessais {api.get('reessais')}, lots en échec {api.get('lots_en_echec')})\n")
+          out.write(f"- Codes HTTP : `{api.get('codes_http')}` — précisions (acc) : `{api.get('precisions')}`\n")
+          out.write(f"- Durée API : {api.get('duree_s')} s\n\n")
+          out.write("Exemple de réponse brute :\n\n```json\n" + (api.get("exemple_reponse") or "") + "\n```\n")
+          for e in (api.get("erreurs") or [])[:10]:
+              print(f"::warning title=API IGN::{e[:200]}")
+          if api.get("points_nodata"):
+              print(f"::warning title=API IGN::{api['points_nodata']} points sans donnée (-99999)")
+          EOF
+
+      - name: Enregistrer les résultats dans le dépôt
+        if: always() && hashFiles('resultats/rennes/rapport.json') != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$SORTIE"
+          if git diff --cached --quiet; then
+            echo "Aucun changement dans les résultats."
+            exit 0
+          fi
+          git commit -m "Résultats côtes Rennes (${{ steps.analyse.outputs.code == '0' && 'ok' || 'erreur API' }}, run ${{ github.run_id }})"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1
+
+      - name: Signaler l'erreur dans une issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          titre="Erreur API IGN — côtes Rennes"
+          lien="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          {
+            echo "Le run [${{ github.run_id }}]($lien) a échoué (code script : \`${{ steps.analyse.outputs.code }}\`)."
+            echo
+            if [ -f "$SORTIE/rapport.json" ]; then
+              echo '```json'
+              python -c "import json;r=json.load(open('$SORTIE/rapport.json'));a=r.get('api') or {};print(json.dumps({k:r[k] for k in ('statut','points_valides_pct')}|{k:a.get(k) for k in ('codes_http','lots_en_echec','points_nodata','erreurs')},ensure_ascii=False,indent=2)[:6000])"
+              echo '```'
+            elif [ -s erreurs.log ]; then
+              echo '```'; tail -n 40 erreurs.log; echo '```'
+            fi
+          } > corps.md
+          num=$(gh issue list --state open --search "\"$titre\" in:title" --json number --jq '.[0].number')
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file corps.md
+          else
+            gh issue create --title "$titre" --body-file corps.md
+          fi
