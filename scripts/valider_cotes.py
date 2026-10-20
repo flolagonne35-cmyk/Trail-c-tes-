@@ -111,16 +111,21 @@ def valider(ref: dict, args, sortie: Path) -> dict:
     xy = None
     # par la route d'abord ; à défaut (réseau coupé dans l'emprise), en acceptant aussi les chemins
     # routes et ronds-points, sans escaliers ni sentiers : ce sont des montées routières
+    # routes d'abord ; les chemins et routes empierrées servent de jonction, très pénalisés
+    # (diagnostic du Ventoux : routes du sommet présentes, réseau coupé plus bas)
     for reseau_nom, garder in (("routes", lambda t: t.type_voie == "route" or t.nature == "Rond-point"),
+                               ("routes + chemins", lambda t: t.type_voie in ("route", "chemin") or t.nature == "Rond-point"),
                                ("toutes voies", lambda t: True)):
         troncons = [t for t in tous if garder(t)]
         if not troncons:
             continue
         # comme un calcul d'itinéraire : les dessertes (importance 5 et 6) comptent triple, pour
         # suivre la route de la montée plutôt qu'un raccourci par un village
-        reseau = Reseau(troncons, penalite=lambda t: 3.0 if t.importance >= 5 else 1.0)
+        reseau = Reseau(troncons, penalite=lambda t: 6.0 if t.type_voie != "route" else (3.0 if t.importance >= 5 else 1.0))
         xy = reseau.chemin((float(x0), float(y0)), (float(x1), float(y1)))
         res.setdefault("diagnostic", {})[reseau_nom] = diagnostic(reseau, (x0, y0), (x1, y1))
+        if xy is not None and float(np.hypot(xy[-1][0] - x1, xy[-1][1] - y1)) > 300:
+            xy = None  # le chemin s'arrête loin de l'arrivée : réseau coupé, on élargit
         if xy is not None:
             res["reseau"] = reseau_nom
             break
