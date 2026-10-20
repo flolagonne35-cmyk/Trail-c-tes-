@@ -2,7 +2,7 @@
 
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -49,23 +49,30 @@ function Contenu() {
     enregistrerProfil(p).catch(() => undefined);
   };
 
-  useEffect(() => {
-    if (onglet !== "cotes" || sourcePosition.startsWith("position actuelle")) return;
-    (async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          setSourcePosition("localisation refusée : Rennes par défaut");
-          return;
-        }
-        const p = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        setPosition({ lat: p.coords.latitude, lon: p.coords.longitude });
-        setSourcePosition(`position actuelle (± ${Math.round(p.coords.accuracy ?? 0)} m)`);
-      } catch {
-        setSourcePosition("position indisponible : Rennes par défaut");
+  const localiser = useCallback(async () => {
+    setSourcePosition("localisation…");
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setSourcePosition("localisation refusée : cherchez une ville ou une adresse");
+        return;
       }
-    })();
-  }, [onglet, sourcePosition]);
+      const p = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setPosition({ lat: p.coords.latitude, lon: p.coords.longitude });
+      setSourcePosition(`ma position (± ${Math.round(p.coords.accuracy ?? 0)} m)`);
+    } catch {
+      setSourcePosition("position indisponible : cherchez une ville ou une adresse");
+    }
+  }, []);
+
+  // première ouverture de l'onglet Côtes : on tente la localisation
+  const [dejaLocalise, setDejaLocalise] = useState(false);
+  useEffect(() => {
+    if (onglet === "cotes" && !dejaLocalise) {
+      setDejaLocalise(true);
+      localiser();
+    }
+  }, [onglet, dejaLocalise, localiser]);
 
   const proches = useMemo(() => cotesProches(COTES, position, filtres), [position, filtres]);
 
@@ -73,7 +80,8 @@ function Contenu() {
 
   let ecran;
   if (detail) {
-    ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} retour={() => setDetail(null)} />;
+    ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} depart={position}
+                         nomDepart={sourcePosition} retour={() => setDetail(null)} />;
   } else if (onglet === "parcours") {
     ecran = <EcranParcours parcours={parcours} onParcours={setParcours} />;
   } else if (onglet === "moi") {
@@ -83,8 +91,10 @@ function Contenu() {
     ecran = <EcranNutrition parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos}
                             setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} />;
   } else {
-    ecran = <EcranCotes cotes={proches} position={position} sourcePosition={sourcePosition} filtres={filtres}
+    ecran = <EcranCotes cotes={proches} toutes={COTES} position={position} sourcePosition={sourcePosition} filtres={filtres}
                         setFiltres={setFiltres} onChoisir={(cote, rang) => setDetail({ cote, rang })}
+                        allurePlat={ALLURE_PLAT_MIN_KM} onLocaliser={localiser}
+                        onLieu={(l) => { setPosition({ lat: l.lat, lon: l.lon }); setSourcePosition(l.label); }}
                         source={(cotesExportees as { source: string }).source.includes("sqlite") ? "base précalculée" : "zone de Rennes"} />;
   }
   return (

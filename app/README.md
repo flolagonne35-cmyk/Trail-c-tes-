@@ -18,10 +18,19 @@ npm run typecheck
   montée / descente / plat avec difficulté et description.
 - **Nutrition** : objectif de temps, ravitaillements, glucides / eau / sodium par heure ajustables,
   température ; quantités par tronçon (gels, eau, pastilles) ; partage du plan.
-- **Côtes** : position du téléphone (Rennes par défaut si la localisation est refusée), filtres
-  pente, type de voie et rayon, carte schématique, liste triée par distance.
-- **Détail** : profil, pente tous les 50 m, temps estimé, itinéraire (Plans, Google Maps ou
-  OpenStreetMap), export GPX vers l'application de la montre.
+- **Côtes** : « Me localiser » ou recherche d'une ville / d'une adresse (géocodage IGN, avec
+  suggestions) ; filtres pente, type de voie et rayon ; carte schématique ; pour chaque côte,
+  l'adresse du pied (géocodage inverse) et le temps estimé en voiture et en courant. Sans côte
+  dans le rayon, les 5 plus proches sont proposées.
+- **Détail** : adresse précise et GPS du départ, temps pour y aller en voiture et à pied
+  (itinéraires IGN), en courant (à votre allure) et à vélo ; profil, pente tous les 50 m, séance
+  de répétitions, ouverture dans l'appli de cartes, export GPX vers la montre.
+- **Moi** : avatar, points, sorties (GPX vérifié ou capture en attente), classement.
+
+Services utilisés depuis le téléphone (publics, sans clé) : géocodage `data.geopf.fr/geocodage`
+et itinéraires `data.geopf.fr/navigation/itineraire`. Leur format est vérifié à chaque passage
+du workflow (`scripts/verifier_services.py`). S'ils ne répondent pas, les temps sont estimés
+depuis la distance (marqués « ≈ »).
 
 ## Données
 

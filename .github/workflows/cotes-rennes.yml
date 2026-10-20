@@ -39,6 +39,8 @@ jobs:
             sortie: resultats/rennes_cotes
           - nom: validation
             sortie: resultats/validation resultats/parcours_ventoux
+          - nom: services
+            sortie: resultats/services
     env:
       SORTIE: ${{ matrix.sortie }}
       RAYON: ${{ inputs.rayon || '2000' }}
@@ -65,6 +67,7 @@ jobs:
             case "${{ matrix.nom }}" in
               grille) python scripts/cotes_rennes.py --rayon "$RAYON" --pente-min "$PENTE_MIN" --sortie resultats/rennes ;;
               bdtopo) python scripts/cotes_bdtopo.py --rayon "$RAYON" --pente-min "$PENTE_MIN" --sortie resultats/rennes_cotes ;;
+              services) python scripts/verifier_services.py --sortie resultats/services ;;
               validation)
                 # montées de référence, puis segmentation et plan nutrition sur une des traces obtenues
                 python scripts/valider_cotes.py --sortie resultats/validation; v=$?
