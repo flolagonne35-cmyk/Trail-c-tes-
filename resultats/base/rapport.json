@@ -1,21 +1,21 @@
 {
-  "date_utc": "2026-10-20T16:01:30+00:00",
+  "date_utc": "2026-10-20T17:37:56+00:00",
   "statut": "ok",
   "resume": {
-    "Zone": "48.085,-1.715,48.140,-1.640",
-    "Tuiles": "4 faites / 4 (0 restantes)",
-    "Ce passage": "1 tuiles ok, 0 en échec",
-    "Côtes dans la base": 35,
-    "Adresses trouvées / en échec (ce passage)": "4 / 0",
-    "Durée moyenne par tuile": "226 s",
-    "Points altimétriques": 155384
+    "Zone": "48.075,-1.745,48.150,-1.615",
+    "Tuiles": "9 faites / 9 (0 restantes)",
+    "Ce passage": "9 tuiles ok, 0 en échec",
+    "Côtes dans la base": 168,
+    "Adresses trouvées / en échec (ce passage)": "168 / 0",
+    "Durée moyenne par tuile": "227 s",
+    "Points altimétriques": 270262
   },
   "parametres": {
-    "zone": "48.085,-1.715,48.140,-1.640",
+    "zone": "48.075,-1.745,48.150,-1.615",
     "tuile": 4000,
     "marge": 500,
     "max_tuiles": 0,
-    "pente_min": 5,
+    "pente_min": 4.0,
     "taille_lot": 5000,
     "methode": "POST_JSON",
     "decimales": 6,
