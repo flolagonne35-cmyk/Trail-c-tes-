@@ -6,5 +6,5 @@ export type ReseauZone = { nom: string; libelle: string; emprise: number[]; noeu
 
 export const RESEAUX: ReseauZone[] = [
   { nom: "nantes", libelle: "Nantes Métropole", emprise: [47.19, -1.77, 47.25, -1.52], noeuds: 53411, fichier: require("../../assets/data/reseau/nantes.reseau") },
-  { nom: "rennes", libelle: "Rennes Métropole", emprise: [48.075, -1.745, 48.15, -1.615], noeuds: 15598, fichier: require("../../assets/data/reseau/rennes.reseau") },
+  { nom: "rennes", libelle: "Rennes Métropole", emprise: [47.99, -1.86, 48.21, -1.5], noeuds: 60329, fichier: require("../../assets/data/reseau/rennes.reseau") },
 ];

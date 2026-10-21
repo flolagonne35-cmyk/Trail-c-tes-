@@ -1,0 +1,54 @@
+{
+  "date_utc": "2026-10-21T05:13:57+00:00",
+  "statut": "ok",
+  "zones": [
+    "47.99,-1.86,48.21,-1.50"
+  ],
+  "resume": {
+    "noeuds": 60329,
+    "aretes": 81224,
+    "points_altitude": 387803,
+    "points_valides_pct": 100,
+    "aretes_sans_altitude": 0,
+    "taille_ko": 4749,
+    "duree_s": 553
+  },
+  "wfs": {
+    "requetes": 83,
+    "codes_http": {
+      "200": 83
+    },
+    "erreurs": [],
+    "nb_objets": 82918,
+    "ordre_bbox": "lat,lon EPSG:4326",
+    "axes_inverses": false,
+    "natures": {
+      "Route à 1 chaussée": 54222,
+      "Sentier": 14809,
+      "Rond-point": 3999,
+      "Route empierrée": 3416,
+      "Chemin": 3194,
+      "Route à 2 chaussées": 2146,
+      "Type autoroutier": 557,
+      "Bretelle": 491,
+      "Escalier": 84
+    },
+    "troncons_retenus": 81224,
+    "exclus_acces": 167,
+    "valeurs_acces": {
+      "prive=False / acces_pieton=None": 71603,
+      "prive=False / acces_pieton=Libre": 8645,
+      "prive=True / acces_pieton=None": 160,
+      "prive=None / acces_pieton=None": 779,
+      "prive=True / acces_pieton=Libre": 7,
+      "prive=None / acces_pieton=Libre": 197
+    },
+    "duree_s": 154.4
+  },
+  "alti": {
+    "requetes": 78,
+    "codes_http": {
+      "200": 78
+    }
+  }
+}
