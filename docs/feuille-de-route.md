@@ -37,8 +37,9 @@ reste à construire**, par étapes.
 
 ### Ce qui limite encore
 
-- **Une seule zone calculée** (Rennes, ≈ 9 × 8 km : 168 côtes, 15 600 carrefours pour les boucles).
-  Le calcul tourne sur GitHub, une zone à la fois (≈ 4 min par carré de 4 km).
+- **Deux métropoles calculées** : Rennes Métropole (848 côtes) et Nantes Métropole, Couëron
+  compris (1 470 côtes), avec leur réseau pour les boucles (70 600 carrefours). Ailleurs, l'appli
+  le dit et propose la zone la plus proche.
 - **Pas de serveur** : pas de compte, pas de classement entre coureurs, pas de sauvegarde si on
   change de téléphone.
 - **Pas encore sur un vrai téléphone** : on teste la version web. Il faut une version installable.
@@ -128,11 +129,12 @@ c'est une démarche commerciale, à faire par toi :
   minimales expliquées en français.
 - **iPhone et stores** : workflow EAS prêt, attend les comptes (2.1 et 2.2). Identifiant choisi :
   `fr.trailcotes.app` (à changer avant la première publication si le nom change).
-- 🟡 **Couverture** : Rennes Métropole et Nantes Métropole (dont Couëron) en cours de calcul
-  (`scripts/zones.json`) ; boucles sur Rennes centre et Nantes–Couëron. Ensuite Ille-et-Vilaine
-  puis Loire-Atlantique entières. Mesuré : ≈ 4 min par carré de
-  4 × 4 km, soit ≈ 1 h 30 par 400 km² ; l'Ille-et-Vilaine (6 800 km²) demande ≈ 27 h, en
-  passages de 5 h sur GitHub. Pour la France entière, il faudra un petit serveur.
+- ✅ **Couverture** : Rennes Métropole (848 côtes) et Nantes Métropole dont Couëron (1 470 côtes),
+  calculées le 21/10 (`scripts/zones.json`) ; boucles et séances vérifiées depuis Couëron.
+  Ensuite Ille-et-Vilaine puis Loire-Atlantique entières. Mesuré sur Nantes : 64 s par carré de
+  4 × 4 km (48 carrés en 51 min), soit ≈ 7 h 30 pour l'Ille-et-Vilaine (6 800 km²), en deux
+  passages de 5 h sur GitHub. Pour la France entière (≈ 34 000 carrés, ≈ 25 jours de calcul),
+  il faudra plusieurs machines en parallèle ou un petit serveur.
 - **Base géographique** : les côtes et le réseau dans une base (PostgreSQL + PostGIS, ou
   Supabase hébergé en Europe) ; l'appli ne télécharge que la zone utile et la garde pour le hors
   ligne.

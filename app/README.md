@@ -45,7 +45,7 @@ depuis la distance (marqués « ≈ »).
 
 `assets/data/cotes.json` et `assets/data/parcours_demo.json` sont produits par
 `python scripts/exporter_app.py` (à la racine du dépôt) à partir des résultats des scripts
-(`resultats/`). Pour l'instant : la zone de Rennes et un parcours de démonstration.
+(`resultats/`). Pour l'instant : Rennes Métropole (848 côtes), Nantes Métropole dont Couëron (1 470 côtes) et un parcours de démonstration.
 
 ## Version de test sans réseau
 
