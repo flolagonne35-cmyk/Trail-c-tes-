@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-10-21T07:13:54+00:00",
+  "date_utc": "2026-10-21T07:14:54+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 76972,
       "sportifs": 13248,
-      "courses": 351,
+      "courses": 349,
       "exemple_brut": {
         "Nom_du_POI": "Les ateliers Maréis : Je crée ma carte postale de vacances",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|http://schema.org/Event",
@@ -127,7 +127,7 @@
       }
     }
   },
-  "courses": 366,
+  "courses": 364,
   "statut": "ok",
   "apercu": [
     "2026-10-21 La Ronde des Histoires - \"Kunti'o et l'Oiseau de pluie\" (Aigrefeuille-d'Aunis) [] D+None route",
@@ -191,5 +191,5 @@
     "2026-10-25 Course solidaire Efrei (Bruges) [5.0, 10.0] D+None route",
     "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route"
   ],
-  "taille_ko": 136
+  "taille_ko": 135
 }
