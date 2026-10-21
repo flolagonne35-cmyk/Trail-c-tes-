@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-21T17:23:59+00:00",
+  "date_utc": "2026-10-21T17:28:39+00:00",
   "statut": "ok",
   "resume": {
     "recherche « Rennes mairie »": "ok — [{\"label\": \"Place de la Mairie 35000 Rennes\", \"lon\": -1.679255, \"lat\": 48.110964}, {\"label\": \"Allée Sainte-Marie 35700 R",
@@ -12,7 +12,7 @@
     {
       "service": "recherche « Rennes mairie »",
       "http": 200,
-      "duree_s": 1.06,
+      "duree_s": 1.74,
       "lu": [
         {
           "label": "Place de la Mairie 35000 Rennes",
@@ -31,7 +31,7 @@
     {
       "service": "recherche « Bédoin »",
       "http": 200,
-      "duree_s": 0.71,
+      "duree_s": 0.66,
       "lu": [
         {
           "label": "Bédoin",
@@ -45,7 +45,7 @@
     {
       "service": "adresse du pied (rue Gambetta)",
       "http": 200,
-      "duree_s": 0.75,
+      "duree_s": 1.21,
       "lu": "3 Rue Gambetta 35000 Rennes",
       "ok": true,
       "extrait": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-1.674645,48.110916]},\"properties\":{\"type\":\"housenumber\",\"name\":\"3 Rue Gambetta\",\"label\":\"3 Rue Gambetta 35000 Rennes\",\"street\":\"Rue Gambetta\",\"postcode\":\"35000\",\"citycode\":\"35238\",\"city\":\"Rennes\",\"oldcitycode\":null,\"oldcity\":null,\"context\":\"35, Ille-et-Vilaine, Bretagne\",\"importance\":0.6908,\"housenumber\":\"3\",\"id\":\"35238_3480_00003\",\"banId\":\"a6764df1-9a07-4375-b23d-5494a19e75d6\",\"x\":352299.77,\"y\":6789244.43,\"distance\":10,\"score\":0.999,\"_type\":\"address\"}}]}"
@@ -53,18 +53,18 @@
     {
       "service": "itinéraire car",
       "http": 200,
-      "duree_s": 2.46,
+      "duree_s": 0.63,
       "lu": {
         "distance_m": 1336.2,
         "duree_min": 5.9766666666666675
       },
       "ok": true,
-      "extrait": "{\"resource\":\"bdtopo-osrm\",\"resourceVersion\":\"2026-10-20\",\"start\":\"-1.680243,48.111293\",\"end\":\"-1.674536,48.110965\",\"profile\":\"car\",\"optimization\":\"fastest\",\"geometry\":{\"coordinates\":[[-1.680243,48.111293],[-1.680221,48.11094],[-1.681005,48.110925],[-1.6813,48.110918],[-1.681307,48.110986],[-1.681345,48.111398],[-1.68137,48.11167],[-1.681381,48.11177],[-1.681166,48.111777],[-1.680273,48.111775],[-1.679341,48.111771],[-1.679299,48.11177],[-1.678966,48.111756],[-1.678648,48.111753],[-1.678302,48.111751],[-1.677853,48.111746],[-1.677369,48.11174],[-1.677355,48.112427],[-1.67732,48.112427],[-1.6751"
+      "extrait": "{\"resource\":\"bdtopo-osrm\",\"resourceVersion\":\"2026-10-16\",\"start\":\"-1.680243,48.111293\",\"end\":\"-1.674536,48.110965\",\"profile\":\"car\",\"optimization\":\"fastest\",\"geometry\":{\"coordinates\":[[-1.680243,48.111293],[-1.680221,48.11094],[-1.681005,48.110925],[-1.6813,48.110918],[-1.681307,48.110986],[-1.681345,48.111398],[-1.68137,48.11167],[-1.681381,48.11177],[-1.681166,48.111777],[-1.680273,48.111775],[-1.679341,48.111771],[-1.679299,48.11177],[-1.678966,48.111756],[-1.678648,48.111753],[-1.678302,48.111751],[-1.677853,48.111746],[-1.677369,48.11174],[-1.677355,48.112427],[-1.67732,48.112427],[-1.6751"
     },
     {
       "service": "itinéraire pedestrian",
       "http": 200,
-      "duree_s": 0.79,
+      "duree_s": 0.65,
       "lu": {
         "distance_m": 519.7,
         "duree_min": 8.675
