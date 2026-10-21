@@ -51,9 +51,10 @@ AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kay
 # nom d'événement qui n'est pas une course (visite, programme, sortie de groupe…) ou autre « course »
 EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|sorties?|stages?|initiation|ateliers?|expositions?|"
                        r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
-                       r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando)\b")
+                       r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando|bmx|karting|marche de \d+ ?km)\b")
 # corrida taurine, soirée DJ « Marathon ! », courses de chevaux…
-EXCLU_TEXTE = re.compile(r"\b(dj|taureaux?|toros?|novillada|feria|hippodrome|trot|galop|tauromachie)\b")
+EXCLU_TEXTE = re.compile(r"\b(dj|djs|techno|electro|line.?up|clubbing|taureaux?|toros?|novillada|feria|hippodrome|trot|galop|"
+                         r"tauromachie|bmx)\b")
 DUREE_MAX_JOURS = 7  # au-delà, c'est un programme ou un équipement, pas une course
 FORT = re.compile(r"\b(trail|marathon|foulees?|corrida|course a pied|course pedestre|course nature)\b")
 DISTANCE = re.compile(r"(\d{1,3}(?:[.,]\d{1,3})?)\s?(?:km|kms|kilom[eè]tres?)\b", re.I)
