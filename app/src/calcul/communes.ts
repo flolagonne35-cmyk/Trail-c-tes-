@@ -69,3 +69,15 @@ export function indexCommunes(): Index {
   }
   return index;
 }
+
+/** Département de la commune la plus proche d'un point (« 35 ») ; "" si l'index est vide. */
+export function departementPres(idx: Index, p: { lat: number; lon: number }): string {
+  let meilleur = "";
+  let dMin = Infinity;
+  const cos = Math.cos((p.lat * Math.PI) / 180);
+  for (const [, , dep, lat, lon] of idx.communes) {
+    const d = (lat - p.lat) ** 2 + ((lon - p.lon) * cos) ** 2;
+    if (d < dMin) { dMin = d; meilleur = dep; }
+  }
+  return meilleur;
+}

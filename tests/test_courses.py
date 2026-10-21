@@ -27,7 +27,7 @@ def test_datatourisme_courses_retenues_et_ecartees():
         ligne("Semi-marathon de la ville"),                      # distance déduite : 21,1 km
         ligne("Trail passé", periodes="2026-03-01<->2026-03-01"),  # fini
         ligne("Trail sans catégorie sport", categories="https://www.datatourisme.fr/ontology/core#CulturalEvent"),
-        ligne("La Sancerroise", description="Course à pied dans les vignes, 12 km."),  # nom neutre, sans « course »
+        ligne("La Sancerroise", description="Course à pied dans les vignes, 12 km."),  # nom neutre, annonce explicite
         ligne("Visite guidée : Corrida"),                        # visite
         ligne("Corrida de la feria", description="Six taureaux dans les arènes."),  # corrida taurine
         ligne("Station de trail : programme", periodes="2026-01-01<->2026-12-31"),  # programme sur l'année
@@ -35,7 +35,8 @@ def test_datatourisme_courses_retenues_et_ecartees():
     ]
     courses = co.extraire_datatourisme(lignes, auj)
     noms = [c["nom"] for c in courses]
-    assert noms == ["Trail des tranchées", "VTT et trail du Mont", "Semi-marathon de la ville", "Course féminine : Courir pour elles"]
+    assert noms == ["Trail des tranchées", "VTT et trail du Mont", "Semi-marathon de la ville", "La Sancerroise",
+                    "Course féminine : Courir pour elles"]
     t = courses[0]
     assert t["distances_km"] == [14, 18, 32, 55] and t["dplus_m"] == 1800 and t["type"] == "trail"
     assert t["date"] == "2027-03-20" and t["commune"] == "Verdun" and t["cp"] == "55100"
@@ -68,3 +69,19 @@ def test_courses_sur_route():
     c = co.extraire_datatourisme(lignes, auj)
     assert [x["nom"] for x in c] == ["Les 10 km de Cholet", "Les Boucles de la Vallée", "Demi-marathon de Vannes"]
     assert [x["distances_km"] for x in c] == [[10], [5, 10], [21.1]] and {x["type"] for x in c} == {"route"}
+
+
+def test_cas_reels_du_rapport():
+    """Événements sportifs réels de DATAtourisme (rapport du 21/10/2026)."""
+    gardes = [("La Corrida du Puy-en-Velay - 9ème édition", "La Corrida du Puy est une grande fête animée du running, avec DJ."),
+              ("La BVB (Trail et randonnée pédestre)", "BVB (course et randonnée pédestre)."),
+              ("Montmerle Obscure Race", "La MOR est une course nocturne."),
+              ("L'ARRACHÉE", "La course d'obstacles L'Arrachée se déroulera dans le parc."),
+              ("Hard'Iden Blanc 2027 : trail et ski de randonnée", ""),
+              ("Movember", "Marche, trail et canicross. Circuit de 3km, 6 km et 12 km.")]
+    ecartes = [("Ronde d'échecs - Open du Pays Fouesnantais", ""), ("Concours de belote", ""), ("Randonnée nocturne", "8 km"),
+               ("Course d'orientation", "Sprint"), ("Courses hippiques", "L'hippodrome accueille une réunion de courses"),
+               ("Marche octobre rose", "8 km"), ("Concours de saut d'obstacles", ""),
+               ("Eliza Rose : Marathon !", "Soirée DJ techno jusqu'à l'aube")]
+    assert [n for n, d in gardes if not co.est_course(n, d)] == []
+    assert [n for n, d in ecartes if co.est_course(n, d)] == []

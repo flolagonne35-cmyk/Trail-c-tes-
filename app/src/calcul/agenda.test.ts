@@ -27,3 +27,29 @@ test("courses à venir : période, rayon, type, formats, texte, tri", () => {
   assert.deepEqual(ids({ tri: "longueur" }), ["b", "a"]);
   assert.equal(formatsLisibles([10, 21.1, 42.2]), "10, 21,1 et 42,2 km");
 });
+
+test("régions et départements : code postal, Corse, outre-mer", async () => {
+  const { departementDeCp, regionDe, dansRegion } = await import("./regions.ts");
+  assert.equal(departementDeCp("35000"), "35");
+  assert.equal(departementDeCp("20000"), "2A");
+  assert.equal(departementDeCp("20200"), "2B");
+  assert.equal(departementDeCp("97400"), "974");
+  assert.equal(departementDeCp(""), "");
+  assert.equal(regionDe("44"), "PDL");
+  assert.equal(dansRegion("BRE"), "en Bretagne");
+});
+
+test("courses rangées : dans la ville, autour, ailleurs dans la région ; par département ; par région", async () => {
+  const { grouperCourses } = await import("./agenda.ts");
+  const { departementDeCp } = await import("./regions.ts");
+  const mk = (id: string, lat: number, lon: number, cp: string): CourseAVenir => ({ ...c(id, "2026-11-15", lat, [10]), lon, cp });
+  const courses = [mk("rennes", 48.112, -1.68, "35000"), mk("bruz", 48.03, -1.75, "35170"),
+                   mk("brest", 48.39, -4.49, "29200"), mk("nantes", 47.22, -1.55, "44000")];
+  const depDe = (x: CourseAVenir) => departementDeCp(x.cp);
+  const lieu = { position: ici, nom: "Rennes", dep: "35" };
+  const f = { ...FILTRES_AGENDA, rayonKm: 30 };
+  const g = (z: object) => grouperCourses(courses, z as never, lieu, f, depDe, auj).map((x) => `${x.titre}: ${x.courses.map((y) => y.id).join(",")}`);
+  assert.deepEqual(g({ mode: "autour" }), ["À Rennes: rennes", "Autour de Rennes (≤ 30 km): bruz", "Ailleurs en Bretagne: brest"]);
+  assert.deepEqual(g({ mode: "departement", code: "35" }), ["Ille-et-Vilaine (35): rennes,bruz", "Ailleurs en Bretagne: brest"]);
+  assert.deepEqual(g({ mode: "region", code: "PDL" }), ["Loire-Atlantique (44): nantes"]);
+});

@@ -43,21 +43,27 @@ CHAMPS_OPENAGENDA = ("uid,title_fr,firstdate_begin,lastdate_end,location_coordin
 # nom d'une course à pied (texte sans accents, en minuscules)
 COURSE = re.compile(r"\b(courses?|courir|trail|trails|marathon|semi[- ]marathon|foulees?|corrida|cross|ekiden|ultra[- ]?trail|"
                     r"course a pied|courses a pied|course pedestre|courses pedestres|course nature|course hors stade|"
-                    r"run|running|boucles?|ronde|relais|demi[- ]marathon|kilometre vertical|km vertical|vertical race|skyrace|\d+ ?km)\b")
-# autres sports : écartés sauf si le nom dit clairement « course » ou « trail » (ex. « VTT et trail »)
+                    r"run|running|race|boucles?|ronde|relais|demi[- ]marathon|kilometre vertical|km vertical|vertical race|skyrace|"
+                    r"obstacles?|\d+ ?km)\b")
+# jamais une course à pied, quel que soit le nom (« Ronde d'échecs », « Course d'orientation »…)
+EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|stages?|initiation|ateliers?|expositions?|"
+                       r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
+                       r"course de cote|caisses? a savon|chasse|oeufs|squat|bmx|karting|ecriture|lecture|interim|emploi|danse|"
+                       r"tricot|chant|jeux|dessin|photo|hackathon|code|contes?|echecs|belote|coinche|tarot|scrabble|bridge|"
+                       r"loto|quine|concours|cours de|yoga|chiens? de traineau|traineaux?|attelage|veilleur|ronde de nuit|"
+                       r"voitures?|tracteurs?|baignoires?|garcons de cafe|serveurs?|regates?|saut d.obstacles)\b")
+# autres sports, marches et sorties : écartés sauf si le nom dit aussi trail, course, marathon…
+# (« Trail et randonnée pédestre », « Hard'Iden Blanc : trail et ski de randonnée », « VTT et trail »)
 AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kayak|moto\w*|rallye|auto|natation|nage|"
                          r"swim\w*|petanque|golf|tennis|football|rugby|basket\w*|handball|ski|raquettes?|peche|"
-                         r"cinema|film|exposition|concert|conference|projection)\b")
-# nom d'événement qui n'est pas une course (visite, programme, sortie de groupe…) ou autre « course »
-EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|sorties?|stages?|initiation|ateliers?|expositions?|"
-                       r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
-                       r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando|bmx|karting|marche de \d+ ?km|"
-                       r"ecriture|lecture|interim|emploi|danse|tricot|chant|jeux|dessin|photo|hackathon|code|contes?|"
-                       r"boucles? (de la|du) (loire|seine)|rando\w*|chiens? de traineau|traineaux?|attelage|veilleur|ronde de nuit|"
-                       r"voitures?|tracteurs?|baignoires?|garcons de cafe|serveurs?)\b")
-# corrida taurine, soirée DJ « Marathon ! », courses de chevaux…
-EXCLU_TEXTE = re.compile(r"\b(dj|djs|techno|electro|line.?up|clubbing|taureaux?|toros?|novillada|feria|hippodrome|trot|galop|"
-                         r"tauromachie|bmx)\b")
+                         r"cinema|film|concert|rando\w*|marche|marches|balade|sorties?|mois de la rando|boucles? (de la|du) (loire|seine))\b")
+FORT = re.compile(r"\b(trail|trails|marathon|foulees?|corrida|course a pied|course pedestre|course nature|courses? solidaires?|"
+                  r"race|cross|semi|10 ?km|5 ?km)\b")
+# corrida taurine et courses de chevaux : toujours écartées
+TAURIN = re.compile(r"\b(taureaux?|toros?|novillada|feria|tauromachie|hippodrome|trot|galop)\b")
+# soirée DJ « Marathon ! » : écartée sauf si le texte parle de coureurs, de dossards ou de parcours
+FETE = re.compile(r"\b(dj|djs|techno|electro|line.?up|clubbing)\b")
+CONTEXTE_COURSE = re.compile(r"\b(coureurs?|dossards?|parcours|depart|inscriptions?|running|km)\b")
 DUREE_MAX_JOURS = 7  # au-delà, c'est un programme ou un équipement, pas une course
 FORT = re.compile(r"\b(trail|marathon|foulees?|corrida|course a pied|course pedestre|course nature)\b")
 # « 10 km », et les listes « 5 et 10 km », « 8, 15 ou 25 km », « 5/10 km »
@@ -74,14 +80,15 @@ def sans_accents(texte: str) -> str:
 
 def est_course(nom: str, description: str = "") -> bool:
     n = sans_accents(nom)
-    if EXCLU_NOM.search(n) or EXCLU_TEXTE.search(sans_accents(description)[:1500]):
+    d = sans_accents(description)[:1500]
+    if EXCLU_NOM.search(n) or TAURIN.search(d) or (FETE.search(d) and not CONTEXTE_COURSE.search(d)):
         return False
-    if not COURSE.search(n):
-        # nom neutre (« La Sancerroise ») : la description doit parler de course à pied
-        d = sans_accents(description)[:600]
-        if not re.search(r"\b(course a pied|trail|semi-marathon|marathon|course pedestre)\b", d) or not re.search(r"\bcourse", n):
-            return False
-    return not AUTRE_SPORT.search(n) or bool(FORT.search(n))
+    if AUTRE_SPORT.search(n) and not FORT.search(n):
+        return False
+    if COURSE.search(n):
+        return True
+    # nom neutre (« Movember », « La Sancerroise ») : le début de l'annonce doit parler de course à pied
+    return bool(re.search(r"\b(trail|course a pied|course pedestre|course d.obstacles|course nocturne|course solidaire|corrida|semi-marathon|marathon|coureurs)\b", d[:300]))
 
 
 def distances(texte: str) -> list[float]:
@@ -231,7 +238,8 @@ def main(argv=None) -> int:
         rapport["sources"]["DATAtourisme"] = {"erreur": "téléchargement impossible"}
 
     where = (f'firstdate_begin >= "{aujourdhui.isoformat()}" and (search("trail") or search("marathon") or search("foulées") '
-             'or search("corrida") or search("course à pied") or search("course nature") or search("cross"))')
+             'or search("corrida") or search("course à pied") or search("course nature") or search("cross") or search("semi-marathon") '
+             'or search("10 km") or search("course pédestre") or search("running") or search("course solidaire"))')
     r = telecharger(URL_OPENAGENDA, {"where": where, "select": CHAMPS_OPENAGENDA, "limit": -1})
     if r is not None:
         enregistrements = r.json()
