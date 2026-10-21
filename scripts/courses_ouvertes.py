@@ -66,7 +66,6 @@ TAURIN = re.compile(r"\b(taureaux?|toros?|novillada|feria|tauromachie|hippodrome
 FETE = re.compile(r"\b(dj|djs|techno|electro|line.?up|clubbing)\b")
 CONTEXTE_COURSE = re.compile(r"\b(coureurs?|dossards?|parcours|depart|inscriptions?|running|km)\b")
 DUREE_MAX_JOURS = 7  # au-delà, c'est un programme ou un équipement, pas une course
-FORT = re.compile(r"\b(trail|marathon|foulees?|corrida|course a pied|course pedestre|course nature)\b")
 # « 10 km », et les listes « 5 et 10 km », « 8, 15 ou 25 km », « 5/10 km »
 NB = r"\d{1,3}(?:[.,]\d{1,3})?"
 DISTANCE = re.compile(rf"((?:{NB}\s?(?:km)?\s?(?:,|et|ou|/|-|&)\s?)*{NB})\s?(?:km|kms|kilom[eè]tres?)\b", re.I)
