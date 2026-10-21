@@ -51,3 +51,9 @@ def test_periode_suivante_et_dedoublonnage():
            "location_city": "Verdun", "description_fr": "", "originagenda_title": "Ville de Verdun"}]
     tout = co.extraire_datatourisme([ligne("Trail des tranchées", description="14 km")], auj) + co.extraire_openagenda(oa, auj)
     assert len(tout) == 2 and len(co.dedoublonner(tout)) == 1
+
+
+def test_distances_semi_et_marathon():
+    assert co.distances("Marathon de Nantes + Semi-marathon + Foulées") == [21.1, 42.2]
+    assert co.distances("Semi-marathon de la ville") == [21.1]
+    assert co.distances("Marathon, 10 km et semi") == [10, 42.2]

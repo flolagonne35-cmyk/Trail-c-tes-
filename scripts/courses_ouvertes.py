@@ -88,7 +88,7 @@ def distances(texte: str) -> list[float]:
     t = sans_accents(texte)
     if not vus and re.search(r"\bsemi[- ]marathon\b", t):
         vus.add(21.1)
-    if not vus and re.search(r"\bmarathon\b", t) and not re.search(r"\bsemi[- ]marathon\b", t):
+    if not any(v > 40 for v in vus) and re.search(r"(?<!semi-)(?<!semi )\bmarathon\b", t):
         vus.add(42.2)
     return sorted(vus)
 
