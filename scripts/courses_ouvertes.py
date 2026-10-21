@@ -53,7 +53,8 @@ EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|sort
                        r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
                        r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando|bmx|karting|marche de \d+ ?km|"
                        r"ecriture|lecture|interim|emploi|danse|tricot|chant|jeux|dessin|photo|hackathon|code|contes?|"
-                       r"boucles? (de la|du) (loire|seine)|rando\w*)\b")
+                       r"boucles? (de la|du) (loire|seine)|rando\w*|chiens? de traineau|traineaux?|attelage|veilleur|ronde de nuit|"
+                       r"voitures?|tracteurs?|baignoires?|garcons de cafe|serveurs?)\b")
 # corrida taurine, soirée DJ « Marathon ! », courses de chevaux…
 EXCLU_TEXTE = re.compile(r"\b(dj|djs|techno|electro|line.?up|clubbing|taureaux?|toros?|novillada|feria|hippodrome|trot|galop|"
                          r"tauromachie|bmx)\b")

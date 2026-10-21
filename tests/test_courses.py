@@ -63,7 +63,8 @@ def test_courses_sur_route():
     auj = date(2026, 10, 21)
     lignes = [ligne("Les 10 km de Cholet"), ligne("Les Boucles de la Vallée", description="5 et 10 km"),
               ligne("Demi-marathon de Vannes"), ligne("Marathon d'écriture de nouvelle"), ligne("Marathon de l'intérim"),
-              ligne("Rando des châteaux")]
+              ligne("Rando des châteaux"), ligne("Course internationale de chiens de traîneau"),
+              ligne("Ronde de Noël du Veilleur de Nuit")]
     c = co.extraire_datatourisme(lignes, auj)
     assert [x["nom"] for x in c] == ["Les 10 km de Cholet", "Les Boucles de la Vallée", "Demi-marathon de Vannes"]
     assert [x["distances_km"] for x in c] == [[10], [5, 10], [21.1]] and {x["type"] for x in c} == {"route"}
