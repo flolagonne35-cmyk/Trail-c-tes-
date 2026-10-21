@@ -35,6 +35,14 @@ reste à construire**, par étapes.
 | Ponts, tunnels, autoroutes | ✅ | exclus du calcul des pentes depuis le début (BD TOPO `position_par_rapport_au_sol`, natures) |
 | Données qui partent sans le savoir | ✅ aujourd'hui | tout reste sur le téléphone ; à garder avec les comptes (voir 2.4) |
 
+### Appli web en ligne (PWA) — à faire par toi
+
+Workflow « Appli web en ligne » prêt : à chaque changement de l'appli, GitHub publie la version
+web sur Cloudflare Pages (https://trail-cotes.pages.dev), installable sur l'écran d'accueil.
+Il manque deux secrets du dépôt (Settings → Secrets and variables → Actions) :
+`CLOUDFLARE_API_TOKEN` (jeton avec la permission « Cloudflare Pages : Edit ») et
+`CLOUDFLARE_ACCOUNT_ID`. Le projet « trail-cotes » cohabite avec tes autres projets Cloudflare.
+
 ### Ce qui limite encore
 
 - **Deux métropoles calculées** : Rennes Métropole (848 côtes) et Nantes Métropole, Couëron

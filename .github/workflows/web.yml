@@ -1,0 +1,66 @@
+name: Appli web en ligne (Cloudflare Pages)
+
+# À chaque changement de l'appli, la version web est reconstruite et publiée sur Cloudflare Pages
+# (projet « trail-cotes », adresse https://trail-cotes.pages.dev), installable sur l'écran
+# d'accueil du téléphone (PWA). Il faut les secrets CLOUDFLARE_API_TOKEN (permission « Pages :
+# Edit ») et CLOUDFLARE_ACCOUNT_ID ; sans eux, la publication est sautée.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "app/**"
+      - ".github/workflows/web.yml"
+
+concurrency:
+  group: web
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PROJET: trail-cotes
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - name: Compilation web
+        run: npx expo export --platform web --output-dir dist
+      - name: Rendre l'appli installable (manifeste, icônes, écran d'accueil iPhone)
+        run: |
+          command -v convert || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
+          convert assets/icon.png -resize 192x192 dist/icone-192.png
+          convert assets/icon.png -resize 512x512 dist/icone-512.png
+          convert assets/icon.png -resize 180x180 dist/apple-touch-icon.png
+          cat > dist/manifest.webmanifest <<'JSON'
+          {
+            "name": "Trail-côtes", "short_name": "Trail-côtes", "lang": "fr", "start_url": "/", "scope": "/",
+            "display": "standalone", "orientation": "portrait", "background_color": "#F4F1EA", "theme_color": "#1B2A22",
+            "icons": [
+              { "src": "/icone-192.png", "sizes": "192x192", "type": "image/png" },
+              { "src": "/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+            ]
+          }
+          JSON
+          sed -i 's#</head>#<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Trail-côtes"><meta name="theme-color" content="\#1B2A22"></head>#' dist/index.html
+          grep -c manifest.webmanifest dist/index.html
+      - name: Publier sur Cloudflare Pages
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        run: |
+          # crée le projet la première fois (sans effet s'il existe déjà), puis publie en production
+          npx -y wrangler@3 pages project create "$PROJET" --production-branch "$GITHUB_REF_NAME" || true
+          npx -y wrangler@3 pages deploy dist --project-name "$PROJET" --branch "$GITHUB_REF_NAME" --commit-dirty=true
+      - name: Secrets absents
+        if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
+        run: echo "::warning::Ajoute les secrets CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID pour publier l'appli web."
