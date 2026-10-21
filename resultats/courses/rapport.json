@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-10-21T07:03:20+00:00",
+  "date_utc": "2026-10-21T07:13:54+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 76972,
       "sportifs": 13248,
-      "courses": 339,
+      "courses": 351,
       "exemple_brut": {
         "Nom_du_POI": "Les ateliers Maréis : Je crée ma carte postale de vacances",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|http://schema.org/Event",
@@ -107,7 +107,7 @@
     },
     "OpenAgenda": {
       "evenements": 491,
-      "courses": 20,
+      "courses": 17,
       "exemple_brut": {
         "uid": "71046853",
         "title_fr": "Centre \"La Presqu'île\" (Giffaumont) - Ligue de l'Enseignement de la Meuse",
@@ -127,9 +127,10 @@
       }
     }
   },
-  "courses": 357,
+  "courses": 366,
   "statut": "ok",
   "apercu": [
+    "2026-10-21 La Ronde des Histoires - \"Kunti'o et l'Oiseau de pluie\" (Aigrefeuille-d'Aunis) [] D+None route",
     "2026-10-21 Sport - Run pour elles (La Rochelle) [3.0] D+None route",
     "2026-10-22 Eliza Rose, Jeremy Underground, Mayou Picchu : Marathon ! (Paris) [42.2] D+None route",
     "2026-10-22 La Bacchus Artannes 2026 : la Corrida (Artannes-sur-Indre) [7.0] D+None route",
@@ -141,14 +142,16 @@
     "2026-10-23 Capito trail - Trail nocturne déguisé - Spécial Halloween (Saint-Julien-Chapteuil) [8.0] D+None trail",
     "2026-10-23 Fun Color Run (Néons-sur-Creuse) [] D+None route",
     "2026-10-23 La corrida d'Halloween (Saugues) [1.0, 5.0] D+None route",
-    "2026-10-23 Le Trail de Dom Guéranger (Sablé-sur-Sarthe) [6.0] D+None trail",
+    "2026-10-23 Le Trail de Dom Guéranger (Sablé-sur-Sarthe) [6.0, 12.0, 30.0] D+None trail",
     "2026-10-23 Le trail des Tours (Mazeray) [] D+None trail",
     "2026-10-23 Les Samedis Vivants - Foulée du Jacquemart (Moulins) [2.5, 5.0] D+None route",
     "2026-10-23 Marche - course octobre rose à Center Parcs Les Trois Forêts (Hattigny) [5.0] D+None route",
     "2026-10-23 Octobre ROse Marche et/ou course Wassy (Wassy) [] D+None route",
+    "2026-10-23 Ronde d'échecs - Open du Pays FOUESNANTAIS (Fouesnant) [] D+None route",
     "2026-10-23 Run touristique à la découverte d'Anglet (Anglet) [] D+None route",
     "2026-10-23 TRAIL DES COLOMBES 2026 (Carcassonne) [] D+None trail",
     "2026-10-23 TRAIL DES HÉRÉTIQUES 2026 (Carcassonne) [] D+None trail",
+    "2026-10-23 Table ronde autour du sport féminin (Couzeix) [] D+None route",
     "2026-10-23 Trail BBC ( Boeuvres, Baron, Corbinières) (Guipry-Messac) [] D+None trail",
     "2026-10-23 Trail de Boulouparis TotalEnergies - Edition Nassirah (Bouloupari) [] D+None trail",
     "2026-10-23 Trail des sorciers (Loyat) [] D+None trail",
@@ -162,9 +165,9 @@
     "2026-10-24 Course à pied - Octobre Rose (Richelieu) [4.0, 8.0, 11.0] D+None route",
     "2026-10-24 Cross FSGT (Écouché-les-Vallées) [] D+None trail",
     "2026-10-24 Cross des Sapeurs-Pompiers (Foncine-le-Haut) [] D+None trail",
+    "2026-10-24 Entre prairies et forêts - la boucle des sapins de Noël_ENS2026 (Champeau-en-Morvan) [] D+None route",
     "2026-10-24 HumaNépal : Trail et marche (Martigues) [9.0, 16.0, 28.0] D+None trail",
     "2026-10-24 La course des Citrouilles (Douchy-Montcorbon) [] D+None route",
-    "2026-10-24 Land'en roz: Rando gourmande, marche et course solidaire (Landaul) [] D+None route",
     "2026-10-24 Le Trail Impérial de Bizy (Vernon) [] D+None trail",
     "2026-10-24 Le Trail des 2 Rubans (Catus) [] D+None trail",
     "2026-10-24 Les 6 Nuits du Toulois - Course à pied nocturne (Jaillon) [] D+None route",
@@ -173,7 +176,6 @@
     "2026-10-24 Marche ou course pour tous ! (Aunac-sur-Charente) [] D+None route",
     "2026-10-24 Marcher et Courir Contre le Cancer à Reyrevignes (Reyrevignes) [] D+None route",
     "2026-10-24 Marcher et courir sur le parcours des huîtres (Les Moutiers-en-Retz) [] D+None route",
-    "2026-10-24 Rando et trail à Festieux (Festieux) [5.0, 10.0, 18.0] D+None trail",
     "2026-10-24 Semi-marathon Donibane Lohizune - Hondarribia Lasterketa (Saint-Jean-de-Luz) [21.1] D+None route",
     "2026-10-24 Solidari-trail (Saint-Pern) [] D+None trail",
     "2026-10-24 TRAIL DE L’OPPIDUM (Aumes) [] D+None trail",
@@ -187,9 +189,7 @@
     "2026-10-24 la course des enfantastiques (Uzos) [] D+None route",
     "2026-10-25 Course des coteaux du Seignanx (Saint-Barthélemy) [] D+None route",
     "2026-10-25 Course solidaire Efrei (Bruges) [5.0, 10.0] D+None route",
-    "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route",
-    "2026-10-25 LES 10 KM D’HOSSEGOR (Soorts-Hossegor) [10.0] D+None route",
-    "2026-10-25 La Course des 3 Sentiers (Vendays-Montalivet) [] D+None route"
+    "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route"
   ],
-  "taille_ko": 132
+  "taille_ko": 136
 }
