@@ -220,7 +220,13 @@ def main(argv=None) -> int:
         sport = [l for l in lignes if "SportsEvent" in (l.get("Categories_de_POI") or "")]
         rapport["sources"]["DATAtourisme"] = {"evenements": len(lignes), "sportifs": len(sport), "courses": len(trouvees),
                                               "exemple_brut": lignes[0] if lignes else None,
-                                              "sportifs_ecartes": [l["Nom_du_POI"] for l in sport if not est_course(l["Nom_du_POI"], l.get("Description") or "")][:80]}
+                                              "sportifs_ecartes": [l["Nom_du_POI"] for l in sport if not est_course(l["Nom_du_POI"], l.get("Description") or "")][:80],
+                                              # écartés qui parlent pourtant de course : pour vérifier qu'on n'en perd pas
+                                              "ecartes_a_verifier": [
+                                                  f'{l["Nom_du_POI"]} | {(l.get("Code_postal_et_commune") or "")} | {(l.get("Periodes_regroupees") or "")[:23]} | {(l.get("Description") or "")[:120]}'
+                                                  for l in sport if not est_course(l["Nom_du_POI"], l.get("Description") or "")
+                                                  and re.search(r"cour|coureur|run|trail|km|marath|foul", sans_accents(l["Nom_du_POI"] + " " + (l.get("Description") or "")[:400]))
+                                                  and prochaine_periode(l.get("Periodes_regroupees") or "", aujourdhui)][:400]}
     else:
         rapport["sources"]["DATAtourisme"] = {"erreur": "téléchargement impossible"}
 
