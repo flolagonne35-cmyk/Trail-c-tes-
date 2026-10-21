@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-10-21T06:59:51+00:00",
+  "date_utc": "2026-10-21T07:01:17+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 76972,
       "sportifs": 13248,
-      "courses": 342,
+      "courses": 339,
       "exemple_brut": {
         "Nom_du_POI": "Les ateliers Maréis : Je crée ma carte postale de vacances",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|http://schema.org/Event",
@@ -127,17 +127,15 @@
       }
     }
   },
-  "courses": 360,
+  "courses": 357,
   "statut": "ok",
   "apercu": [
-    "2026-10-21 Octobre rose : \"Marche de 4 km\" (Eu) [4.0] D+None route",
     "2026-10-21 Sport - Run pour elles (La Rochelle) [3.0] D+None route",
     "2026-10-22 Eliza Rose, Jeremy Underground, Mayou Picchu : Marathon ! (Paris) [42.2] D+None route",
     "2026-10-22 La Bacchus Artannes 2026 : la Corrida (Artannes-sur-Indre) [7.0] D+None route",
     "2026-10-22 TRAIL DES PATARINS 2026 (Carcassonne) [] D+None trail",
     "2026-10-22 TRAIL NOCTURNE DU CHÂTEAU COMTAL 2026 (Carcassonne) [] D+None trail",
     "2026-10-23 47e édition de la course Marseille - Cassis AG2R La Mondiale (Marseille 8e Arrondissement) [] D+None route",
-    "2026-10-23 BMX RACE 4X 2026 - course de BMX à Martragny (Moulins-en-Bessin) [] D+None route",
     "2026-10-23 Capito trail (Saint-Julien-Chapteuil) [] D+None trail",
     "2026-10-23 Capito trail - Marche solidaire - Octobre rose (Saint-Julien-Chapteuil) [10.0] D+None trail",
     "2026-10-23 Capito trail - Trail nocturne déguisé - Spécial Halloween (Saint-Julien-Chapteuil) [8.0] D+None trail",
@@ -189,7 +187,9 @@
     "2026-10-24 la course des enfantastiques (Uzos) [] D+None route",
     "2026-10-25 Course des coteaux du Seignanx (Saint-Barthélemy) [] D+None route",
     "2026-10-25 Course solidaire Efrei (Bruges) [5.0, 10.0] D+None route",
-    "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route"
+    "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route",
+    "2026-10-25 LES 10 KM D’HOSSEGOR (Soorts-Hossegor) [10.0] D+None route",
+    "2026-10-25 La Course des 3 Sentiers (Vendays-Montalivet) [] D+None route"
   ],
-  "taille_ko": 133
+  "taille_ko": 132
 }
