@@ -27,7 +27,13 @@ jobs:
       - run: python scripts/courses_ouvertes.py
       - name: Résumé
         if: always()
-        run: python -c "import json; r=json.load(open('resultats/courses/rapport.json')); print('## Courses — ' + r['statut'] + ' : ' + str(r['courses']) + chr(10) + chr(10).join('- ' + a for a in r['apercu'][:40]))" >> "$GITHUB_STEP_SUMMARY" || true
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import json
+          r = json.load(open("resultats/courses/rapport.json"))
+          print(f"## Courses : {r['statut']}, {r['courses']}\n")
+          print("\n".join("- " + a for a in r.get("apercu", [])[:40]))
+          PY
       - name: Enregistrer
         if: always()
         run: |
