@@ -106,6 +106,10 @@ test("filtres en plages (min et max), sol, et tri des résultats", async () => {
   assert.deepEqual(trierCotes(toutes, "dplus", false).map((c) => c.id), [3, 2, 1]);
   assert.deepEqual(trierCotes(toutes, "pente", true).map((c) => c.id), [1, 2, 3]);
   assert.deepEqual(trierCotes(toutes, "distance", false).map((c) => c.id), [3, 2, 1]);
+  const { meilleures } = await import("./cotes.ts");
+  assert.deepEqual(meilleures(toutes, { ...f, nombre: 2 }).map((c) => c.id), [1, 2]); // les 2 plus proches
+  assert.deepEqual(meilleures(toutes, { ...f, tri: "dplus", croissant: false, nombre: 1 }).map((c) => c.id), [3]);
+  assert.deepEqual(meilleures(toutes, { ...f, tri: "pente" }).map((c) => c.id), [3, 2, 1]); // « Toutes », la plus raide d'abord
   assert.equal(plageLisible(4, 8.5, "%"), "4 à 8,5 %");
   assert.equal(plageLisible(0, 300, "m"), "≤ 300 m");
   assert.equal(resumeFiltres({ ...f, penteMin: 6, longueurMin: 300, dplusMax: 60, sols: ["terre"] }),

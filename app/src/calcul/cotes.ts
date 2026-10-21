@@ -42,6 +42,8 @@ export type Filtres = {
   dplusMin?: number; dplusMax?: number;
   sols?: Sol[]; // vide ou absent = tous
   eviterPassant?: boolean;
+  // présentation des résultats : ordre, et combien en montrer (absent = toutes)
+  tri?: CleTri; croissant?: boolean; nombre?: number;
 };
 
 /** Sol de la côte : goudronné (route, piste) ou non (terre, gravier, herbe…), d'après BD TOPO et OSM. */
@@ -61,6 +63,12 @@ const VALEUR_TRI: Record<CleTri, (c: CoteProche) => number> = {
   distance: (c) => c.distance_m, pente: (c) => c.pente_moy_pct, raide: (c) => c.pente_max_pct,
   longueur: (c) => c.longueur_m, dplus: (c) => c.dplus_m,
 };
+
+/** « Meilleures » au sens du tri choisi : les plus proches par défaut. */
+export function meilleures(cotes: CoteProche[], f: Filtres): CoteProche[] {
+  const triees = trierCotes(cotes, f.tri ?? "distance", f.croissant ?? (f.tri ?? "distance") === "distance");
+  return f.nombre ? triees.slice(0, f.nombre) : triees;
+}
 
 /** Trie les côtes ; à égalité, la plus proche d'abord. */
 export function trierCotes(cotes: CoteProche[], cle: CleTri, croissant: boolean): CoteProche[] {

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import {
-  cotesProches, distanceCouverture, enDescente, kmLisibles, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres, trierCotes, TRIS,
+  cotesProches, distanceCouverture, enDescente, kmLisibles, meilleures, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres, TRIS,
   type CleTri, type Cote, type CoteProche, type Filtres, type Sens, type Sol, type TypeVoie,
 } from "../calcul/cotes.ts";
 import { distanceM, type Position } from "../calcul/geo.ts";
@@ -67,6 +67,56 @@ const TYPES: [TypeVoie, string, string][] = [
 ];
 
 const LEGENDE: [string, string][] = [[C.monteeDouce, "< 7 %"], [C.montee, "7 – 10 %"], [C.monteeFonce, "≥ 10 %"]];
+
+const NOMBRES: [string, string][] = [["3", "3"], ["5", "5"], ["10", "10"], ["0", "Toutes"]];
+
+/** « 5 meilleures côtes sur 104 », « 12 côtes », « Aucune côte dans le rayon ». */
+function titreResultats(montrees: number, total: number, mot: string): string {
+  if (!total) return `Aucune ${mot} dans le rayon`;
+  if (montrees < total) return `${montrees === 1 ? `La meilleure ${mot}` : `Les ${montrees} meilleures ${mot}s`} sur ${total}`;
+  return `${total} ${mot}${total > 1 ? "s" : ""}`;
+}
+
+/** Ordre des résultats et nombre à montrer : dans la recherche comme sur la page des résultats. */
+function ChoixResultats({ f, setF, total, mot }: { f: Filtres; setF: (f: Filtres) => void; total: number; mot: string }) {
+  const cle = f.tri ?? "distance";
+  const croissant = f.croissant ?? cle === "distance";
+  const sens = croissant ? TRIS[cle].croissant : TRIS[cle].decroissant;
+  return (
+    <View style={{ gap: 10 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text style={[S.fort, { flex: 1 }]}>Trier par</Text>
+        <Pressable onPress={() => setF({ ...f, tri: cle, croissant: !croissant })} accessibilityRole="button"
+                   accessibilityLabel={`Ordre : ${sens}. Inverser`}
+                   style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 12,
+                            borderRadius: 18, backgroundColor: C.sable }}>
+          <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{croissant ? "↑" : "↓"}</Text>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: C.encre }}>{croissant ? "Croissant" : "Décroissant"}</Text>
+        </Pressable>
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {(Object.keys(TRIS) as CleTri[]).map((k) => {
+          const actif = k === cle;
+          return (
+            <Pressable key={k} onPress={() => setF({ ...f, tri: k, croissant: k === "distance" })} accessibilityRole="tab"
+                       aria-selected={actif}
+                       style={{ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: "center",
+                                backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
+              <Text style={{ fontSize: 13, fontWeight: "700", color: actif ? C.fond : C.encre }}>{TRIS[k].nom}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text style={S.petit}>{TRIS[cle].nom} : {sens}. Les numéros de la carte suivent cet ordre.</Text>
+      <Text style={S.fort}>Combien en afficher ?</Text>
+      <Segments options={NOMBRES} valeur={String(f.nombre ?? 0)} onChange={(v) => setF({ ...f, nombre: Number(v) || undefined })} />
+      <Text style={S.petit}>
+        {f.nombre ? `Les ${f.nombre} premières selon le tri (« ${sens} »)${total ? `, sur ${total} ${mot}${total > 1 ? "s" : ""} trouvée${total > 1 ? "s" : ""}` : ""}.`
+                  : `Toutes les ${mot}s qui correspondent, dans l'ordre du tri.`}
+      </Text>
+    </View>
+  );
+}
 
 /** « Que cherches-tu ? » : les côtes n'apparaissent qu'une fois la recherche lancée. */
 function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
@@ -172,8 +222,16 @@ function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
           </View>
           <Case actif={!!f.eviterPassant} />
         </Pressable>
+        <View style={{ gap: 8, paddingTop: 4, borderTopWidth: 1, borderTopColor: C.sable }}>
+          <Text style={[S.h2, { fontSize: 18, marginTop: 12 }]} accessibilityRole="header">Résultats</Text>
+          <ChoixResultats f={f} setF={setF} total={n} mot={mot} />
+        </View>
         <Pressable onPress={() => onValider(f)} disabled={!n} accessibilityRole="button" style={[S.bouton, { minHeight: 54, opacity: n ? 1 : 0.45 }]}>
-          <Text style={[S.boutonTexte, { fontSize: 16 }]}>{n ? `Voir ${n === 1 ? `la ${mot}` : `les ${n} ${mot}s`}` : `Aucune ${mot} avec ces critères`}</Text>
+          <Text style={[S.boutonTexte, { fontSize: 16 }]}>
+            {!n ? `Aucune ${mot} avec ces critères`
+              : f.nombre && f.nombre < n ? `Voir ${f.nombre === 1 ? `la meilleure` : `les ${f.nombre} meilleures`} (sur ${n})`
+              : `Voir ${n === 1 ? `la ${mot}` : `les ${n} ${mot}s`}`}
+          </Text>
         </Pressable>
         {!n && <Text style={S.petit}>Élargis une plage (pente, longueur, D+), la distance, ou ajoute des types de voie et de sol.</Text>}
     </View>
@@ -251,6 +309,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   resultats: boolean; setResultats: (v: boolean) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
+  const [reglerTri, setReglerTri] = useState(false);
 
   // une descente est une côte parcourue depuis le sommet
   const sens = mode;
@@ -260,10 +319,10 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
   const horsZone = couverture > RAYON_COUVERTURE_M;
-  // tri des résultats : la plus proche d'abord par défaut ; les autres critères, le plus fort d'abord
-  const [tri, setTri] = useState<{ cle: CleTri; croissant: boolean }>({ cle: "distance", croissant: true });
-  const cotes = useMemo(() => trierCotes(cotesProches(base, position, filtres), tri.cle, tri.croissant),
-                        [base, position, filtres, tri]);
+  // toutes les côtes qui correspondent, puis les « meilleures » selon le tri et le nombre choisis
+  const trouvees = useMemo(() => cotesProches(base, position, filtres), [base, position, filtres]);
+  const total = trouvees.length;
+  const cotes = useMemo(() => meilleures(trouvees, filtres), [trouvees, filtres]);
   // aucune côte dans le rayon : on montre quand même les plus proches
   const auDela = useMemo(
     () => (cotes.length || horsZone ? [] : cotesProches(base, position, { ...filtres, rayonM: Infinity }).slice(0, 5)),
@@ -324,7 +383,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
           <>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 }}>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={S.fort}>{cotes.length ? `${cotes.length} ${mot}${cotes.length > 1 ? "s" : ""}` : `Aucune ${mot} dans le rayon`}</Text>
+                <Text style={S.fort}>{titreResultats(cotes.length, total, mot)}</Text>
                 <Text style={S.petit} numberOfLines={1}>{resumeFiltres(filtres)}</Text>
               </View>
               <Pressable onPress={() => setResultats(false)} accessibilityRole="button"
@@ -340,34 +399,21 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
               <Segments options={[["carte", "Carte"], ["liste", "Liste"]]} valeur={vue} onChange={setVue} />
             </View>
 
-            {cotes.length > 1 && (
-              <View style={{ marginTop: 12, gap: 8 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Text style={[S.fort, { flex: 1 }]}>Trier par</Text>
-                  <Pressable onPress={() => setTri({ ...tri, croissant: !tri.croissant })} accessibilityRole="button"
-                             accessibilityLabel={`Ordre : ${tri.croissant ? TRIS[tri.cle].croissant : TRIS[tri.cle].decroissant}. Inverser`}
-                             style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 12,
-                                      borderRadius: 18, backgroundColor: C.sable }}>
-                    <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{tri.croissant ? "↑" : "↓"}</Text>
-                    <Text style={{ fontSize: 13, fontWeight: "700", color: C.encre }}>{tri.croissant ? "Croissant" : "Décroissant"}</Text>
+            {total > 1 && (
+              <View style={{ marginTop: 12, backgroundColor: C.blanc, borderRadius: 14, padding: 12, gap: 10 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  <Text style={[S.petit, { flex: 1, color: C.encre }]} numberOfLines={2}>
+                    Tri : {TRIS[filtres.tri ?? "distance"].nom.toLowerCase()}, {(filtres.croissant ?? (filtres.tri ?? "distance") === "distance")
+                      ? TRIS[filtres.tri ?? "distance"].croissant : TRIS[filtres.tri ?? "distance"].decroissant}
+                    {" · "}{filtres.nombre ? `${Math.min(filtres.nombre, total)} affichées` : "toutes affichées"}
+                  </Text>
+                  <Pressable onPress={() => setReglerTri(!reglerTri)} accessibilityRole="button" aria-expanded={reglerTri}
+                             accessibilityLabel={reglerTri ? "Fermer le tri" : "Changer le tri et le nombre affiché"}
+                             style={{ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: "center", backgroundColor: C.sable }}>
+                    <Text style={{ fontSize: 13, fontWeight: "700", color: C.encre }}>{reglerTri ? "Fermer" : "Changer"}</Text>
                   </Pressable>
                 </View>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  {(Object.keys(TRIS) as CleTri[]).map((cle) => {
-                    const actif = cle === tri.cle;
-                    return (
-                      <Pressable key={cle} onPress={() => setTri({ cle, croissant: cle === "distance" })} accessibilityRole="tab"
-                                 aria-selected={actif}
-                                 style={{ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: "center",
-                                          backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
-                        <Text style={{ fontSize: 13, fontWeight: "700", color: actif ? C.fond : C.encre }}>{TRIS[cle].nom}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                <Text style={S.petit}>
-                  {TRIS[tri.cle].nom} : {tri.croissant ? TRIS[tri.cle].croissant : TRIS[tri.cle].decroissant}. Les numéros de la carte suivent cet ordre.
-                </Text>
+                {reglerTri && <ChoixResultats f={filtres} setF={setFiltres} total={total} mot={mot} />}
               </View>
             )}
 
