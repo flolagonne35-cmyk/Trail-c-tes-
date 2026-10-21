@@ -43,7 +43,7 @@ CHAMPS_OPENAGENDA = ("uid,title_fr,firstdate_begin,lastdate_end,location_coordin
 # nom d'une course à pied (texte sans accents, en minuscules)
 COURSE = re.compile(r"\b(courses?|courir|trail|trails|marathon|semi[- ]marathon|foulees?|corrida|cross|ekiden|ultra[- ]?trail|"
                     r"course a pied|courses a pied|course pedestre|courses pedestres|course nature|course hors stade|"
-                    r"run|running|kilometre vertical|km vertical|vertical race|skyrace|\d+ ?km)\b")
+                    r"run|running|boucles?|ronde|relais|demi[- ]marathon|kilometre vertical|km vertical|vertical race|skyrace|\d+ ?km)\b")
 # autres sports : écartés sauf si le nom dit clairement « course » ou « trail » (ex. « VTT et trail »)
 AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kayak|moto\w*|rallye|auto|natation|nage|"
                          r"swim\w*|petanque|golf|tennis|football|rugby|basket\w*|handball|ski|raquettes?|peche|"
@@ -51,13 +51,17 @@ AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kay
 # nom d'événement qui n'est pas une course (visite, programme, sortie de groupe…) ou autre « course »
 EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|sorties?|stages?|initiation|ateliers?|expositions?|"
                        r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
-                       r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando|bmx|karting|marche de \d+ ?km)\b")
+                       r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando|bmx|karting|marche de \d+ ?km|"
+                       r"ecriture|lecture|interim|emploi|danse|tricot|chant|jeux|dessin|photo|hackathon|code|contes?|"
+                       r"boucles? (de la|du) (loire|seine)|rando\w*)\b")
 # corrida taurine, soirée DJ « Marathon ! », courses de chevaux…
 EXCLU_TEXTE = re.compile(r"\b(dj|djs|techno|electro|line.?up|clubbing|taureaux?|toros?|novillada|feria|hippodrome|trot|galop|"
                          r"tauromachie|bmx)\b")
 DUREE_MAX_JOURS = 7  # au-delà, c'est un programme ou un équipement, pas une course
 FORT = re.compile(r"\b(trail|marathon|foulees?|corrida|course a pied|course pedestre|course nature)\b")
-DISTANCE = re.compile(r"(\d{1,3}(?:[.,]\d{1,3})?)\s?(?:km|kms|kilom[eè]tres?)\b", re.I)
+# « 10 km », et les listes « 5 et 10 km », « 8, 15 ou 25 km », « 5/10 km »
+NB = r"\d{1,3}(?:[.,]\d{1,3})?"
+DISTANCE = re.compile(rf"((?:{NB}\s?(?:km)?\s?(?:,|et|ou|/|-|&)\s?)*{NB})\s?(?:km|kms|kilom[eè]tres?)\b", re.I)
 DPLUS = re.compile(r"(\d{1,2}[ .\u202f\u00a0]\d{3}|\d{2,5})\s?(?:m|metres|mètres)\s?(?:de\s)?(?:d\+|dénivelé positif|dénivelé|denivele|D\+)",
                    re.I)
 TRAIL = re.compile(r"\b(trail|nature|vertical|sky\w*|ultra|montagne|cross)\b")
@@ -82,13 +86,14 @@ def est_course(nom: str, description: str = "") -> bool:
 def distances(texte: str) -> list[float]:
     vus = set()
     for m in DISTANCE.finditer(texte or ""):
-        v = float(m.group(1).replace(",", "."))
-        if 1 <= v <= 250:
-            vus.add(round(v, 1))
+        for n in re.findall(r"\d{1,3}(?:[.,]\d{1,3})?(?![.,]?\d)", m.group(1).replace(", ", " , ")):
+            v = float(n.replace(",", "."))
+            if 1 <= v <= 250:
+                vus.add(round(v, 1))
     t = sans_accents(texte)
-    if not vus and re.search(r"\bsemi[- ]marathon\b", t):
+    if not vus and re.search(r"\b(semi|demi)[- ]marathon\b", t):
         vus.add(21.1)
-    if not any(v > 40 for v in vus) and re.search(r"(?<!semi-)(?<!semi )\bmarathon\b", t):
+    if not any(v > 40 for v in vus) and re.search(r"(?<!semi-)(?<!semi )(?<!demi-)(?<!demi )\bmarathon\b", t):
         vus.add(42.2)
     return sorted(vus)
 

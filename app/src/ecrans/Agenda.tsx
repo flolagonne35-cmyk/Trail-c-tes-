@@ -20,7 +20,7 @@ export const AGENDA = (agendaBrut as { courses: CourseAVenir[]; date_utc: string
 const MAJ = new Date((agendaBrut as { date_utc: string }).date_utc).toLocaleDateString("fr-FR");
 
 const ECH_RAYON = [5, 10, 15, 20, 30, 40, 50, 75, 100, 150, 200, 300, Infinity];
-const ECH_KM = [0, 5, 10, 15, 21, 25, 30, 42, 50, 60, 80, 100, 120, 160, Infinity];
+const ECH_KM = [0, 4, 5, 6, 8, 9, 10, 12, 15, 20, 21, 25, 30, 40, 42, 50, 60, 80, 100, 120, 160, Infinity];
 const PAR_PAGE = 30;
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 48, fontSize: 16, color: C.encre } as const;
 const jour = (d: string) => new Date(`${d}T12:00:00`);
@@ -123,8 +123,9 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
           <Plage etiquette="Format (distance de course)" valeurs={ECH_KM} bas={bMin} haut={bMax} format={km}
                  resume={bMin === 0 && bMax === ECH_KM.length - 1 ? "Tous" : bMin === 0 ? `≤ ${ECH_KM[bMax]} km` : bMax === ECH_KM.length - 1 ? `≥ ${ECH_KM[bMin]} km` : `${ECH_KM[bMin]} à ${ECH_KM[bMax]} km`}
                  onChange={(b, h) => maj({ kmMin: b ? ECH_KM[b] : undefined, kmMax: h < ECH_KM.length - 1 ? ECH_KM[h] : undefined })}
-                 raccourcis={[{ nom: "Tous", bas: 0, haut: Infinity }, { nom: "≤ 10 km", bas: 0, haut: 10 }, { nom: "Semi", bas: 21, haut: 25 },
-                              { nom: "Marathon", bas: 42, haut: 50 }, { nom: "Trail long ≥ 50 km", bas: 50, haut: Infinity }]}
+                 raccourcis={[{ nom: "Tous", bas: 0, haut: Infinity }, { nom: "5 km", bas: 4, haut: 6 }, { nom: "10 km", bas: 9, haut: 12 },
+                              { nom: "15–20 km", bas: 15, haut: 20 }, { nom: "Semi", bas: 21, haut: 25 }, { nom: "30–40 km", bas: 30, haut: 40 },
+                              { nom: "Marathon", bas: 42, haut: 50 }, { nom: "Ultra ≥ 60 km", bas: 60, haut: Infinity }]}
                  aide="Une course est retenue si l'un de ses formats est dans la plage. Sans format connu, elle n'apparaît que sans filtre de format." />
           <View style={{ gap: 8 }}>
             <Text style={S.fort}>Trier par</Text>
