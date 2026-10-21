@@ -1,0 +1,58 @@
+{
+  "date_utc": "2026-10-21T05:18:22+00:00",
+  "statut": "ok",
+  "zones": [
+    "47.12,-1.80,47.32,-1.40"
+  ],
+  "resume": {
+    "noeuds": 98961,
+    "aretes": 130564,
+    "points_altitude": 580234,
+    "points_valides_pct": 100,
+    "aretes_sans_altitude": 0,
+    "taille_ko": 7503,
+    "duree_s": 808
+  },
+  "wfs": {
+    "requetes": 133,
+    "codes_http": {
+      "200": 133
+    },
+    "erreurs": [],
+    "nb_objets": 132209,
+    "ordre_bbox": "lat,lon EPSG:4326",
+    "axes_inverses": false,
+    "natures": {
+      "Route à 1 chaussée": 83057,
+      "Sentier": 18631,
+      "Chemin": 9053,
+      "Route empierrée": 8848,
+      "Rond-point": 8565,
+      "Route à 2 chaussées": 2359,
+      "Type autoroutier": 813,
+      "Bretelle": 531,
+      "Escalier": 343,
+      "Bac ou liaison maritime": 9
+    },
+    "troncons_retenus": 130564,
+    "exclus_acces": 104,
+    "valeurs_acces": {
+      "prive=False / acces_pieton=None": 100889,
+      "prive=False / acces_pieton=Libre": 8993,
+      "prive=True / acces_pieton=Libre": 38,
+      "prive=None / acces_pieton=None": 18836,
+      "prive=True / acces_pieton=None": 59,
+      "prive=None / acces_pieton=Libre": 1846,
+      "prive=False / acces_pieton=Restreint aux ayants droit": 4,
+      "prive=True / acces_pieton=Restreint aux ayants droit": 2,
+      "prive=None / acces_pieton=Restreint aux ayants droit": 1
+    },
+    "duree_s": 217.1
+  },
+  "alti": {
+    "requetes": 117,
+    "codes_http": {
+      "200": 117
+    }
+  }
+}
