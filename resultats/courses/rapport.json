@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-10-21T06:57:43+00:00",
+  "date_utc": "2026-10-21T06:59:51+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 76972,
       "sportifs": 13248,
-      "courses": 318,
+      "courses": 342,
       "exemple_brut": {
         "Nom_du_POI": "Les ateliers Maréis : Je crée ma carte postale de vacances",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|http://schema.org/Event",
@@ -50,7 +50,6 @@
         "Visite sur rdv de l'asinerie Turs'Ane",
         "Visite sur rdv de l'asinerie Turs'Ane",
         "Visites du vignoble Thibeau",
-        "Course féminine : Courir pour elle(s)",
         "Automne à la Ferme - Mohair du Coteau",
         "Château de Saint Mesmin - Escape game: Le prix de la rançon !",
         "Château de Saint Mesmin - Saint Nicolas au château",
@@ -102,7 +101,8 @@
         "Labyrinthe nocturne spécial Halloween",
         "La Chevauchée Fantastique",
         "Randonnée - Asfeld",
-        "Randonnée - Hauteville"
+        "Randonnée - Hauteville",
+        "Randonnée - Juniville"
       ]
     },
     "OpenAgenda": {
@@ -127,34 +127,28 @@
       }
     }
   },
-  "courses": 337,
+  "courses": 360,
   "statut": "ok",
   "apercu": [
-    "2025-12-31 Sortie running trail à St Geniez d'Olt (Saint Geniez d'Olt et d'Aubrac) [] D+None trail",
-    "2026-04-25 Programme animations Station de Trail® (Écouves) [] D+None trail",
-    "2026-09-12 Défi trail : Les segments du Grandvaux (Saint-Laurent-en-Grandvaux) [] D+None trail",
-    "2026-09-13 Sortie Running (Pierrefiche) [] D+None route",
-    "2026-10-01 Monster Run (Reichstett) [] D+None route",
-    "2026-10-02 Mini Monster Run (Reichstett) [] D+None route",
     "2026-10-21 Octobre rose : \"Marche de 4 km\" (Eu) [4.0] D+None route",
     "2026-10-21 Sport - Run pour elles (La Rochelle) [3.0] D+None route",
     "2026-10-22 Eliza Rose, Jeremy Underground, Mayou Picchu : Marathon ! (Paris) [42.2] D+None route",
     "2026-10-22 La Bacchus Artannes 2026 : la Corrida (Artannes-sur-Indre) [7.0] D+None route",
     "2026-10-22 TRAIL DES PATARINS 2026 (Carcassonne) [] D+None trail",
     "2026-10-22 TRAIL NOCTURNE DU CHÂTEAU COMTAL 2026 (Carcassonne) [] D+None trail",
-    "2026-10-22 Visite guidée : Corrida (Dax) [] D+None route",
+    "2026-10-23 47e édition de la course Marseille - Cassis AG2R La Mondiale (Marseille 8e Arrondissement) [] D+None route",
+    "2026-10-23 BMX RACE 4X 2026 - course de BMX à Martragny (Moulins-en-Bessin) [] D+None route",
     "2026-10-23 Capito trail (Saint-Julien-Chapteuil) [] D+None trail",
     "2026-10-23 Capito trail - Marche solidaire - Octobre rose (Saint-Julien-Chapteuil) [10.0] D+None trail",
     "2026-10-23 Capito trail - Trail nocturne déguisé - Spécial Halloween (Saint-Julien-Chapteuil) [8.0] D+None trail",
     "2026-10-23 Fun Color Run (Néons-sur-Creuse) [] D+None route",
-    "2026-10-23 LE MARATHON DU SQUAT ROSE (La Canourgue) [42.2] D+None route",
     "2026-10-23 La corrida d'Halloween (Saugues) [1.0, 5.0] D+None route",
     "2026-10-23 Le Trail de Dom Guéranger (Sablé-sur-Sarthe) [6.0] D+None trail",
     "2026-10-23 Le trail des Tours (Mazeray) [] D+None trail",
     "2026-10-23 Les Samedis Vivants - Foulée du Jacquemart (Moulins) [2.5, 5.0] D+None route",
-    "2026-10-23 Mois de la rando : Marche sportive sur le sentier de trail de Tiranges (Tiranges) [18.5] D+None trail",
+    "2026-10-23 Marche - course octobre rose à Center Parcs Les Trois Forêts (Hattigny) [5.0] D+None route",
+    "2026-10-23 Octobre ROse Marche et/ou course Wassy (Wassy) [] D+None route",
     "2026-10-23 Run touristique à la découverte d'Anglet (Anglet) [] D+None route",
-    "2026-10-23 Sortie Running Nature (Binic-Étables-sur-Mer) [] D+None trail",
     "2026-10-23 TRAIL DES COLOMBES 2026 (Carcassonne) [] D+None trail",
     "2026-10-23 TRAIL DES HÉRÉTIQUES 2026 (Carcassonne) [] D+None trail",
     "2026-10-23 Trail BBC ( Boeuvres, Baron, Corbinières) (Guipry-Messac) [] D+None trail",
@@ -165,20 +159,25 @@
     "2026-10-24 CITY TRAIL NOCTURNE (Sainte-Menehould) [] D+None trail",
     "2026-10-24 COLOR RUN (Terres-de-Haute-Charente) [] D+None route",
     "2026-10-24 Course Marseille-Cassis (Cassis) [20.0] D+None route",
+    "2026-10-24 Course Rose en Mortagne - 8ème édition (Gerbéviller) [] D+None route",
+    "2026-10-24 Course solidaire : Rose & Moustache (Courseulles-sur-Mer) [5.0, 10.0] D+None route",
     "2026-10-24 Course à pied - Octobre Rose (Richelieu) [4.0, 8.0, 11.0] D+None route",
     "2026-10-24 Cross FSGT (Écouché-les-Vallées) [] D+None trail",
     "2026-10-24 Cross des Sapeurs-Pompiers (Foncine-le-Haut) [] D+None trail",
     "2026-10-24 HumaNépal : Trail et marche (Martigues) [9.0, 16.0, 28.0] D+None trail",
+    "2026-10-24 La course des Citrouilles (Douchy-Montcorbon) [] D+None route",
+    "2026-10-24 Land'en roz: Rando gourmande, marche et course solidaire (Landaul) [] D+None route",
     "2026-10-24 Le Trail Impérial de Bizy (Vernon) [] D+None trail",
     "2026-10-24 Le Trail des 2 Rubans (Catus) [] D+None trail",
     "2026-10-24 Les 6 Nuits du Toulois - Course à pied nocturne (Jaillon) [] D+None route",
     "2026-10-24 Les foulées mamertines (Mamers) [] D+None route",
     "2026-10-24 Marathon de Chablis (Chablis) [42.2] D+None route",
+    "2026-10-24 Marche ou course pour tous ! (Aunac-sur-Charente) [] D+None route",
+    "2026-10-24 Marcher et Courir Contre le Cancer à Reyrevignes (Reyrevignes) [] D+None route",
+    "2026-10-24 Marcher et courir sur le parcours des huîtres (Les Moutiers-en-Retz) [] D+None route",
     "2026-10-24 Rando et trail à Festieux (Festieux) [5.0, 10.0, 18.0] D+None trail",
     "2026-10-24 Semi-marathon Donibane Lohizune - Hondarribia Lasterketa (Saint-Jean-de-Luz) [21.1] D+None route",
     "2026-10-24 Solidari-trail (Saint-Pern) [] D+None trail",
-    "2026-10-24 Sortie Running Nature (Binic-Étables-sur-Mer) [] D+None trail",
-    "2026-10-24 Sortie « Running balade » (Châteaulin) [] D+None route",
     "2026-10-24 TRAIL DE L’OPPIDUM (Aumes) [] D+None trail",
     "2026-10-24 TRAIL DES FRONTIGNES (Saint-Pé-d'Ardet) [] D+None trail",
     "2026-10-24 Trail au profit d'Octobre Rose \"La fabuleuse\" (Saint-Georges-de-Rouelley) [] D+None trail",
@@ -187,9 +186,10 @@
     "2026-10-24 Trail des 3 rochers (La Petite-Pierre) [] D+None trail",
     "2026-10-24 Trail des Combrailles 2026 (Les Ancizes-Comps) [9.0, 16.0, 24.0, 36.0] D+None trail",
     "2026-10-24 Trail et marche solidaire \"Granit rose\" dans le cadre d'Octobre Rose (Saint-Michel-de-Montjoie) [] D+None trail",
-    "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route",
-    "2026-10-25 LES 10 KM D’HOSSEGOR (Soorts-Hossegor) [10.0] D+None route",
-    "2026-10-25 Les 10 km de Cholet (Cholet) [10.0] D+None route"
+    "2026-10-24 la course des enfantastiques (Uzos) [] D+None route",
+    "2026-10-25 Course des coteaux du Seignanx (Saint-Barthélemy) [] D+None route",
+    "2026-10-25 Course solidaire Efrei (Bruges) [5.0, 10.0] D+None route",
+    "2026-10-25 L'échappée belle : course à pied (Saint-Maurice-la-Clouère) [] D+None route"
   ],
-  "taille_ko": 125
+  "taille_ko": 133
 }
