@@ -1,0 +1,8 @@
+{
+  "name": "Trail-côtes", "short_name": "Trail-côtes", "lang": "fr", "start_url": "/", "scope": "/",
+  "display": "standalone", "orientation": "portrait", "background_color": "#F4F1EA", "theme_color": "#1B2A22",
+  "icons": [
+    { "src": "/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -34,7 +34,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "node --test src/calcul/*.test.ts",
-    "typecheck": "tsc --noEmit --noUnusedLocals"
+    "typecheck": "tsc --noEmit --noUnusedLocals",
+    "build:web": "expo export --platform web --output-dir dist && node scripts/pwa.mjs dist/index.html"
   },
   "private": true
 }
