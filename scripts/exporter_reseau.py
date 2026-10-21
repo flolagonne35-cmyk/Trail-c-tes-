@@ -13,8 +13,12 @@ type (route, chemin, sentier…) et son exposition au trafic.
 - Géométrie simplifiée (Douglas-Peucker, --tolerance mètres) et coordonnées entières (1e-5°)
   pour garder un fichier léger.
 
+Un fichier par zone (app/assets/data/reseau/<nom>.reseau, du JSON) : l'application ne charge que
+celui de la zone du départ, ce qui garde l'appli légère quand les zones se multiplient.
+
 Exemples :
-  python scripts/exporter_reseau.py --zone 48.07,-1.75,48.16,-1.61 --zone 47.17,-1.80,47.26,-1.50
+  python scripts/exporter_reseau.py --nom nantes --zone 47.12,-1.80,47.32,-1.40
+  python scripts/exporter_reseau.py --zone 48.07,-1.75,48.16,-1.61 --zone 47.17,-1.80,47.26,-1.50 --sortie /tmp/r.json
   python scripts/exporter_reseau.py --demo --sortie /tmp/reseau.json      # sans réseau
 """
 
@@ -173,8 +177,9 @@ def fusionner(reseaux: list[dict]) -> dict:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--zone", action="append", help="lat_min,lon_min,lat_max,lon_max (répétable : plusieurs zones)")
-    p.add_argument("--sortie", default="app/assets/data/reseau.json")
-    p.add_argument("--rapport", default="resultats/reseau/rapport.json")
+    p.add_argument("--nom", help="nom de la zone : sortie app/assets/data/reseau/<nom>.reseau")
+    p.add_argument("--sortie", help="fichier de sortie (défaut : selon --nom)")
+    p.add_argument("--rapport", help="rapport (défaut : resultats/reseau/rapport_<nom>.json)")
     p.add_argument("--pas", type=float, default=25, help="un point d'altitude tous les … m (défaut 25)")
     p.add_argument("--tolerance", type=float, default=4, help="simplification de la géométrie, en m (défaut 4)")
     p.add_argument("--taille-lot", type=int, default=LOT_DEFAUT)
@@ -182,12 +187,15 @@ def main(argv=None) -> int:
     p.add_argument("--demo", action="store_true", help="réseau et relief fictifs, sans réseau")
     args = p.parse_args(argv)
     zones = args.zone or ["48.075,-1.745,48.150,-1.615"]
+    nom = args.nom or "reseau"
+    args.sortie = args.sortie or f"app/assets/data/reseau/{nom}.reseau"
+    args.rapport = args.rapport or f"resultats/reseau/rapport_{nom}.json"
 
     t0 = time.monotonic()
     wfs, alti = StatsWfs(), StatsApi()
     reseau = fusionner([reseau_zone(z, args, wfs, alti) for z in zones])
     stats = reseau.pop("_stats")
-    reseau = {"source": "démo" if args.demo else "BD TOPO + RGE ALTI (IGN)",
+    reseau = {"nom": nom, "source": "démo" if args.demo else "BD TOPO + RGE ALTI (IGN)",
               "date_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
               "zones": [[float(v) for v in z.split(",")] for z in zones], **reseau}
     sortie = Path(args.sortie)

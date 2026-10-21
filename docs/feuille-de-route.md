@@ -15,7 +15,7 @@ reste à construire**, par étapes.
 | Nutrition compréhensible | ✅ | Course → Nutrition : « Comment c'est calculé », routine horaire, conseil sur chaque réglage, sources |
 | Tous les boutons qui marchent | ✅ vérifié | `scripts/audit_boutons.js` : 20 écrans, ≈ 420 boutons cliqués un par un, 0 sans effet, 0 erreur de page (20/10) |
 | Filtrer par longueur et par D+ | ✅ | Côtes → Filtres : courtes < 300 m, moyennes 300-800 m, longues ≥ 800 m ; D+ minimum |
-| Enchaîner des côtes dans une boucle | ✅ zone de Rennes | Côtes → Boucle : distance, nombre de côtes, D+ visé, sans route, sans route passante |
+| Enchaîner des côtes dans une boucle | ✅ Rennes et Nantes Métropole | Côtes → Boucle : distance, nombre de côtes, D+ visé, sans route, sans route passante |
 | Export GPX vers la montre | ✅ | côte, séance et boucle ; s'importe dans Garmin Connect, Coros, Suunto, Strava |
 | Sans réseau | 🟡 | côtes, boucles, recherche de ville, nutrition : oui ; carte : « Carte hors ligne » (5 km autour du départ, ≈ 45 Mo) **écrite mais pas encore essayée sur un téléphone** |
 | Mes temps sur une même côte | ✅ | détail d'une côte → Mes passages (chrono pied → sommet, FC, record, m/h) |
@@ -38,8 +38,9 @@ reste à construire**, par étapes.
 ### Ce qui limite encore
 
 - **Deux métropoles calculées** : Rennes Métropole (848 côtes) et Nantes Métropole, Couëron
-  compris (1 470 côtes), avec leur réseau pour les boucles (70 600 carrefours). Ailleurs, l'appli
-  le dit et propose la zone la plus proche.
+  compris (1 470 côtes). Le réseau des boucles (un fichier par zone, chargé seulement pour la zone
+  du départ) passe de Rennes centre et Nantes–Couëron aux deux métropoles entières. Ailleurs,
+  l'appli le dit et propose la zone la plus proche.
 - **Pas de serveur** : pas de compte, pas de classement entre coureurs, pas de sauvegarde si on
   change de téléphone.
 - **Pas encore sur un vrai téléphone** : on teste la version web. Il faut une version installable.

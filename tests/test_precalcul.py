@@ -105,3 +105,17 @@ def test_reseau_plusieurs_zones(tmp_path):
     assert all(0 <= x[0] < n and 0 <= x[1] < n for x in b["aretes"])
     # la seconde zone garde des numéros de nœuds décalés
     assert max(x[0] for x in b["aretes"][len(a["aretes"]):]) >= len(a["noeuds"])
+
+
+def test_reseau_par_zone_et_index(tmp_path):
+    """Un fichier par zone, et l'index de l'appli avec l'emprise et un require par fichier."""
+    import exporter_reseau as er
+    import index_reseaux as ir
+    sortie = tmp_path / "rennes.reseau"
+    assert er.main(["--demo", "--nom", "rennes", "--zone", "48.10,-1.70,48.12,-1.66",
+                    "--sortie", str(sortie), "--rapport", str(tmp_path / "r.json")]) == 0
+    r = json.loads(sortie.read_text())
+    assert r["nom"] == "rennes" and r["zones"] == [[48.10, -1.70, 48.12, -1.66]]
+    ts = ir.index(tmp_path)
+    assert 'nom: "rennes", libelle: "Rennes Métropole", emprise: [48.1, -1.7, 48.12, -1.66]' in ts
+    assert 'require("../../assets/data/reseau/rennes.reseau")' in ts

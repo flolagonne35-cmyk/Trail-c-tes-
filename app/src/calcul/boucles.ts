@@ -7,7 +7,7 @@
 // les boucles dont la distance et le D+ collent le mieux à la demande.
 
 import type { Cote } from "./cotes.ts";
-import type { Position } from "./geo.ts";
+import { distanceM, type Position } from "./geo.ts";
 import {
   chemin, dijkstra, noeudLePlusProche, pointsDuChemin, type Arbre, type Graphe, type Preferences,
 } from "./reseau.ts";
@@ -89,6 +89,9 @@ export function composerBoucles(g: Graphe, cotes: Cote[], depart: Position, d: D
   const candidates: Candidate[] = [];
   const triees = cotes
     .filter((c) => !(d.eviterPassant && c.trafic === "passant") && !(d.eviterRoutes && c.type_voie === "route"))
+    // à vol d'oiseau au-delà de la mi-distance, la côte est hors de portée : inutile de l'accrocher
+    // au réseau (le plus coûteux : une recherche sur tous les nœuds, deux fois par côte)
+    .filter((c) => distanceM(depart, c) <= cible / 2)
     .map((c) => {
       const pied = noeudLePlusProche(g, { lat: c.lat, lon: c.lon });
       const fin = c.geometrie[c.geometrie.length - 1] ?? [c.lon, c.lat];

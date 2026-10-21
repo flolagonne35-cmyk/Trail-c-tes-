@@ -168,13 +168,15 @@ export function pointsDuChemin(g: Graphe, aretes: { arete: number; versB: boolea
   return pts;
 }
 
-let grapheCharge: Graphe | null = null;
-
-/** Réseau de l'application (assets/data/reseau.json), chargé à la première boucle. */
-export function grapheApp(): Graphe {
-  if (!grapheCharge) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    grapheCharge = construireGraphe(require("../../assets/data/reseau.json") as ReseauBrut);
-  }
-  return grapheCharge;
+/**
+ * Zone dont l'emprise contient le départ (marge `margeM`, pour un départ juste au bord) ; à défaut
+ * null. Les emprises sont [lat_min, lon_min, lat_max, lon_max].
+ */
+export function zoneContenant<Z extends { emprise: number[] }>(zones: Z[], p: Position, margeM = 500): Z | null {
+  const dLat = margeM / 111195;
+  const dLon = margeM / (111195 * Math.cos((p.lat * Math.PI) / 180));
+  const dedans = zones.filter(({ emprise: [a, b, c, d] }) => p.lat >= a - dLat && p.lat <= c + dLat && p.lon >= b - dLon && p.lon <= d + dLon);
+  // plusieurs zones qui se chevauchent : celle dont le centre est le plus proche
+  const centre = ({ emprise: [a, b, c, d] }: Z) => distanceM(p, { lat: (a + c) / 2, lon: (b + d) / 2 });
+  return dedans.sort((x, y) => centre(x) - centre(y))[0] ?? null;
 }

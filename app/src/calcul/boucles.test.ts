@@ -91,3 +91,12 @@ test("départ hors du réseau : message clair", () => {
   const r = composerBoucles(g, [], { lat: 47, lon: -1.5 }, { distanceKm: 5, nbCotes: 1, dplusVise: null, eviterRoutes: false, eviterPassant: false });
   assert.match(String(r), /hors du réseau/);
 });
+
+test("zone du départ : emprise avec marge, la plus centrée si plusieurs", async () => {
+  const { zoneContenant } = await import("./reseau.ts");
+  const zones = [{ nom: "a", emprise: [48, -2, 48.2, -1.5] }, { nom: "b", emprise: [48.1, -1.8, 48.4, -1.2] }];
+  assert.equal(zoneContenant(zones, { lat: 48.05, lon: -1.9 })?.nom, "a");
+  assert.equal(zoneContenant(zones, { lat: 48.35, lon: -1.3 })?.nom, "b");
+  assert.equal(zoneContenant(zones, { lat: 48.203, lon: -1.95 })?.nom, "a"); // 330 m au-delà du bord
+  assert.equal(zoneContenant(zones, { lat: 47.5, lon: -1.9 }), null);
+});

@@ -1,29 +1,48 @@
 name: Réseau pour les boucles (BD TOPO + altitudes)
 
+# Un réseau par zone de scripts/zones.json (les mêmes que les côtes), un fichier par zone dans
+# app/assets/data/reseau/ ; l'appli ne charge que celui du départ.
+
 on:
   workflow_dispatch:
     inputs:
-      zones:
-        description: "zones lat_min,lon_min,lat_max,lon_max séparées par ;"
-        default: "48.075,-1.745,48.150,-1.615;47.190,-1.770,47.250,-1.520"
+      nom:
+        description: "Une seule zone (nom de scripts/zones.json) ; vide = toutes"
+        default: ""
   push:
     paths:
       - "scripts/exporter_reseau.py"
+      - "scripts/index_reseaux.py"
+      - "scripts/zones.json"
       - ".github/workflows/reseau.yml"
 
 permissions:
   contents: write
 
-concurrency:
-  group: reseau
-  cancel-in-progress: false
-
 jobs:
-  reseau:
+  zones:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
-    env:
-      ZONES: ${{ inputs.zones || '48.075,-1.745,48.150,-1.615;47.190,-1.770,47.250,-1.520' }}
+    outputs:
+      liste: ${{ steps.l.outputs.liste }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: l
+        env:
+          NOM: ${{ inputs.nom }}
+        run: |
+          echo "liste=$(python3 -c 'import json, os; z=json.load(open("scripts/zones.json"))["zones"]; n=os.environ.get("NOM"); print(json.dumps([x for x in z if not n or x["nom"]==n]))')" >> "$GITHUB_OUTPUT"
+
+  reseau:
+    needs: zones
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.zones.outputs.liste) }}
+    concurrency:
+      group: reseau-${{ matrix.nom }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,21 +51,29 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - name: Réseau de la zone
-        run: python scripts/exporter_reseau.py $(echo "$ZONES" | tr ';' '\n' | sed 's/^/--zone /') --sortie app/assets/data/reseau.json
+        run: python scripts/exporter_reseau.py --nom "${{ matrix.nom }}" --zone "${{ matrix.zone }}"
       - name: Résumé
         if: always()
         run: |
-          python -c "import json; r=json.load(open('resultats/reseau/rapport.json')); print(json.dumps(r['resume'], ensure_ascii=False))" >> "$GITHUB_STEP_SUMMARY" || true
-      - name: Enregistrer
-        if: always()
+          python -c "import json; r=json.load(open('resultats/reseau/rapport_${{ matrix.nom }}.json')); print('## Réseau ${{ matrix.nom }} — ' + r['statut'] + chr(10) + json.dumps(r['resume'], ensure_ascii=False))" >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Enregistrer (et mettre à jour la liste des réseaux de l'appli)
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add resultats/reseau app/assets/data/reseau.json || true
-          git diff --cached --quiet && exit 0
-          git commit -m "Réseau pour les boucles (run ${{ github.run_id }})"
-          for i in 1 2 3 4; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
-            sleep $((i * 5))
+          # plusieurs zones tournent en même temps : on repart de la dernière version du dépôt
+          F="app/assets/data/reseau/${{ matrix.nom }}.reseau"
+          R="resultats/reseau/rapport_${{ matrix.nom }}.json"
+          cp "$F" "$RUNNER_TEMP/r.reseau"; cp "$R" "$RUNNER_TEMP/rapport.json"
+          for i in 1 2 3 4 5; do
+            git fetch -q origin "${GITHUB_REF_NAME}" && git reset -q --hard "origin/${GITHUB_REF_NAME}"
+            mkdir -p app/assets/data/reseau resultats/reseau
+            cp "$RUNNER_TEMP/r.reseau" "$F"; cp "$RUNNER_TEMP/rapport.json" "$R"
+            python scripts/index_reseaux.py > /dev/null
+            git add "$F" "$R" app/src/calcul/reseaux.ts
+            git diff --cached --quiet && exit 0
+            git commit -q -m "Réseau pour les boucles : ${{ matrix.nom }} (run ${{ github.run_id }})"
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 7))
           done
           exit 1

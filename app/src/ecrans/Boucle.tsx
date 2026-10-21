@@ -9,12 +9,12 @@ import type { Modele } from "../calcul/allure.ts";
 import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
 import { distanceM, type Position } from "../calcul/geo.ts";
 import { ecrireGpx } from "../calcul/gpx.ts";
-import { grapheApp } from "../calcul/reseau.ts";
 import { dureeLisible } from "../calcul/trajets.ts";
 import { centreDe, zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { Ajusteur, nombre, Segments, Tuiles } from "../composants/communs.tsx";
 import { partagerFichier } from "../fichiers.ts";
+import { grapheDeZone, zoneDuDepart, ZONES_RESEAU } from "../reseauZones.ts";
 import { C, S } from "../theme.ts";
 
 const DPLUS: [string, string][] = [["0", "Libre"], ["100", "100 m"], ["200", "200 m"], ["300", "300 m"]];
@@ -68,13 +68,20 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
   const composer = () => {
     setEnCours(true);
     setResultat(null);
-    // on laisse l'indicateur s'afficher avant le calcul (0,2 à 0,5 s)
-    setTimeout(() => {
+    // on laisse l'indicateur s'afficher avant le calcul (0,2 à 2 s, plus au premier chargement de la zone)
+    setTimeout(async () => {
       try {
+        const zone = zoneDuDepart(position);
+        if (!zone) {
+          setResultat(`Pas encore de boucles autour de ${nomDepart} : le réseau des chemins est calculé pour ${ZONES_RESEAU.join(", ")}. `
+            + "Choisis un départ dans l'une de ces zones avec la barre de recherche.");
+          return;
+        }
+        const g = await grapheDeZone(zone);
         const demande = relief === "cotes"
           ? { nbCotes, dplusVise: Number(dplus) || null }
           : { nbCotes: 0, dplusVise: DPLUS_PAR_KM[relief] * km };
-        setResultat(composerBoucles(grapheApp(), toutes, position, { distanceKm: km, ...demande, eviterRoutes, eviterPassant }));
+        setResultat(composerBoucles(g, toutes, position, { distanceKm: km, ...demande, eviterRoutes, eviterPassant }));
         setChoix(0);
         setDernier(reglages);
       } catch (e) {
