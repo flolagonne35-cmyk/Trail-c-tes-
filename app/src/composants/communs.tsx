@@ -80,7 +80,7 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
 /** Onglets de la barre du bas. */
 export type Onglet = "accueil" | "cotes" | "entrainement" | "course" | "nutrition";
 /** Toutes les pages : les onglets, plus celles du menu. */
-export type Page = Onglet | "courses" | "profil" | "sources";
+export type Page = Onglet | "agenda" | "courses" | "profil" | "sources";
 
 export const ICONES = {
   accueil: <Path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />,

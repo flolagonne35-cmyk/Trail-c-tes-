@@ -29,6 +29,7 @@ import { EcranCotes, FILTRES_DEFAUT, type Localisation, type PointDepart } from 
 import { EcranCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
 import { EcranEntrainement, type ModeEntrainement } from "./src/ecrans/Entrainement.tsx";
+import { EcranAgenda } from "./src/ecrans/Agenda.tsx";
 import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
 import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
 import { EcranProfil } from "./src/ecrans/Profil.tsx";
@@ -52,7 +53,7 @@ const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {
   accueil: "Trail-côtes", cotes: "Côtes et descentes", entrainement: "S'entraîner", course: "Préparer une course",
-  nutrition: "Nutrition", courses: "Mes courses", profil: "Profil et sorties", sources: "Données et confidentialité",
+  nutrition: "Nutrition", agenda: "Courses à venir", courses: "Mes courses", profil: "Profil et sorties", sources: "Données et confidentialité",
 };
 
 function Contenu() {
@@ -146,7 +147,7 @@ function Contenu() {
   // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
-    if ((page === "cotes" || page === "entrainement") && !dejaLocalise.current && depart === DEPART_DEFAUT) {
+    if ((page === "cotes" || page === "entrainement" || page === "agenda") && !dejaLocalise.current && depart === DEPART_DEFAUT) {
       dejaLocalise.current = true;
       localiser();
     }
@@ -232,6 +233,10 @@ function Contenu() {
   } else if (page === "nutrition") {
     ecran = <EcranNutrition parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
                             prefs={prefs} setPrefs={setPrefs} onPreparer={() => aller({ page: "course" })} />;
+  } else if (page === "agenda") {
+    ecran = <EcranAgenda depart={depart} localisation={localisation} onLocaliser={localiser} onRecherche={() => setRecherche(true)}
+                         mesCourses={courses} setMesCourses={setCourses}
+                         onPreparer={(cible) => { if (cible) majPlan({ cible, questionnaire: null }); aller({ page: "course" }); }} />;
   } else if (page === "courses") {
     ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
       if (c.objectif) setObjectif(c.objectif);

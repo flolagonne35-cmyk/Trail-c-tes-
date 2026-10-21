@@ -20,6 +20,7 @@ export const CATEGORIES: { titre: string; entrees: Entree[] }[] = [
     { page: "entrainement", mode: "progres", icone: "chrono", titre: "Mes progrès", detail: "Chronos sur mes côtes, allure selon la pente" },
   ] },
   { titre: "Courses", entrees: [
+    { page: "agenda", icone: "position", titre: "Courses à venir", detail: "Près de chez toi : dates, formats, site officiel" },
     { page: "courses", icone: "calendrier", titre: "Mes courses", detail: "Calendrier de l'année, budget, compte à rebours" },
     { page: "course", icone: "course", titre: "Préparer une course", detail: "Profil, temps de passage, prépa près de chez toi" },
     { page: "nutrition", icone: "nutrition", titre: "Nutrition", detail: "Glucides, eau, sel : par heure et par ravito" },

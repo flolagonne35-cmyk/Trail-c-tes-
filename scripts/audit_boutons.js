@@ -53,6 +53,7 @@ const ECRANS = {
   "Course · Prépa": async (p) => { await ECRANS["Course · Profil"](p); await p.getByRole("tab", { name: "Prépa" }).click(); },
   "Nutrition · Durée": async (p) => { await p.getByRole("tab", { name: "Nutrition" }).click(); },
   "Nutrition · Course": async (p) => { await ECRANS["Course · Profil"](p); await p.getByRole("tab", { name: "Nutrition" }).click(); },
+  "Courses à venir": async (p) => { await ECRANS["Menu"](p); await p.getByRole("button", { name: /^Courses à venir\./ }).last().click(); await p.waitForTimeout(800); },
   "Mes courses": async (p) => { await ECRANS["Menu"](p); await p.getByRole("button", { name: /^Mes courses\./ }).last().click(); },
   "Mes courses · Formulaire": async (p) => { await ECRANS["Mes courses"](p); await p.getByRole("button", { name: "Ajouter une course" }).click(); },
   "Profil": async (p) => { await p.getByRole("button", { name: "Mon profil" }).first().click(); },

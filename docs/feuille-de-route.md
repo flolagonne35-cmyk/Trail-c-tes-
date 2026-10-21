@@ -27,7 +27,7 @@ reste à construire**, par étapes.
 | Prévisions à mon allure | ✅ | allure apprise par tranche de pente dans mes GPX (S'entraîner → Mes progrès) ; Course → « À ton allure » |
 | Plus d'onglets, bien rangés | ✅ | 5 onglets en bas + menu ☰ par catégorie (Explorer, S'entraîner, Courses, Moi, Infos) |
 | Nutrition visible | ✅ | onglet à part entière, aussi sans GPX (pour une durée) |
-| Courses dans le coin | 🟡 | « Mes courses » : calendrier perso, budget, compte à rebours. Calendrier national / mondial : voir § 2.6 (partenariats) |
+| Courses dans le coin | ✅ France / 🟡 monde | « Courses à venir » : ≈ 350 courses à pied en France (DATAtourisme + OpenAgenda, Licence Ouverte, mis à jour chaque lundi) filtrées par distance de chez soi, période, trail/route, format, triées par date, proximité ou longueur ; préparer un format en un geste. « Mes courses » : calendrier perso. Inscriptions et monde : § 2.6 |
 | Trouver sa course, plan personnalisé | ✅ | Course : par nom (catalogue de référence), par format (« trail 30 km 1500 m ») ou GPX ; questionnaire (niveau, séances, volume, objectif, date) ; plan semaine par semaine dont chaque séance ouvre l'endroit où la faire |
 | Sortie sur mesure (« 2 h sur du plat ») | ✅ | S'entraîner → Sortie : durée ou distance, plat / vallonné / avec côtes, chemins, GPX |
 | Côtes seulement après la recherche | ✅ | Côtes : « Que cherches-tu ? » puis les résultats |
@@ -102,17 +102,23 @@ Les deux stores demandent ton identité (ou celle d'une société), une adresse 
 
 ### 2.6 Calendrier de toutes les courses (avec dates d'inscription)
 
-Aucune base ouverte et réutilisable ne recense les courses du monde avec leurs inscriptions :
-ITRA et UTMB publient leurs calendriers sans licence de réutilisation, et recopier leurs sites
-(ou un jeu de données qui l'a fait) n'est pas permis. L'appli contient un **catalogue de
-référence** (formats indicatifs, lien vers le site officiel) et « Mes courses ». Pour aller plus loin,
-c'est une démarche commerciale, à faire par toi :
-1. **Contacter l'ITRA** (itra.run) et **UTMB World** pour un accès partenaire à leur calendrier ;
-2. **Contacter les plateformes d'inscription** utilisées par les organisateurs français (njuko, et
-   les autres que tu croises sur les pages d'inscription) : elles ont les dates d'ouverture des
-   inscriptions et peuvent proposer une API partenaire ;
-3. **Ouvrir l'appli aux organisateurs** : un formulaire où ils déclarent leur course (je le construis
-   avec les comptes en ligne, étape 3.1).
+Fait sans partenariat : **« Courses à venir »** lit deux sources ouvertes et légales (Licence
+Ouverte 2.0, réutilisation commerciale permise en citant la source) :
+- **DATAtourisme** : les événements saisis par les offices de tourisme, export quotidien sur
+  data.gouv.fr ; environ 320 courses à pied à venir (trails, marathons, foulées, corridas…) ;
+- **OpenAgenda** : agendas publics des communes et associations ; une vingtaine de plus.
+Workflow « Calendrier des courses » chaque lundi, script `scripts/courses_ouvertes.py`.
+
+Ce qui manque encore, et comment l'obtenir :
+1. **Plus de courses françaises, gratuitement** : demander aux organisateurs et aux offices de
+   tourisme de publier leur course sur OpenAgenda ou dans leur base touristique : elle apparaît
+   alors dans l'appli. Une clé API DATAtourisme (gratuite, formulaire sur datatourisme.fr) donnerait
+   des champs plus riches (tarifs, réservation) : **à demander par toi**, puis secret
+   `DATATOURISME_CLE` dans GitHub.
+2. **Dates d'ouverture des inscriptions et courses du monde** : seulement par partenariat (ITRA,
+   UTMB World, plateformes d'inscription comme njuko) : démarche commerciale **à faire par toi**.
+3. **Ouvrir l'appli aux organisateurs** : un formulaire où ils déclarent leur course (je le
+   construis avec les comptes en ligne, étape 3.1).
 
 ### 2.5 Décider
 

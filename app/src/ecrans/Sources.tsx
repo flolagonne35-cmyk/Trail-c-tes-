@@ -12,6 +12,7 @@ const SOURCES: [string, string][] = [
   ["Adresses et itinéraires", "Géocodage IGN (Base Adresse Nationale) et calcul d'itinéraire IGN (voiture, piéton)."],
   ["Communes", "geo.api.gouv.fr : les 35 000 communes, cherchables sans réseau."],
   ["Revêtement", "© contributeurs OpenStreetMap (ODbL), quand la BD TOPO ne le précise pas."],
+  ["Courses à venir", "DATAtourisme (événements des offices de tourisme, ADN Tourisme) et OpenAgenda (agendas publics), sous Licence Ouverte 2.0 ; le producteur et la date de mise à jour sont indiqués sur chaque course."],
   ["Effort selon la pente", "Minetti et al. 2002 (coût énergétique de la course), recalé sur tes sorties ; km-effort de l'ITRA (100 m de D+ ≈ 1 km)."],
   ["Nutrition", "ACSM / Thomas et al. 2016, Jeukendrup 2014 (glucides) ; ISSN, Tiller et al. 2019 (eau et sodium en ultra)."],
 ];
@@ -27,7 +28,7 @@ export function EcranSources() {
               <Text style={[S.petit, { fontSize: 13, lineHeight: 18 }]}>{d}</Text>
             </View>
           ))}
-          <Text style={S.petit}>Données IGN et geo.api.gouv.fr sous Licence Ouverte (Etalab 2.0).</Text>
+          <Text style={S.petit}>Données IGN, geo.api.gouv.fr, DATAtourisme et OpenAgenda sous Licence Ouverte (Etalab 2.0).</Text>
         </View>
       </Section>
       <Section titre="Ce qui reste sur ton téléphone">

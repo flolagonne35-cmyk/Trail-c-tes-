@@ -194,8 +194,8 @@ export function EcranMesCourses({ courses, setCourses, onPreparer }: {
         ))}
 
         <Text style={[S.petit, { marginTop: 18 }]}>
-          Un calendrier national des courses arrivera quand les organisateurs pourront inscrire leurs épreuves eux-mêmes : aucune
-          base ouverte et réutilisable n'existe aujourd'hui, et recopier les sites des autres n'est pas permis.
+          Pour trouver une course près de chez toi : menu → Courses à venir (courses publiées par les offices de tourisme et les
+          agendas publics). Les dates d'ouverture des inscriptions sont sur le site officiel de chaque course.
         </Text>
       </ScrollView>
       {edition && (

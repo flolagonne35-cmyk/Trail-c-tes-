@@ -5,6 +5,7 @@
 import { useMemo, useState } from "react";
 import { Linking, Pressable, Text, TextInput, View } from "react-native";
 
+import { coursesAVenir, FILTRES_AGENDA, formatsLisibles } from "../calcul/agenda.ts";
 import type { CourseInscrite } from "../calcul/calendrier.ts";
 import { chercherCourses, type CourseCatalogue } from "../calcul/catalogue.ts";
 import {
@@ -13,6 +14,7 @@ import {
 import { dateValide, joursAvant } from "../calcul/calendrier.ts";
 import { Ajusteur, Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { C, S } from "../theme.ts";
+import { AGENDA } from "./Agenda.tsx";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 48, fontSize: 16, color: C.encre } as const;
 
@@ -27,6 +29,9 @@ export function ChoixCourse({ mesCourses, onChoisir, onImporter, onExemple, etat
   const [format, setFormat] = useState("");
   const [date, setDate] = useState("");
   const trouvees = useMemo(() => chercherCourses(q), [q]);
+  // courses à venir en France (offices de tourisme, agendas publics) dont le nom correspond
+  const aVenir = useMemo(() => (q.trim().length >= 3
+    ? coursesAVenir(AGENDA, { lat: 46.6, lon: 2.4 }, { ...FILTRES_AGENDA, rayonKm: Infinity, moisMax: 12, texte: q }).slice(0, 5) : []), [q]);
   const miennes = mesCourses.filter((c) => q.trim().length >= 2 && c.nom.toLowerCase().includes(q.trim().toLowerCase()));
   const lu = lireFormat(format);
   const choisirCatalogue = (c: CourseCatalogue) => onChoisir({ nom: c.nom, distance_km: c.distance_km, dplus_m: c.dplus_m, site: c.site });
@@ -41,7 +46,13 @@ export function ChoixCourse({ mesCourses, onChoisir, onImporter, onExemple, etat
         {[...miennes.map((c) => ({ cle: `m${c.id}`, titre: c.nom, detail: `Mes courses · ${c.date}`,
                                     choisir: () => onChoisir({ nom: c.nom, distance_km: c.distance_km, dplus_m: c.dplus_m, date: c.date, site: c.lien || undefined }) })),
           ...trouvees.map((c) => ({ cle: c.nom, titre: c.nom, detail: `${c.lieu} · ${c.mois} · ${nombre(c.distance_km, c.distance_km % 1 ? 1 : 0)} km, ${nombre(c.dplus_m)} m D+`,
-                                    choisir: () => choisirCatalogue(c) }))].map((x) => (
+                                    choisir: () => choisirCatalogue(c) })),
+          ...aVenir.map((c) => ({ cle: c.id, titre: c.nom,
+                                  detail: `${c.commune} · ${new Date(`${c.date}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}${c.distances_km.length ? ` · ${formatsLisibles(c.distances_km)}` : ""}`,
+                                  // sans format connu : on pré-remplit la date, il reste à écrire la distance (et le D+)
+                                  choisir: () => (c.distances_km.length
+                                    ? onChoisir({ nom: c.nom, distance_km: c.distances_km.at(-1)!, dplus_m: c.dplus_m ?? 0, date: c.date, site: c.site || undefined })
+                                    : (setFormat(`${c.type} `), setDate(c.date))) }))].map((x) => (
           <Pressable key={x.cle} onPress={x.choisir} accessibilityRole="button" style={S.ligne}>
             <Icone nom="course" couleur={C.montee} taille={20} />
             <View style={{ flex: 1 }}>
@@ -51,7 +62,7 @@ export function ChoixCourse({ mesCourses, onChoisir, onImporter, onExemple, etat
             <Icone nom="fleche" couleur={C.gris} taille={18} />
           </Pressable>
         ))}
-        {q.trim().length >= 2 && !trouvees.length && !miennes.length && (
+        {q.trim().length >= 2 && !trouvees.length && !miennes.length && !aVenir.length && (
           <Text style={S.petit}>Pas dans notre liste pour l'instant : décris-la ci-dessous (distance et D+).</Text>
         )}
       </Section>
@@ -107,7 +118,7 @@ export function FormulaireQuestionnaire({ initial, course, onValider }: {
       <Ajusteur etiquette="Plus longue sortie récente" valeur={q.plus_longue_km} unite="km" pas={1} min={0} max={80} onChange={(plus_longue_km) => maj({ plus_longue_km })} />
       <View style={{ gap: 6 }}>
         <Text style={S.fort}>Ton objectif</Text>
-        <Segments options={[["finir", "Finir bien"], ["performance", "Un chrono, un classement"]]} valeur={q.objectif}
+        <Segments options={[["finir", "Finir bien"], ["performance", "Un chrono"]]} valeur={q.objectif}
                   onChange={(objectif) => maj({ objectif })} />
       </View>
       <View style={{ gap: 6 }}>
