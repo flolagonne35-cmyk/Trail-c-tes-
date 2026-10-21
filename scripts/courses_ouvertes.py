@@ -41,13 +41,20 @@ CHAMPS_OPENAGENDA = ("uid,title_fr,firstdate_begin,lastdate_end,location_coordin
                      "location_postalcode,canonicalurl,description_fr,longdescription_fr,originagenda_title,updatedat")
 
 # nom d'une course à pied (texte sans accents, en minuscules)
-COURSE = re.compile(r"\b(trail|trails|marathon|semi[- ]marathon|foulees?|corrida|cross|ekiden|ultra[- ]?trail|"
+COURSE = re.compile(r"\b(courses?|courir|trail|trails|marathon|semi[- ]marathon|foulees?|corrida|cross|ekiden|ultra[- ]?trail|"
                     r"course a pied|courses a pied|course pedestre|courses pedestres|course nature|course hors stade|"
                     r"run|running|kilometre vertical|km vertical|vertical race|skyrace|\d+ ?km)\b")
 # autres sports : écartés sauf si le nom dit clairement « course » ou « trail » (ex. « VTT et trail »)
 AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kayak|moto\w*|rallye|auto|natation|nage|"
                          r"swim\w*|petanque|golf|tennis|football|rugby|basket\w*|handball|ski|raquettes?|peche|"
                          r"cinema|film|exposition|concert|conference|projection)\b")
+# nom d'événement qui n'est pas une course (visite, programme, sortie de groupe…) ou autre « course »
+EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|sorties?|stages?|initiation|ateliers?|expositions?|"
+                       r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
+                       r"course de cote|caisses? a savon|chasse|oeufs|squat|mois de la rando)\b")
+# corrida taurine, soirée DJ « Marathon ! », courses de chevaux…
+EXCLU_TEXTE = re.compile(r"\b(dj|taureaux?|toros?|novillada|feria|hippodrome|trot|galop|tauromachie)\b")
+DUREE_MAX_JOURS = 7  # au-delà, c'est un programme ou un équipement, pas une course
 FORT = re.compile(r"\b(trail|marathon|foulees?|corrida|course a pied|course pedestre|course nature)\b")
 DISTANCE = re.compile(r"(\d{1,3}(?:[.,]\d{1,3})?)\s?(?:km|kms|kilom[eè]tres?)\b", re.I)
 DPLUS = re.compile(r"(\d{1,2}[ .\u202f\u00a0]\d{3}|\d{2,5})\s?(?:m|metres|mètres)\s?(?:de\s)?(?:d\+|dénivelé positif|dénivelé|denivele|D\+)",
@@ -61,6 +68,8 @@ def sans_accents(texte: str) -> str:
 
 def est_course(nom: str, description: str = "") -> bool:
     n = sans_accents(nom)
+    if EXCLU_NOM.search(n) or EXCLU_TEXTE.search(sans_accents(description)[:1500]):
+        return False
     if not COURSE.search(n):
         # nom neutre (« La Sancerroise ») : la description doit parler de course à pied
         d = sans_accents(description)[:600]
@@ -98,7 +107,7 @@ def prochaine_periode(periodes: str, aujourdhui: date) -> tuple[str, str] | None
             fin = date.fromisoformat((morceaux[1] if len(morceaux) > 1 else morceaux[0]).strip()[:10])
         except ValueError:
             continue
-        if fin >= aujourdhui:
+        if fin >= aujourdhui and (fin - debut).days <= DUREE_MAX_JOURS:
             return debut.isoformat(), fin.isoformat()
     return None
 
@@ -153,7 +162,7 @@ def extraire_openagenda(enregistrements, aujourdhui: date) -> list[dict]:
             continue
         debut = (e.get("firstdate_begin") or "")[:10]
         fin = (e.get("lastdate_end") or debut)[:10]
-        if not debut or fin < aujourdhui.isoformat():
+        if not debut or fin < aujourdhui.isoformat() or (date.fromisoformat(fin) - date.fromisoformat(debut)).days > DUREE_MAX_JOURS:
             continue
         res.append(fiche(nom, debut, fin, coord["lat"], coord["lon"], e.get("location_city") or "",
                          e.get("location_postalcode") or "", texte, premier_lien(texte) or e.get("canonicalurl") or "",

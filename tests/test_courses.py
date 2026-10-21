@@ -27,11 +27,15 @@ def test_datatourisme_courses_retenues_et_ecartees():
         ligne("Semi-marathon de la ville"),                      # distance déduite : 21,1 km
         ligne("Trail passé", periodes="2026-03-01<->2026-03-01"),  # fini
         ligne("Trail sans catégorie sport", categories="https://www.datatourisme.fr/ontology/core#CulturalEvent"),
-        ligne("La Sancerroise", description="Course à pied dans les vignes, 12 km."),  # nom neutre mais « course »
+        ligne("La Sancerroise", description="Course à pied dans les vignes, 12 km."),  # nom neutre, sans « course »
+        ligne("Visite guidée : Corrida"),                        # visite
+        ligne("Corrida de la feria", description="Six taureaux dans les arènes."),  # corrida taurine
+        ligne("Station de trail : programme", periodes="2026-01-01<->2026-12-31"),  # programme sur l'année
+        ligne("Course féminine : Courir pour elles", description="5 km"),  # « course » : gardée
     ]
     courses = co.extraire_datatourisme(lignes, auj)
     noms = [c["nom"] for c in courses]
-    assert noms == ["Trail des tranchées", "VTT et trail du Mont", "Semi-marathon de la ville"]
+    assert noms == ["Trail des tranchées", "VTT et trail du Mont", "Semi-marathon de la ville", "Course féminine : Courir pour elles"]
     t = courses[0]
     assert t["distances_km"] == [14, 18, 32, 55] and t["dplus_m"] == 1800 and t["type"] == "trail"
     assert t["date"] == "2027-03-20" and t["commune"] == "Verdun" and t["cp"] == "55100"
