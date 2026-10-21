@@ -27,7 +27,7 @@ reste à construire**, par étapes.
 | Prévisions à mon allure | ✅ | allure apprise par tranche de pente dans mes GPX (S'entraîner → Mes progrès) ; Course → « À ton allure » |
 | Plus d'onglets, bien rangés | ✅ | 5 onglets en bas + menu ☰ par catégorie (Explorer, S'entraîner, Courses, Moi, Infos) |
 | Nutrition visible | ✅ | onglet à part entière, aussi sans GPX (pour une durée) |
-| Courses dans le coin | ✅ France / 🟡 monde | « Courses à venir » : ≈ 350 courses à pied en France (DATAtourisme + OpenAgenda, Licence Ouverte, mis à jour chaque lundi) filtrées par distance de chez soi, période, trail/route, format, triées par date, proximité ou longueur ; préparer un format en un geste. « Mes courses » : calendrier perso. Inscriptions et monde : § 2.6 |
+| Courses dans le coin | ✅ France / 🟡 monde | « Courses à venir » : ≈ 400 courses à pied (trail et route) en France (DATAtourisme + OpenAgenda, Licence Ouverte, chaque lundi). Où : ville (« À Rennes », « Autour de Rennes ≤ 30 km », « Ailleurs en Bretagne »), département ou région ; liste ou carte ; filtres période, trail/route, format (5 km… ultra), tri ; « Préparer le 10 km » ouvre le plan. Couverture inégale selon les offices de tourisme (ex. 4 courses en Ille-et-Vilaine, 13 en Loire-Atlantique) : voir § 2.6 |
 | Trouver sa course, plan personnalisé | ✅ | Course : par nom (catalogue de référence), par format (« trail 30 km 1500 m ») ou GPX ; questionnaire (niveau, séances, volume, objectif, date) ; plan semaine par semaine dont chaque séance ouvre l'endroit où la faire |
 | Sortie sur mesure (« 2 h sur du plat ») | ✅ | S'entraîner → Sortie : durée ou distance, plat / vallonné / avec côtes, chemins, GPX |
 | Côtes seulement après la recherche | ✅ | Côtes : « Que cherches-tu ? » puis les résultats |
