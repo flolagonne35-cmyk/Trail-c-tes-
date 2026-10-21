@@ -51,13 +51,14 @@ EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|stag
                        r"course de cote|caisses? a savon|chasse|oeufs|squat|bmx|karting|ecriture|lecture|interim|emploi|danse|"
                        r"tricot|chant|jeux|dessin|photo|hackathon|code|contes?|echecs|belote|coinche|tarot|scrabble|bridge|"
                        r"loto|quine|concours|cours de|yoga|chiens? de traineau|traineaux?|attelage|veilleur|ronde de nuit|"
-                       r"voitures?|tracteurs?|baignoires?|garcons de cafe|serveurs?|regates?|saut d.obstacles)\b")
+                       r"voitures?|tracteurs?|baignoires?|garcons de cafe|serveurs?|regates?|saut d.obstacles|courses? de ski|"
+                       r"ski chrono|slalom|hippodrome|vitrail|spectacle)\b")
 # autres sports, marches et sorties : écartés sauf si le nom dit aussi trail, course, marathon…
 # (« Trail et randonnée pédestre », « Hard'Iden Blanc : trail et ski de randonnée », « VTT et trail »)
 AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kayak|moto\w*|rallye|auto|natation|nage|"
                          r"swim\w*|petanque|golf|tennis|football|rugby|basket\w*|handball|ski|raquettes?|peche|"
                          r"cinema|film|concert|rando\w*|marche|marches|balade|sorties?|mois de la rando|boucles? (de la|du) (loire|seine))\b")
-FORT = re.compile(r"\b(trail|trails|marathon|foulees?|corrida|course a pied|course pedestre|course nature|courses? solidaires?|"
+FORT = re.compile(r"\b(course|trail|trails|marathon|foulees?|corrida|course a pied|course pedestre|course nature|courses? solidaires?|"
                   r"race|cross|semi|10 ?km|5 ?km)\b")
 # corrida taurine et courses de chevaux : toujours écartées
 TAURIN = re.compile(r"\b(taureaux?|toros?|novillada|feria|tauromachie|hippodrome|trot|galop)\b")

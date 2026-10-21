@@ -78,10 +78,13 @@ def test_cas_reels_du_rapport():
               ("Montmerle Obscure Race", "La MOR est une course nocturne."),
               ("L'ARRACHÉE", "La course d'obstacles L'Arrachée se déroulera dans le parc."),
               ("Hard'Iden Blanc 2027 : trail et ski de randonnée", ""),
-              ("Movember", "Marche, trail et canicross. Circuit de 3km, 6 km et 12 km.")]
+              ("Movember", "Marche, trail et canicross. Circuit de 3km, 6 km et 12 km."),
+              ("Marche ou course pour tous !", "Venez en famille"), ("MY ROSE : COURSE/MARCHE CONTRE LE CANCER DU SEIN", "")]
     ecartes = [("Ronde d'échecs - Open du Pays Fouesnantais", ""), ("Concours de belote", ""), ("Randonnée nocturne", "8 km"),
                ("Course d'orientation", "Sprint"), ("Courses hippiques", "L'hippodrome accueille une réunion de courses"),
                ("Marche octobre rose", "8 km"), ("Concours de saut d'obstacles", ""),
-               ("Eliza Rose : Marathon !", "Soirée DJ techno jusqu'à l'aube")]
+               ("Eliza Rose : Marathon !", "Soirée DJ techno jusqu'à l'aube"),
+               ("Courses de ski FIS internationales Homme - Ski Chrono National Tour", ""),
+               ("Courses à l'hippodrome", "Assistez aux courses à l'hippodrome")]
     assert [n for n, d in gardes if not co.est_course(n, d)] == []
     assert [n for n, d in ecartes if co.est_course(n, d)] == []
