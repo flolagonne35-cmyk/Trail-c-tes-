@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-10-21T17:26:53+00:00",
+  "date_utc": "2026-10-21T17:28:10+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 76972,
       "sportifs": 13248,
-      "courses": 365,
+      "courses": 377,
       "exemple_brut": {
         "Nom_du_POI": "Les ateliers Maréis : Je crée ma carte postale de vacances",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|http://schema.org/Event",
@@ -148,7 +148,6 @@
         "35ème Rand'Auvézère | 24160#Génis | 2026-10-25<->2026-10-25 | Trois circuits proposés (départs groupés et décalés) :\n - Matin : 15 km ou 11 km\n- Après-midi : commun 7 km\n- Circuit fa",
         "Randonnée Bien-être et Yoga | 51140#Trigny | 2024-06-15<->2024-06-15 | Une randonnée et un cours de yoga pour une reconnexion à la nature.",
         "Randonnée du Muguet | 36370#Bélâbre | 2027-04-30<->2027-04-30 | Randonnée pédestre avec 3 parcours.",
-        "Marche ou course pour tous ! | 16460#Aunac-sur-Charente | 2026-10-24<->2026-10-24 | Venez en famille, entre amis, petits et grands pour Octobre Rose.",
         "Tour du canton de Trie pour le Téléthon | 65220#Trie-sur-Baïse | 2026-11-27<->2026-11-27 | Le tour du canton de Trie sur Baïse au profit du téléthon est de retour!\nRdv le samedi 28 novembre 2026 pour la 5eme édi",
         "Randoween | 55000#Brillon-en-Barrois | 2026-10-30<->2026-10-30 | La Randoween est une randonnée VTT et pédestre se déroulant de nuit. Les différents parcours se déroulent entre chemin e",
         "Concours de soupes du Jardin Bourian | 46340#Rampoux | 2026-11-07<->2026-11-07 | <p>Ce concours de soupes est organisé par les Jardiniers Bourians",
@@ -164,7 +163,6 @@
         "Concours de belote | 43160#Sembadel | 2026-12-04<->2026-12-04 | Concours de belote à la Gare de Sembadel le samedi 5 décembre à 20h proposé par le Comité des fêtes. Toutes les doublett",
         "Marche Audax 25 km - Marche du président | 67210#Obernai | 2026-11-07<->2026-11-07 | Marche rapide 6km/heure, organisée par l'association La Godasse obernoise. Renseignements au 06 08 47 85 48",
         "Marche Audax 25 km - Circuit des lumières de Noël | 67210#Obernai | 2026-12-04<->2026-12-04 | Marche rapide 6km/heure, organisée par l'association La Godasse obernoise. Renseignements au 06 08 47 85 48.",
-        "MY ROSE : COURSE/MARCHE CONTRE LE CANCER DU SEIN | 31110#Bagnères-de-Luchon | 2027-10-10<->2027-10-10 | Organisée par l'association \"Elles\", la My Rose , c'est une distance de 6 kilomètres à parcourir dans les rues de Bagnèr",
         "Course d'orientation | 24110#Saint-Astier | 2026-11-07<->2026-11-07 | Course d'orientation Sprint\nEn famille, entre amis ou en individuel. Ouvert à tous les âges.\n\nPremiers départs à 13h30 j",
         "Concours de belote de l'APE Charles de Gaulle | 12310#Laissac-Sévérac l'Église | 2027-02-25<->2027-02-25 | Concours de belote de l'APE Charles de Gaulle, à 20h45 au Centre Administratif. Nombreux lots. Buvette sur place. Tarif ",
         "Bastides en Fête 2026 - Randonnée pédestre et Apéro-Soupe des Marcheurs des Bastides | 47150#Monflanquin | 2026-10-25<->2026-10-25 | A l'occasion de la 3ème édition de Bastides en Fête, Les Marcheurs des Bastides, vous invitent pour une randonnée pédest",
@@ -240,9 +238,7 @@
         "Marche pour Octobre Rose | 65700#Maubourguet | 2026-10-30<->2026-10-30 | Un pas pour vous, un pas pour elles : rejoignez la marche Octobre Rose de Maubourguet.\nCircuits proposés par la Team Maë",
         "Balade animée : Les fantômes farceurs | 03100#Montluçon | 2026-10-20<->2026-10-20 | Parcourez les ruelles de la cité médiévale, écoutez le guide et méfiez-vous des mauvais indices laissés par les fantômes",
         "MOIS DU POLAR - L'ENCRE DU CRIME, LA REMISE DES PRIX ! | 34230#Paulhan | 2026-11-06<->2026-11-06 | Rencontrez les lauréats de la deuxième édition du concours de nouvelles policières !",
-        "Marche - course octobre rose à Center Parcs Les Trois Forêts | 57790#Hattigny | 2026-10-23<->2026-10-23 | Center Parcs Les Trois Forêts se mobilise pour Octobre Rose et organise comme chaque année sa marche / course de 5km au ",
         "Atelier creusage de courges | 49120#Chemillé-en-Anjou | 2026-10-29<->2026-10-29 | Jack-o’-lantern s’invite au Jardin Camifolia. Pour Halloween, venez creuser votre courge.",
-        "Téléthon - Parcours de marche et course | 17540#Saint-Sauveur-d'Aunis | 2026-12-04<->2026-12-04 | Marche et course du muscle de 5km ou 10km.\r\nInscription sur place.\r\n\r\nMassages au cabinet de kinésithérapeutes, inscript",
         "Concours de pêche carnassier enfants | 03120#Lapalisse | 2026-10-23<->2026-10-23 | Carte de pêche obligatoire. Prêt du matériel par l'école de pêche. Organisé par l'Ecole de pêche de Lapalisse Chatel Mon",
         "Concours de belote | 17240#Mosnac | 2026-10-23<->2026-10-23 | Concours de belote avec de nombreux lots à gagner - sans réservation.",
         "Concours de coinche | 43290#Montfaucon-en-Velay | 2026-10-23<->2026-10-23 | Participez au concours de coinche organisé par le club des loisirs de l'âge d'or! Rejoignez-nous pour une après-midi con",
@@ -337,7 +333,6 @@
         "Visite guidée : Intra muros | 40100#Dax | 2026-12-02<->2026-12-02 | Un parcours en centre-ville autour des incontournables, pour raconter Dax dans ses grandes lignes et finir par une pause",
         "Halloween pour les enfants | 16250#Coteaux-du-Blanzacais | 2026-10-30<->2026-10-30 | Participe à l’atelier créatif « La sorcière d’Halloween » ! Laisse libre cours à ton imagination et confectionne ta prop",
         "Le Père Noël est à Courchevel 1850 | 73120#Courchevel | 2026-12-24<->2026-12-24 | Laissez-vous émerveiller par la descente aux flambeaux de l’ESF de Courchevel 1850, l’arrivée du Père Noël et un feu d’a",
-        "Cyclo-cross | 45360#Châtillon-sur-Loire | 2026-11-14<->2026-11-14 | Le 15 novembre, rendez-vous à l’écluse de Mantelot pour le cyclo-cross organisé par le club cycliste de Châtillon-sur-Lo",
         "Visite gratuite : Dordonha, centre patrimonial et culturel (musée Costi) | 24100#Bergerac | 2026-05-03<->2026-05-03 | Le pôle patrimonial et culturel Dordonha est ouvert et gratuit ce dimanche. Le moment est tout trouvé pour une sortie à ",
         "L'escape d'Halloween au Bambesch \"Les galeries de l'effroi\" | 57690#Bambiderstroff | 2026-10-31<->2026-10-31 | À 20 mètres sous terre, parcourez durant 1h30 les galeries hantées de l'ouvrage du Bambesch et résolvez les énigmes ! Se",
         "Courses hippiques de Novembre | 18160#La Celle-Condé | 2026-11-04<->2026-11-04 | Avant dernière réunion de courses premium (plat et obstacle) à l'hippodrome de Lignières en Berry.",
@@ -504,12 +499,17 @@
         "Balade d'automne Sentier métropolitain de GrandAngoulême \"Oh la tuile !\" | 16410#Sers | 2026-10-24<->2026-10-24 | Cette balade patrimoniale, commentée à partir de Sers, vous emmènera vers un parcours d'animation autour de la Tuilerie ",
         "CONCOURS PÉTANQUE | 31470#Sainte-Foy-de-Peyrolières | 2026-10-24<->2026-10-24 | Concours Pétanque",
         "Cours de MUNZ-FLOOR - Maison de quartier Avesnières | 53000#Laval | 2027-03-22<->2027-03-22 | pause & énergie vous attend deux mardi par mois à la maison de quartier d'Avesnières !",
-        "Initiation vitrail découpe de verre | 17700#Breuil-la-Réorte | 2026-10-27<->2026-10-27 | Le Foyer Rural de Saint Mard et Breuil la Réorte vous propose une initiation vitrail, découpe de verre.\r\nOuvert à tous, "
+        "Initiation vitrail découpe de verre | 17700#Breuil-la-Réorte | 2026-10-27<->2026-10-27 | Le Foyer Rural de Saint Mard et Breuil la Réorte vous propose une initiation vitrail, découpe de verre.\r\nOuvert à tous, ",
+        "Octobre rose : Marche | 80130#Allenay | 2026-10-22<->2026-10-22 | Marche d’environ 5km organisée en partenariat avec l’association Bout de chemin. \nDépart devant la mairie à 17h15. \nMome",
+        "Octobre rose : randonnée vélo | 24170#Pays de Belvès | 2026-10-24<->2026-10-24 | Octobre Rose :\nRandonnée Vélo \"Tous pour le cancer\"\nCircuit de 4km en boucle\nChaque don même le plus petit qu'il soit se",
+        "Octobre rose : randonnée | 47370#Tournon-d'Agenais | 2026-10-25<->2026-10-25 | Randonnée accompagnée de 4 et 8km, organisée par l'Amicale Laïque et la Ligue contre le Cancer.\nVente produits divers, g",
+        "LES MATCHS DE RUGBY DU RCM | 34250#Palavas-les-Flots | 2026-11-14<->2026-11-14 | Venez encourager le RCM Palavas tout au long de la saison lors de ses matchs à domicile au stade Gilbert Roquefort. Une ",
+        "Parcours croisés - Atelier batucada | 44320#Chaumes-en-Retz | 2026-10-30<->2026-10-30 | Avec « Parcours Croisés », le Collectif Spectacles en Retz propose de nouveaux ateliers d’initiation à des pratiques art"
       ]
     },
     "OpenAgenda": {
       "evenements": 712,
-      "courses": 44,
+      "courses": 43,
       "exemple_brut": {
         "uid": "71046853",
         "title_fr": "Centre \"La Presqu'île\" (Giffaumont) - Ligue de l'Enseignement de la Meuse",
@@ -529,10 +529,9 @@
       }
     }
   },
-  "courses": 405,
+  "courses": 416,
   "statut": "ok",
   "apercu": [
-    "2026-10-21 La Ronde des Histoires - \"Kunti'o et l'Oiseau de pluie\" (Aigrefeuille-d'Aunis) [] D+None route",
     "2026-10-21 Sport - Run pour elles (La Rochelle) [3.0] D+None route",
     "2026-10-22 Championnat de France SUP RACE 2026 (Aix-les-Bains) [] D+None route",
     "2026-10-22 Eliza Rose, Jeremy Underground, Mayou Picchu : Marathon ! (Paris) [42.2] D+None route",
@@ -552,16 +551,18 @@
     "2026-10-23 Le Trail de Dom Guéranger (Sablé-sur-Sarthe) [6.0, 12.0, 30.0] D+None trail",
     "2026-10-23 Le trail des Tours (Mazeray) [] D+None trail",
     "2026-10-23 Les Samedis Vivants - Foulée du Jacquemart (Moulins) [2.5, 5.0] D+None route",
+    "2026-10-23 Marche - course octobre rose à Center Parcs Les Trois Forêts (Hattigny) [5.0] D+None route",
     "2026-10-23 Mois de la rando : Marche sportive sur le sentier de trail de Tiranges (Tiranges) [18.5] D+None trail",
+    "2026-10-23 Octobre ROse Marche et/ou course Wassy (Wassy) [] D+None route",
     "2026-10-23 Run touristique à la découverte d'Anglet (Anglet) [] D+None route",
     "2026-10-23 TRAIL DES COLOMBES 2026 (Carcassonne) [] D+None trail",
     "2026-10-23 TRAIL DES HÉRÉTIQUES 2026 (Carcassonne) [] D+None trail",
-    "2026-10-23 Table ronde autour du sport féminin (Couzeix) [] D+None route",
     "2026-10-23 Trail BBC ( Boeuvres, Baron, Corbinières) (Guipry-Messac) [] D+None trail",
     "2026-10-23 Trail de Boulouparis TotalEnergies - Edition Nassirah (Bouloupari) [] D+None trail",
     "2026-10-23 Trail des sorciers (Loyat) [] D+None trail",
     "2026-10-23 Trail du Château de Bazerques (Précilhon) [] D+None trail",
     "2026-10-24 1ère édition Trail Break (Beauregard-Baret) [10.0, 20.0] D+None trail",
+    "2026-10-24 4ème édition - Cyclo Cross à la Chapelle-des-Pots (La Chapelle-des-Pots) [] D+None trail",
     "2026-10-24 CITY TRAIL NOCTURNE (Sainte-Menehould) [] D+None trail",
     "2026-10-24 COLOR RUN (Terres-de-Haute-Charente) [] D+None route",
     "2026-10-24 Course Marseille-Cassis (Cassis) [20.0] D+None route",
@@ -570,15 +571,18 @@
     "2026-10-24 Course à pied - Octobre Rose (Richelieu) [4.0, 8.0, 11.0] D+None route",
     "2026-10-24 Cross FSGT (Écouché-les-Vallées) [] D+None trail",
     "2026-10-24 Cross des Sapeurs-Pompiers (Foncine-le-Haut) [] D+None trail",
+    "2026-10-24 Cyclo Cross (Miramont-de-Guyenne) [] D+None trail",
     "2026-10-24 Entre prairies et forêts - la boucle des sapins de Noël_ENS2026 (Champeau-en-Morvan) [] D+None route",
     "2026-10-24 HumaNépal : Trail et marche (Martigues) [9.0, 16.0, 28.0] D+None trail",
     "2026-10-24 La course des Citrouilles (Douchy-Montcorbon) [] D+None route",
+    "2026-10-24 Land'en roz: Rando gourmande, marche et course solidaire (Landaul) [] D+None route",
     "2026-10-24 Le Trail Impérial de Bizy (Vernon) [] D+None trail",
     "2026-10-24 Le Trail des 2 Rubans (Catus) [] D+None trail",
     "2026-10-24 Les 24h de l’accordéon - Cave Poésie (Toulouse) [42.2] D+None route",
     "2026-10-24 Les 6 Nuits du Toulois - Course à pied nocturne (Jaillon) [] D+None route",
     "2026-10-24 Les foulées mamertines (Mamers) [] D+None route",
     "2026-10-24 Marathon de Chablis (Chablis) [42.2] D+None route",
+    "2026-10-24 Marche ou course pour tous ! (Aunac-sur-Charente) [] D+None route",
     "2026-10-24 Marcher et Courir Contre le Cancer à Reyrevignes (Reyrevignes) [] D+None route",
     "2026-10-24 Marcher et courir sur le parcours des huîtres (Les Moutiers-en-Retz) [] D+None route",
     "2026-10-24 Rando et trail à Festieux (Festieux) [5.0, 10.0, 18.0] D+None trail",
@@ -587,11 +591,7 @@
     "2026-10-24 TRAIL DE L’OPPIDUM (Aumes) [] D+None trail",
     "2026-10-24 TRAIL DES FRONTIGNES (Saint-Pé-d'Ardet) [] D+None trail",
     "2026-10-24 Trail au profit d'Octobre Rose \"La fabuleuse\" (Saint-Georges-de-Rouelley) [] D+None trail",
-    "2026-10-24 Trail de l'Anjou (Longuenée-en-Anjou) [] D+None trail",
-    "2026-10-24 Trail de la Mossig (Romanswiller) [] D+None trail",
-    "2026-10-24 Trail des 3 rochers (La Petite-Pierre) [] D+None trail",
-    "2026-10-24 Trail des Combrailles 2026 (Les Ancizes-Comps) [9.0, 16.0, 24.0, 36.0] D+None trail",
-    "2026-10-24 Trail et marche solidaire \"Granit rose\" dans le cadre d'Octobre Rose (Saint-Michel-de-Montjoie) [] D+None trail"
+    "2026-10-24 Trail de l'Anjou (Longuenée-en-Anjou) [] D+None trail"
   ],
-  "taille_ko": 150
+  "taille_ko": 153
 }
