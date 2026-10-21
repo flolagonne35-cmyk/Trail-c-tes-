@@ -5,7 +5,7 @@
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import cotesExportees from "./assets/data/cotes.json";
@@ -109,6 +109,9 @@ function Contenu() {
     setAccueil(null);
   };
 
+  // dans un cadre (aperçu web, par exemple dans l'appli Claude), le navigateur refuse la position
+  // sans rien demander : on le dit tel quel plutôt que « refusée »
+  const dansUnCadre = () => Platform.OS === "web" && typeof window !== "undefined" && window.self !== window.top;
   // chaque demande de position porte un numéro : un lieu choisi entre-temps l'emporte
   const demande = useRef(0);
   const choisirLieu = useCallback((l: Lieu) => {
@@ -127,7 +130,7 @@ function Contenu() {
     try {
       const { status } = await delai(Location.requestForegroundPermissionsAsync());
       if (status !== "granted") {
-        if (aJour()) setLocalisation("refusee");
+        if (aJour()) setLocalisation(dansUnCadre() ? "apercu" : "refusee");
         return;
       }
       const p = await delai(Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
@@ -136,7 +139,7 @@ function Contenu() {
                   detail: p.coords.accuracy ? `GPS, à ± ${Math.round(p.coords.accuracy)} m` : "GPS", gps: true });
       setLocalisation("inactive");
     } catch {
-      if (aJour()) setLocalisation("indisponible");
+      if (aJour()) setLocalisation(dansUnCadre() ? "apercu" : "indisponible");
     }
   }, []);
 

@@ -6,15 +6,18 @@ import type { Position } from "../calcul/geo.ts";
 import { C, S } from "../theme.ts";
 import { Icone } from "./communs.tsx";
 
-export type Localisation = "inactive" | "en_cours" | "refusee" | "indisponible";
+// « apercu » : la page tourne dans un cadre (aperçu web, par exemple dans l'appli Claude) qui
+// n'a pas le droit de demander la position ; l'appli installée, elle, demande l'autorisation.
+export type Localisation = "inactive" | "en_cours" | "refusee" | "indisponible" | "apercu";
 export type PointDepart = { position: Position; nom: string; detail: string; gps: boolean };
 
 export function BarreDepart({ titre, depart, localisation, onRecherche, onLocaliser }: {
   titre: string; depart: PointDepart; localisation: Localisation; onRecherche: () => void; onLocaliser: () => void;
 }) {
   const sousTitre = localisation === "en_cours" ? "Localisation en cours…"
-    : localisation === "refusee" ? "Localisation refusée : cherchez une ville"
-    : localisation === "indisponible" ? "Position indisponible : cherchez une ville"
+    : localisation === "refusee" ? "Localisation refusée : cherche une ville, ou autorise-la dans les réglages"
+    : localisation === "apercu" ? "GPS non disponible dans l'aperçu : cherche une ville"
+    : localisation === "indisponible" ? "Position indisponible : cherche une ville"
     : depart.detail;
   return (
     <View>
