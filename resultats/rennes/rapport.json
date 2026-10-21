@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-21T05:05:22+00:00",
+  "date_utc": "2026-10-21T06:58:00+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme, ressource ign_rge_alti_wld",
   "parametres": {
@@ -42,7 +42,7 @@
     "replis_get": 0,
     "points_demandes": 40401,
     "points_nodata": 0,
-    "duree_s": 31.0,
+    "duree_s": 30.6,
     "codes_http": {
       "200": 9
     },
