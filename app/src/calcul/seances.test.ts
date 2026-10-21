@@ -83,3 +83,31 @@ test("préparer une course : passages-clés et côte équivalente près de chez 
   assert.equal(r[1].cote.id, 9); // 4 % pour une descente à 5 %
   assert.equal(r[1].cote.sens, "descente");
 });
+
+test("filtres en plages (min et max), sol, et tri des résultats", async () => {
+  const { cotesProches, trierCotes, resumeFiltres, plageLisible } = await import("./cotes.ts");
+  const pos = { lat: 48.1, lon: -1.68 };
+  const mk = (id: number, pente: number, raide: number, L: number, dplus: number, rev: string, dLat: number): Cote => ({
+    id, lat: 48.1 + dLat, lon: -1.68, longueur_m: L, pente_moy_pct: pente, pente_max_pct: raide, dplus_m: dplus,
+    alt_depart_m: 50, alt_arrivee_m: 50 + dplus, type_voie: "route", nom: "", revetement: rev, technicite: "",
+    pentes_50m: [], profil: { d: [], z: [] }, geometrie: [],
+  });
+  const cotes = [mk(1, 5, 7, 200, 10, "goudronné", 0.001), mk(2, 9, 14, 600, 54, "terre", 0.002),
+                 mk(3, 12, 20, 1200, 144, "goudronné (supposé)", 0.003)];
+  const f = { rayonM: 5000, penteMin: 0, types: ["route"] as Cote["type_voie"][] };
+  const ids = (g: object) => cotesProches(cotes, pos, { ...f, ...g }).map((c) => c.id);
+  assert.deepEqual(ids({ penteMin: 6, penteMax: 10 }), [2]);
+  assert.deepEqual(ids({ raideMin: 10 }), [2, 3]);
+  assert.deepEqual(ids({ longueurMin: 300, longueurMax: 1000 }), [2]);
+  assert.deepEqual(ids({ dplusMax: 60 }), [1, 2]);
+  assert.deepEqual(ids({ sols: ["terre"] }), [2]);
+  assert.deepEqual(ids({ sols: ["goudronne"] }), [1, 3]);
+  const toutes = cotesProches(cotes, pos, f);
+  assert.deepEqual(trierCotes(toutes, "dplus", false).map((c) => c.id), [3, 2, 1]);
+  assert.deepEqual(trierCotes(toutes, "pente", true).map((c) => c.id), [1, 2, 3]);
+  assert.deepEqual(trierCotes(toutes, "distance", false).map((c) => c.id), [3, 2, 1]);
+  assert.equal(plageLisible(4, 8.5, "%"), "4 à 8,5 %");
+  assert.equal(plageLisible(0, 300, "m"), "≤ 300 m");
+  assert.equal(resumeFiltres({ ...f, penteMin: 6, longueurMin: 300, dplusMax: 60, sols: ["terre"] }),
+               "≤ 5 km · pente ≥ 6 % · longueur ≥ 300 m · D+ ≤ 60 m · non goudronné · route");
+});

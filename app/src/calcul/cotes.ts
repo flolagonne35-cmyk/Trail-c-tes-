@@ -30,10 +30,43 @@ export type Trafic = "calme" | "modéré" | "passant";
 export type Sens = "montee" | "descente";
 export type Longueur = "toutes" | "courtes" | "moyennes" | "longues";
 
+/**
+ * Critères de recherche. Chaque plage a un minimum et un maximum facultatif (absent = sans limite) :
+ * pente moyenne, passage le plus raide (pente max sur 50 m), longueur, D+.
+ */
 export type Filtres = {
   rayonM: number; penteMin: number; types: TypeVoie[];
-  longueur?: Longueur; dplusMin?: number; eviterPassant?: boolean;
+  penteMax?: number; raideMin?: number; raideMax?: number;
+  longueurMin?: number; longueurMax?: number;
+  longueur?: Longueur; // ancienne catégorie (séances) ; l'écran utilise longueurMin / longueurMax
+  dplusMin?: number; dplusMax?: number;
+  sols?: Sol[]; // vide ou absent = tous
+  eviterPassant?: boolean;
 };
+
+/** Sol de la côte : goudronné (route, piste) ou non (terre, gravier, herbe…), d'après BD TOPO et OSM. */
+export type Sol = "goudronne" | "terre";
+export const solDe = (c: Cote): Sol => (c.revetement.startsWith("goudronné") || c.revetement === "pavé" ? "goudronne" : "terre");
+
+/** Ordres de tri des résultats. */
+export type CleTri = "distance" | "pente" | "raide" | "longueur" | "dplus";
+export const TRIS: Record<CleTri, { nom: string; croissant: string; decroissant: string }> = {
+  distance: { nom: "Distance", croissant: "la plus proche d'abord", decroissant: "la plus loin d'abord" },
+  pente: { nom: "Pente moyenne", croissant: "la plus douce d'abord", decroissant: "la plus raide d'abord" },
+  raide: { nom: "Passage le plus raide", croissant: "le plus doux d'abord", decroissant: "le plus raide d'abord" },
+  longueur: { nom: "Longueur", croissant: "la plus courte d'abord", decroissant: "la plus longue d'abord" },
+  dplus: { nom: "Dénivelé", croissant: "le plus faible d'abord", decroissant: "le plus fort d'abord" },
+};
+const VALEUR_TRI: Record<CleTri, (c: CoteProche) => number> = {
+  distance: (c) => c.distance_m, pente: (c) => c.pente_moy_pct, raide: (c) => c.pente_max_pct,
+  longueur: (c) => c.longueur_m, dplus: (c) => c.dplus_m,
+};
+
+/** Trie les côtes ; à égalité, la plus proche d'abord. */
+export function trierCotes(cotes: CoteProche[], cle: CleTri, croissant: boolean): CoteProche[] {
+  const v = VALEUR_TRI[cle];
+  return [...cotes].sort((a, b) => (croissant ? v(a) - v(b) : v(b) - v(a)) || a.distance_m - b.distance_m);
+}
 
 /** Catégories de longueur, parlantes pour un traileur. */
 export const LONGUEURS: Record<Exclude<Longueur, "toutes">, { min: number; max: number; nom: string; detail: string }> = {
@@ -62,11 +95,16 @@ export function enDescente(c: Cote): Cote {
 
 export type CoteProche = Cote & { distance_m: number };
 
+const dans = (v: number, min = -Infinity, max = Infinity) => v >= min && v <= max;
+
 export function correspond(c: Cote, f: Filtres): boolean {
   const cat = f.longueur && f.longueur !== "toutes" ? LONGUEURS[f.longueur] : null;
-  return c.pente_moy_pct >= f.penteMin && f.types.includes(c.type_voie)
+  return dans(c.pente_moy_pct, f.penteMin, f.penteMax) && f.types.includes(c.type_voie)
+    && dans(c.pente_max_pct, f.raideMin, f.raideMax)
     && (!cat || (c.longueur_m >= cat.min && c.longueur_m < cat.max))
-    && c.dplus_m >= (f.dplusMin ?? 0)
+    && dans(c.longueur_m, f.longueurMin, f.longueurMax)
+    && dans(c.dplus_m, f.dplusMin ?? 0, f.dplusMax)
+    && (!f.sols?.length || f.sols.includes(solDe(c)))
     && !(f.eviterPassant && c.trafic === "passant");
 }
 
@@ -95,12 +133,28 @@ export function distanceCouverture(cotes: Cote[], position: Position): number {
   return cotes.reduce((m, c) => Math.min(m, distanceM(position, { lat: c.lat, lon: c.lon })), Infinity);
 }
 
+const fr = (v: number) => String(v).replace(".", ",");
+/** « 4 à 8 % », « ≥ 6 % », « ≤ 300 m » ; vide si la plage ne filtre rien. */
+export function plageLisible(min: number | undefined, max: number | undefined, unite: string, minNeutre = 0): string {
+  const a = min !== undefined && min > minNeutre ? min : undefined;
+  if (a !== undefined && max !== undefined) return a === max ? `${fr(a)} ${unite}` : `${fr(a)} à ${fr(max)} ${unite}`;
+  if (a !== undefined) return `≥ ${fr(a)} ${unite}`;
+  if (max !== undefined) return `≤ ${fr(max)} ${unite}`;
+  return "";
+}
+
 /** Résumé lisible des filtres actifs : « ≤ 5 km · pente ≥ 5 % · route, chemin ». */
 export function resumeFiltres(f: Filtres): string {
   const types = (["route", "chemin", "sentier"] as TypeVoie[]).filter((t) => f.types.includes(t));
-  return [`≤ ${f.rayonM / 1000} km`, `pente ≥ ${f.penteMin} %`,
+  const raide = plageLisible(f.raideMin, f.raideMax, "%");
+  const longueur = plageLisible(f.longueurMin, f.longueurMax, "m");
+  const dplus = plageLisible(f.dplusMin, f.dplusMax, "m");
+  return [`≤ ${fr(f.rayonM / 1000)} km`, `pente ${plageLisible(f.penteMin, f.penteMax, "%", -1)}`,
+          ...(raide ? [`passage max ${raide}`] : []),
           ...(f.longueur && f.longueur !== "toutes" ? [LONGUEURS[f.longueur].nom.toLowerCase()] : []),
-          ...(f.dplusMin ? [`D+ ≥ ${f.dplusMin} m`] : []),
+          ...(longueur ? [`longueur ${longueur}`] : []),
+          ...(dplus ? [`D+ ${dplus}`] : []),
+          ...(f.sols?.length === 1 ? [f.sols[0] === "goudronne" ? "goudronné" : "non goudronné"] : []),
           types.length === 3 ? "toutes voies" : types.join(", ") || "aucune voie",
           ...(f.eviterPassant ? ["sans route passante"] : [])]
     .join(" · ");

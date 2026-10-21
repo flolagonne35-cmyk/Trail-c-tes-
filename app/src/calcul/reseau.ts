@@ -17,7 +17,13 @@ export type Graphe = {
   type: Uint8Array; trafic: Uint8Array; inter: number[][];
   debut: Int32Array; voisins: Int32Array; arete: Int32Array; // liste d'adjacence compacte
   types: string[]; trafics: string[];
+  // nombre de carrefours de la composante connexe de chaque nœud : les petits morceaux isolés
+  // (parking, voie coupée par un tronçon privé exclu) ne servent pas de point de départ
+  taille: Int32Array;
 };
+
+/** En dessous, un morceau de réseau est trop petit et isolé pour y accrocher un départ. */
+const TAILLE_MIN = 200;
 
 export function construireGraphe(r: ReseauBrut): Graphe {
   const n = r.noeuds.length;
@@ -27,7 +33,7 @@ export function construireGraphe(r: ReseauBrut): Graphe {
     a: new Int32Array(m), b: new Int32Array(m), longueur: new Float32Array(m), plus: new Float32Array(m),
     moins: new Float32Array(m), type: new Uint8Array(m), trafic: new Uint8Array(m), inter: new Array(m),
     debut: new Int32Array(n + 1), voisins: new Int32Array(2 * m), arete: new Int32Array(2 * m),
-    types: r.types, trafics: r.trafics,
+    types: r.types, trafics: r.trafics, taille: new Int32Array(n),
   };
   r.noeuds.forEach(([lo, la], i) => { g.lon[i] = lo / 1e5; g.lat[i] = la / 1e5; });
   const degre = new Int32Array(n);
@@ -42,14 +48,42 @@ export function construireGraphe(r: ReseauBrut): Graphe {
     g.voisins[rempli[g.a[k]]] = g.b[k]; g.arete[rempli[g.a[k]]++] = k;
     g.voisins[rempli[g.b[k]]] = g.a[k]; g.arete[rempli[g.b[k]]++] = k;
   }
+  composantes(g);
   return g;
+}
+
+function composantes(g: Graphe) {
+  const n = g.lat.length;
+  const vu = new Int32Array(n).fill(-1);
+  const pile = new Int32Array(n);
+  const membres: number[] = [];
+  for (let d = 0; d < n; d++) {
+    if (vu[d] >= 0) continue;
+    membres.length = 0;
+    let h = 0;
+    pile[h++] = d; vu[d] = d;
+    while (h) {
+      const u = pile[--h];
+      membres.push(u);
+      for (let j = g.debut[u]; j < g.debut[u + 1]; j++) {
+        const v = g.voisins[j];
+        if (vu[v] < 0) { vu[v] = d; pile[h++] = v; }
+      }
+    }
+    for (const u of membres) g.taille[u] = membres.length;
+  }
 }
 
 export function noeudLePlusProche(g: Graphe, p: Position): { noeud: number; distance_m: number } {
   let meilleur = -1;
   let dMin = Infinity;
   const cos = Math.cos((p.lat * Math.PI) / 180);
+  // petit réseau (test, zone minuscule) : tout compte ; sinon on ignore les morceaux isolés
+  let plusGrande = 0;
+  for (let i = 0; i < g.taille.length; i++) if (g.taille[i] > plusGrande) plusGrande = g.taille[i];
+  const tailleMin = Math.min(TAILLE_MIN, plusGrande);
   for (let i = 0; i < g.lat.length; i++) {
+    if (g.taille[i] < tailleMin) continue;
     const dx = (g.lon[i] - p.lon) * cos;
     const dy = g.lat[i] - p.lat;
     const d = dx * dx + dy * dy;

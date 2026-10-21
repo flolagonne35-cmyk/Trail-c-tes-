@@ -72,8 +72,9 @@ export function chercherSeance(cotes: Cote[], position: Position, seance: Seance
                                allurePlatMinKm = 5.5, limite = 3, tolerance = 1.5): Proposition[] {
   const props: Proposition[] = [];
   for (const brute of cotes) {
-    // filtres de voie et de trafic, sans les filtres de pente ni de longueur (la séance les fixe)
-    if (!correspond(brute, { ...filtres, penteMin: 0, longueur: "toutes", dplusMin: 0 })) continue;
+    // filtres de voie, de sol et de trafic seulement : la séance fixe la pente et la longueur
+    const voie = { rayonM: filtres.rayonM, penteMin: 0, types: filtres.types, sols: filtres.sols, eviterPassant: filtres.eviterPassant };
+    if (!correspond(brute, voie)) continue;
     if (brute.longueur_m < seance.longueurM * 0.8) continue;
     const cote = sens === "descente" ? enDescente(brute) : brute;
     // en descente, le profil descend : on cherche la pente la plus négative / la plus proche de −cible

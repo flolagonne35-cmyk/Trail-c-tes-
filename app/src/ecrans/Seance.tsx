@@ -112,7 +112,7 @@ export function VueSeance({ toutes, position, filtres, allurePlat, onChoisir, te
       ))}
       <Text style={S.petit}>
         On cherche dans chaque {sens === "descente" ? "descente" : "côte"} la portion de la bonne longueur dont la pente est la plus
-        proche de la cible (± 1,5 point), puis la plus proche de toi. Les filtres de voie et de trafic s'appliquent.
+        proche de la cible (± 1,5 point), puis la plus proche de toi. Les filtres de voie, de sol et de trafic de l'onglet Côtes s'appliquent.
       </Text>
     </View>
   );

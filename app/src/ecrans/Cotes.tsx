@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 import {
-  cotesProches, distanceCouverture, enDescente, kmLisibles, LONGUEURS, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres,
-  type Cote, type CoteProche, type Filtres, type Longueur, type Sens, type TypeVoie,
+  cotesProches, distanceCouverture, enDescente, kmLisibles, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres, trierCotes, TRIS,
+  type CleTri, type Cote, type CoteProche, type Filtres, type Sens, type Sol, type TypeVoie,
 } from "../calcul/cotes.ts";
 import { distanceM, type Position } from "../calcul/geo.ts";
 import { adresseDe, type Lieu } from "../calcul/geoservices.ts";
@@ -15,18 +15,51 @@ import { zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { Icone, nombre, Segments } from "../composants/communs.tsx";
 import { CarteHorsLigne } from "../composants/HorsLigne.tsx";
+import { indiceDe, Plage } from "../composants/Plage.tsx";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { C, S } from "../theme.ts";
 
 export type { Localisation, PointDepart } from "../composants/BarreDepart.tsx";
 
 export const FILTRES_DEFAUT: Filtres = {
-  rayonM: 5000, penteMin: 4, types: ["route", "piste cyclable", "chemin", "sentier"], longueur: "toutes", dplusMin: 0, eviterPassant: false,
+  rayonM: 5000, penteMin: 4, types: ["route", "piste cyclable", "chemin", "sentier"], dplusMin: 0, eviterPassant: false,
+  sols: ["goudronne", "terre"],
 };
-const PENTES: [string, string][] = [["4", "4 %"], ["6", "6 %"], ["8", "8 %"], ["10", "10 %"]];
-const DPLUS: [string, string][] = [["0", "Tout"], ["20", "20 m"], ["40", "40 m"], ["80", "80 m"]];
-const CATEGORIES: [Longueur, string][] = [["toutes", "Toutes"], ["courtes", "Courtes"], ["moyennes", "Moyennes"], ["longues", "Longues"]];
-const RAYONS: [string, string][] = [["2000", "2 km"], ["5000", "5 km"], ["10000", "10 km"], ["25000", "25 km"]];
+
+// échelles des curseurs : fines là où ça compte, plus larges au-delà ; Infinity = « et plus »
+const pas = (de: number, a: number, p: number) => Array.from({ length: Math.round((a - de) / p) + 1 }, (_, i) => Math.round((de + i * p) * 10) / 10);
+const ECH_PENTE = [...pas(4, 20, 0.5), Infinity];
+const ECH_RAIDE = [...pas(4, 30, 1), Infinity];
+const ECH_LONGUEUR = [...pas(0, 1000, 50), ...pas(1100, 2000, 100), 2500, 3000, 4000, 5000, Infinity];
+const ECH_DPLUS = [...pas(0, 100, 5), ...pas(110, 200, 10), ...pas(250, 500, 50), ...pas(600, 1000, 100), Infinity];
+const ECH_RAYON = [...pas(0.5, 5, 0.5), ...pas(6, 10, 1), ...pas(12, 20, 2), 25, 30, 40, 50];
+const fr = (v: number, d = 1) => nombre(v, v % 1 ? d : 0);
+const metres = (v: number) => (v >= 1000 ? `${fr(v / 1000, 1)} km` : `${v} m`);
+/** Dernière case de l'échelle (sans maximum) : « 20 % et + ». */
+const etPlus = (ech: number[], f: (v: number) => string) => (v: number) => (Number.isFinite(v) ? f(v) : `${f(ech[ech.length - 2])} et +`);
+/** « 6,5 à 9 % », « ≥ 6 % », « ≤ 300 m », « Toutes ». */
+function resumePlage(ech: number[], b: number, h: number, f: (v: number) => string, tout: string): string {
+  const bas = b > 0 ? f(ech[b]) : null;
+  const haut = h < ech.length - 1 ? f(ech[h]) : null;
+  if (bas && haut) return b === h ? bas : `${bas} à ${haut}`;
+  return bas ? `≥ ${bas}` : haut ? `≤ ${haut}` : tout;
+}
+/** Valeur d'une poignée « maximum » : la dernière case de l'échelle veut dire « sans maximum ». */
+const borne = (ech: number[], h: number) => (h >= ech.length - 1 ? undefined : ech[h]);
+
+function Case({ actif }: { actif: boolean }) {
+  return (
+    <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, alignItems: "center", justifyContent: "center",
+                   borderColor: actif ? C.encre : C.sable, backgroundColor: actif ? C.encre : C.blanc }}>
+      {actif && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
+    </View>
+  );
+}
+
+const SOLS: [Sol, string, string][] = [
+  ["goudronne", "Goudronné", "Routes, pistes cyclables : pour l'allure et le fractionné"],
+  ["terre", "Non goudronné", "Terre, gravier, herbe : plus proche du trail, plus doux pour les jambes"],
+];
 const TYPES: [TypeVoie, string, string][] = [
   ["route", "Route", "Routes et pistes cyclables, goudronnées"],
   ["chemin", "Chemin", "Chemins larges, souvent stabilisés"],
@@ -54,22 +87,61 @@ function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
             <Text style={{ fontSize: 14, fontWeight: "700", color: parDefaut ? C.gris : C.montee }}>Réinitialiser</Text>
           </Pressable>
         </View>
+        <Plage etiquette={mot === "descente" ? "Pente moyenne (en descente)" : "Pente moyenne"} valeurs={ECH_PENTE}
+               bas={indiceDe(ECH_PENTE, f.penteMin, 0)} haut={indiceDe(ECH_PENTE, f.penteMax, ECH_PENTE.length - 1)}
+               format={etPlus(ECH_PENTE, (v) => `${fr(v)} %`)} resume={resumePlage(ECH_PENTE, indiceDe(ECH_PENTE, f.penteMin, 0), indiceDe(ECH_PENTE, f.penteMax, ECH_PENTE.length - 1), (v) => `${fr(v)} %`, "Toutes")}
+               onChange={(b, h) => setF({ ...f, penteMin: ECH_PENTE[b], penteMax: borne(ECH_PENTE, h) })}
+               raccourcis={[{ nom: "Toutes", bas: 4, haut: Infinity }, { nom: "4 à 6 %", bas: 4, haut: 6 },
+                            { nom: "6 à 10 %", bas: 6, haut: 10 }, { nom: "≥ 10 %", bas: 10, haut: Infinity }]}
+               aide="Moyenne du pied au sommet. 4 à 6 % : on court, allure soutenue ; 6 à 10 % : côtes classiques, puissance ; ≥ 10 % : souvent marche active, comme en trail de montagne." />
+        <Plage etiquette="Passage le plus raide" valeurs={ECH_RAIDE}
+               bas={indiceDe(ECH_RAIDE, f.raideMin, 0)} haut={indiceDe(ECH_RAIDE, f.raideMax, ECH_RAIDE.length - 1)}
+               format={etPlus(ECH_RAIDE, (v) => `${v} %`)} resume={resumePlage(ECH_RAIDE, indiceDe(ECH_RAIDE, f.raideMin, 0), indiceDe(ECH_RAIDE, f.raideMax, ECH_RAIDE.length - 1), (v) => `${v} %`, "Tous")}
+               onChange={(b, h) => setF({ ...f, raideMin: b ? ECH_RAIDE[b] : undefined, raideMax: borne(ECH_RAIDE, h) })}
+               raccourcis={[{ nom: "Tous", bas: 4, haut: Infinity }, { nom: "Régulière ≤ 10 %", bas: 4, haut: 10 },
+                            { nom: "Avec un mur ≥ 15 %", bas: 15, haut: Infinity }]}
+               aide="La pente des 50 m les plus raides. Une côte régulière se court d'un bout à l'autre ; un mur à 15 % et plus oblige souvent à marcher." />
+        <Plage etiquette="Longueur" valeurs={ECH_LONGUEUR}
+               bas={indiceDe(ECH_LONGUEUR, f.longueurMin, 0)} haut={indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1)}
+               format={etPlus(ECH_LONGUEUR, metres)} resume={resumePlage(ECH_LONGUEUR, indiceDe(ECH_LONGUEUR, f.longueurMin, 0), indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1), metres, "Toutes")}
+               onChange={(b, h) => setF({ ...f, longueur: undefined, longueurMin: b ? ECH_LONGUEUR[b] : undefined, longueurMax: borne(ECH_LONGUEUR, h) })}
+               raccourcis={[{ nom: "Toutes", bas: 0, haut: Infinity }, { nom: "< 300 m", bas: 0, haut: 300 },
+                            { nom: "300 à 800 m", bas: 300, haut: 800 }, { nom: "≥ 800 m", bas: 800, haut: Infinity }]}
+               aide="Courtes (< 300 m) : répétitions, puissance ; moyennes (300 à 800 m) : séries classiques ; longues (≥ 800 m) : endurance en montée." />
+        <Plage etiquette="Dénivelé (D+)" valeurs={ECH_DPLUS}
+               bas={indiceDe(ECH_DPLUS, f.dplusMin, 0)} haut={indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1)}
+               format={etPlus(ECH_DPLUS, (v) => `${v} m`)} resume={resumePlage(ECH_DPLUS, indiceDe(ECH_DPLUS, f.dplusMin, 0), indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1), (v) => `${v} m`, "Tout")}
+               onChange={(b, h) => setF({ ...f, dplusMin: ECH_DPLUS[b], dplusMax: borne(ECH_DPLUS, h) })}
+               raccourcis={[{ nom: "Tout", bas: 0, haut: Infinity }, { nom: "≥ 20 m", bas: 20, haut: Infinity },
+                            { nom: "≥ 40 m", bas: 40, haut: Infinity }, { nom: "≥ 80 m", bas: 80, haut: Infinity }]}
+               aide="Mètres gagnés du pied au sommet : c'est lui qui compte pour préparer une course (D+ total ÷ D+ de la côte = nombre de montées)." />
+        <Plage etiquette="Distance du point de départ" valeurs={ECH_RAYON} unique bas={0}
+               haut={indiceDe(ECH_RAYON, f.rayonM / 1000, 9)} format={(v) => `${fr(v)} km`}
+               resume={`≤ ${fr(f.rayonM / 1000)} km`}
+               onChange={(_, h) => setF({ ...f, rayonM: ECH_RAYON[h] * 1000 })}
+               raccourcis={[{ nom: "2 km", bas: 0, haut: 2 }, { nom: "5 km", bas: 0, haut: 5 },
+                            { nom: "10 km", bas: 0, haut: 10 }, { nom: "25 km", bas: 0, haut: 25 }]}
+               aide="À vol d'oiseau. 2 km : en footing depuis chez toi ; 10 km et plus : en voiture ou à vélo." />
         <View style={{ gap: 8 }}>
-          <Text style={S.fort}>Pente moyenne minimale</Text>
-          <Segments options={PENTES} valeur={String(f.penteMin)} onChange={(v) => setF({ ...f, penteMin: Number(v) })} />
-        </View>
-        <View style={{ gap: 8 }}>
-          <Text style={S.fort}>Longueur</Text>
-          <Segments options={CATEGORIES} valeur={f.longueur ?? "toutes"} onChange={(longueur) => setF({ ...f, longueur })} />
-          <Text style={S.petit}>{f.longueur && f.longueur !== "toutes" ? LONGUEURS[f.longueur].detail : "Courtes < 300 m · moyennes 300 à 800 m · longues ≥ 800 m"}</Text>
-        </View>
-        <View style={{ gap: 8 }}>
-          <Text style={S.fort}>Dénivelé minimum</Text>
-          <Segments options={DPLUS} valeur={String(f.dplusMin ?? 0)} onChange={(v) => setF({ ...f, dplusMin: Number(v) })} />
-        </View>
-        <View style={{ gap: 8 }}>
-          <Text style={S.fort}>Distance du point de départ</Text>
-          <Segments options={RAYONS} valeur={String(f.rayonM)} onChange={(v) => setF({ ...f, rayonM: Number(v) })} />
+          <Text style={S.fort}>Sol</Text>
+          <View style={{ backgroundColor: C.blanc, borderRadius: 14, overflow: "hidden" }}>
+            {SOLS.map(([sol, nom, detail], i) => {
+              const sols = f.sols ?? ["goudronne", "terre"];
+              const actif = sols.includes(sol);
+              return (
+                <Pressable key={sol} onPress={() => setF({ ...f, sols: actif ? sols.filter((x) => x !== sol) : [...sols, sol] })}
+                           accessibilityRole="checkbox" aria-checked={actif}
+                           style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
+                                    borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[S.fort, { fontWeight: "600" }]}>{nom}</Text>
+                    <Text style={S.petit}>{detail}</Text>
+                  </View>
+                  <Case actif={actif} />
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
         <View style={{ gap: 8 }}>
           <Text style={S.fort}>Type de voie</Text>
@@ -84,10 +156,7 @@ function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
                     <Text style={[S.fort, { fontWeight: "600" }]}>{nom}</Text>
                     <Text style={S.petit}>{detail}</Text>
                   </View>
-                  <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, alignItems: "center", justifyContent: "center",
-                                 borderColor: actif ? C.encre : C.sable, backgroundColor: actif ? C.encre : C.blanc }}>
-                    {actif && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
-                  </View>
+                  <Case actif={actif} />
                 </Pressable>
               );
             })}
@@ -101,15 +170,12 @@ function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
             <Text style={[S.fort, { fontWeight: "600" }]}>Éviter les routes passantes</Text>
             <Text style={S.petit}>Grands axes, routes rapides (≥ 60 km/h) ou à 3 voies et plus</Text>
           </View>
-          <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, alignItems: "center", justifyContent: "center",
-                         borderColor: f.eviterPassant ? C.encre : C.sable, backgroundColor: f.eviterPassant ? C.encre : C.blanc }}>
-            {f.eviterPassant && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
-          </View>
+          <Case actif={!!f.eviterPassant} />
         </Pressable>
         <Pressable onPress={() => onValider(f)} disabled={!n} accessibilityRole="button" style={[S.bouton, { minHeight: 54, opacity: n ? 1 : 0.45 }]}>
           <Text style={[S.boutonTexte, { fontSize: 16 }]}>{n ? `Voir ${n === 1 ? `la ${mot}` : `les ${n} ${mot}s`}` : `Aucune ${mot} avec ces critères`}</Text>
         </Pressable>
-        {!n && <Text style={S.petit}>Élargis la distance, baisse la pente minimale ou ajoute des types de voie.</Text>}
+        {!n && <Text style={S.petit}>Élargis une plage (pente, longueur, D+), la distance, ou ajoute des types de voie et de sol.</Text>}
     </View>
   );
 }
@@ -194,16 +260,22 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
   const horsZone = couverture > RAYON_COUVERTURE_M;
-  const cotes = useMemo(() => cotesProches(base, position, filtres), [base, position, filtres]);
+  // tri des résultats : la plus proche d'abord par défaut ; les autres critères, le plus fort d'abord
+  const [tri, setTri] = useState<{ cle: CleTri; croissant: boolean }>({ cle: "distance", croissant: true });
+  const cotes = useMemo(() => trierCotes(cotesProches(base, position, filtres), tri.cle, tri.croissant),
+                        [base, position, filtres, tri]);
   // aucune côte dans le rayon : on montre quand même les plus proches
   const auDela = useMemo(
     () => (cotes.length || horsZone ? [] : cotesProches(base, position, { ...filtres, rayonM: Infinity }).slice(0, 5)),
     [cotes, base, position, filtres, horsZone],
   );
   const affichees = cotes.length ? cotes : auDela;
-  const nbFiltres = Number(filtres.penteMin !== FILTRES_DEFAUT.penteMin) + Number(filtres.rayonM !== FILTRES_DEFAUT.rayonM)
-    + Number(filtres.types.length !== FILTRES_DEFAUT.types.length) + Number((filtres.longueur ?? "toutes") !== "toutes")
-    + Number(!!filtres.dplusMin) + Number(!!filtres.eviterPassant);
+  const nbFiltres = Number(filtres.penteMin !== FILTRES_DEFAUT.penteMin || filtres.penteMax !== undefined)
+    + Number(filtres.rayonM !== FILTRES_DEFAUT.rayonM) + Number(filtres.types.length !== FILTRES_DEFAUT.types.length)
+    + Number(filtres.raideMin !== undefined || filtres.raideMax !== undefined)
+    + Number(filtres.longueurMin !== undefined || filtres.longueurMax !== undefined)
+    + Number(!!filtres.dplusMin || filtres.dplusMax !== undefined) + Number((filtres.sols ?? ["", ""]).length < 2)
+    + Number(!!filtres.eviterPassant);
 
   // adresses du pied des 10 premières côtes, si le précalcul ne les donne pas (géocodage inverse, mis en cache)
   const [adresses, setAdresses] = useState<Record<number, string | null>>({});
@@ -267,6 +339,37 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
             <View style={{ marginTop: 12 }}>
               <Segments options={[["carte", "Carte"], ["liste", "Liste"]]} valeur={vue} onChange={setVue} />
             </View>
+
+            {cotes.length > 1 && (
+              <View style={{ marginTop: 12, gap: 8 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text style={[S.fort, { flex: 1 }]}>Trier par</Text>
+                  <Pressable onPress={() => setTri({ ...tri, croissant: !tri.croissant })} accessibilityRole="button"
+                             accessibilityLabel={`Ordre : ${tri.croissant ? TRIS[tri.cle].croissant : TRIS[tri.cle].decroissant}. Inverser`}
+                             style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 12,
+                                      borderRadius: 18, backgroundColor: C.sable }}>
+                    <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{tri.croissant ? "↑" : "↓"}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "700", color: C.encre }}>{tri.croissant ? "Croissant" : "Décroissant"}</Text>
+                  </Pressable>
+                </View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {(Object.keys(TRIS) as CleTri[]).map((cle) => {
+                    const actif = cle === tri.cle;
+                    return (
+                      <Pressable key={cle} onPress={() => setTri({ cle, croissant: cle === "distance" })} accessibilityRole="tab"
+                                 aria-selected={actif}
+                                 style={{ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: "center",
+                                          backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
+                        <Text style={{ fontSize: 13, fontWeight: "700", color: actif ? C.fond : C.encre }}>{TRIS[cle].nom}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                <Text style={S.petit}>
+                  {TRIS[tri.cle].nom} : {tri.croissant ? TRIS[tri.cle].croissant : TRIS[tri.cle].decroissant}. Les numéros de la carte suivent cet ordre.
+                </Text>
+              </View>
+            )}
 
             {!cotes.length && auDela.length > 0 && (
               <Text style={[S.petit, { marginTop: 10 }]}>

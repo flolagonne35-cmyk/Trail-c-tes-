@@ -14,7 +14,7 @@ reste à construire**, par étapes.
 |---|---|---|
 | Nutrition compréhensible | ✅ | Course → Nutrition : « Comment c'est calculé », routine horaire, conseil sur chaque réglage, sources |
 | Tous les boutons qui marchent | ✅ vérifié | `scripts/audit_boutons.js` : 20 écrans, ≈ 420 boutons cliqués un par un, 0 sans effet, 0 erreur de page (20/10) |
-| Filtrer par longueur et par D+ | ✅ | Côtes → Filtres : courtes < 300 m, moyennes 300-800 m, longues ≥ 800 m ; D+ minimum |
+| Filtrer à la valeur près, trier | ✅ | Côtes → « Que cherches-tu ? » : curseurs min–max pour la pente moyenne, le passage le plus raide, la longueur, le D+ et la distance, raccourcis en un geste, sol (goudronné ou non) ; résultats triés par distance, pente, passage le plus raide, longueur ou D+, croissant ou décroissant |
 | Enchaîner des côtes dans une boucle | ✅ Rennes et Nantes Métropole | Côtes → Boucle : distance, nombre de côtes, D+ visé, sans route, sans route passante |
 | Export GPX vers la montre | ✅ | côte, séance et boucle ; s'importe dans Garmin Connect, Coros, Suunto, Strava |
 | Sans réseau | 🟡 | côtes, boucles, recherche de ville, nutrition : oui ; carte : « Carte hors ligne » (5 km autour du départ, ≈ 45 Mo) **écrite mais pas encore essayée sur un téléphone** |
@@ -38,8 +38,9 @@ reste à construire**, par étapes.
 ### Ce qui limite encore
 
 - **Deux métropoles calculées** : Rennes Métropole (848 côtes) et Nantes Métropole, Couëron
-  compris (1 470 côtes). Le réseau des boucles (un fichier par zone, chargé seulement pour la zone
-  du départ) passe de Rennes centre et Nantes–Couëron aux deux métropoles entières. Ailleurs,
+  compris (1 470 côtes). Le réseau des boucles couvre les deux métropoles entières (60 000 et
+  99 000 carrefours, un fichier par zone chargé seulement pour la zone du départ) ; boucles
+  vérifiées depuis Rennes, Saint-Jacques, Couëron et Rezé (0,5 à 2 s sur ordinateur). Ailleurs,
   l'appli le dit et propose la zone la plus proche.
 - **Pas de serveur** : pas de compte, pas de classement entre coureurs, pas de sauvegarde si on
   change de téléphone.

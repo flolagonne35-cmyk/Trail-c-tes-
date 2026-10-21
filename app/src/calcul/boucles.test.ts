@@ -100,3 +100,17 @@ test("zone du départ : emprise avec marge, la plus centrée si plusieurs", asyn
   assert.equal(zoneContenant(zones, { lat: 48.203, lon: -1.95 })?.nom, "a"); // 330 m au-delà du bord
   assert.equal(zoneContenant(zones, { lat: 47.5, lon: -1.9 }), null);
 });
+
+test("départ près d'un petit morceau de voie isolé : accroché au réseau principal", async () => {
+  const { construireGraphe, noeudLePlusProche } = await import("./reseau.ts");
+  // une longue rue de 300 carrefours (tous les 10 m), et un bout isolé de 2 carrefours juste à côté du départ
+  const noeuds: [number, number][] = Array.from({ length: 300 }, (_, i) => [-168000 + i, 4810000]);
+  const aretes = noeuds.slice(1).map((_, i) => [i, i + 1, 10, 0, 0, 0, 0, -1, []]);
+  noeuds.push([-167900, 4810050], [-167899, 4810050]);
+  aretes.push([300, 301, 10, 0, 0, 0, 0, -1, []]);
+  const g = construireGraphe({ source: "", types: ["route"], trafics: ["calme"], noeuds, aretes: aretes as never, noms: [] });
+  assert.equal(g.taille[0], 300);
+  assert.equal(g.taille[300], 2);
+  const n = noeudLePlusProche(g, { lat: 48.1005, lon: -1.67900 });
+  assert.equal(n.noeud, 100); // sur la rue, pas sur le bout isolé (pourtant plus près)
+});

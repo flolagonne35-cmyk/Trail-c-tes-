@@ -19,7 +19,7 @@ catégorie ; en haut à droite, l'avatar ouvre le profil.
 | Catégorie | Section | Ce qu'on y fait |
 |---|---|---|
 | — | **Accueil** (onglet) | coureur, points, semaine ; accès à tout, rangé par catégorie ; côtes proches |
-| Explorer | **Côtes** (onglet) | point de départ (GPS, ville, adresse), Montées / Descentes, filtres (pente, longueur, D+, distance, voie, routes passantes), carte ou liste, carte hors ligne |
+| Explorer | **Côtes** (onglet) | point de départ (GPS, ville, adresse), Montées / Descentes, filtres en plages min–max (pente, passage le plus raide, longueur, D+, distance), sol, voie, routes passantes ; tri croissant ou décroissant ; carte ou liste, carte hors ligne |
 | S'entraîner | **S'entraîner** (onglet) | *Séance* (« 8 × 400 m à 10 % » → 3 endroits), *Boucle* (distance, côtes, D+, sans route → GPX), *Mes progrès* (chronos par côte, allure selon la pente) |
 | Courses | **Course** (onglet) | GPX de la course : *Profil*, *Passages* (à mon allure si connue), *Prépa* (côtes équivalentes près de chez moi) |
 | Courses | **Nutrition** (onglet) | pour la course chargée (plan par ravito) ou pour une simple durée ; tout est expliqué et sourcé |
