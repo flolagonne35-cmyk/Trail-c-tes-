@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-10-21T17:25:42+00:00",
+  "date_utc": "2026-10-21T17:26:53+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 76972,
       "sportifs": 13248,
-      "courses": 366,
+      "courses": 365,
       "exemple_brut": {
         "Nom_du_POI": "Les ateliers Maréis : Je crée ma carte postale de vacances",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|http://schema.org/Event",
@@ -529,7 +529,7 @@
       }
     }
   },
-  "courses": 406,
+  "courses": 405,
   "statut": "ok",
   "apercu": [
     "2026-10-21 La Ronde des Histoires - \"Kunti'o et l'Oiseau de pluie\" (Aigrefeuille-d'Aunis) [] D+None route",
