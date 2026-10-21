@@ -58,6 +58,7 @@ def test_distances_semi_et_marathon():
     assert co.distances("Marathon de Nantes + Semi-marathon + Foulées") == [21.1, 42.2]
     assert co.distances("Semi-marathon de la ville") == [21.1]
     assert co.distances("Marathon, 10 km et semi") == [10, 42.2]
+    assert co.distances("Semi-Marathon de la Chalosse : 5 et 10 km aussi") == [5, 10, 21.1]
 
 
 def test_courses_sur_route():
@@ -85,6 +86,7 @@ def test_cas_reels_du_rapport():
                ("Marche octobre rose", "8 km"), ("Concours de saut d'obstacles", ""),
                ("Eliza Rose : Marathon !", "Soirée DJ techno jusqu'à l'aube"),
                ("Courses de ski FIS internationales Homme - Ski Chrono National Tour", ""),
-               ("Courses à l'hippodrome", "Assistez aux courses à l'hippodrome")]
+               ("Courses à l'hippodrome", "Assistez aux courses à l'hippodrome"),
+               ("Table ronde autour du sport féminin", ""), ("La Ronde des Histoires - Manteau blanc", "")]
     assert [n for n, d in gardes if not co.est_course(n, d)] == []
     assert [n for n, d in ecartes if co.est_course(n, d)] == []

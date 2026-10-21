@@ -52,7 +52,7 @@ EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|stag
                        r"tricot|chant|jeux|dessin|photo|hackathon|code|contes?|echecs|belote|coinche|tarot|scrabble|bridge|"
                        r"loto|quine|concours|cours de|yoga|chiens? de traineau|traineaux?|attelage|veilleur|ronde de nuit|"
                        r"voitures?|tracteurs?|baignoires?|garcons de cafe|serveurs?|regates?|saut d.obstacles|courses? de ski|"
-                       r"ski chrono|slalom|hippodrome|vitrail|spectacle)\b")
+                       r"ski chrono|slalom|hippodrome|vitrail|spectacle|table ronde|histoires?|aquarelle)\b")
 # autres sports, marches et sorties : écartés sauf si le nom dit aussi trail, course, marathon…
 # (« Trail et randonnée pédestre », « Hard'Iden Blanc : trail et ski de randonnée », « VTT et trail »)
 AUTRE_SPORT = re.compile(r"\b(vtt|velo|cyclo\w*|gravel|equestre|cheval|canoe|kayak|moto\w*|rallye|auto|natation|nage|"
@@ -99,7 +99,7 @@ def distances(texte: str) -> list[float]:
             if 1 <= v <= 250:
                 vus.add(round(v, 1))
     t = sans_accents(texte)
-    if not vus and re.search(r"\b(semi|demi)[- ]marathon\b", t):
+    if not any(20 <= v <= 22 for v in vus) and re.search(r"\b(semi|demi)[- ]marathon\b", t):
         vus.add(21.1)
     if not any(v > 40 for v in vus) and re.search(r"(?<!semi-)(?<!semi )(?<!demi-)(?<!demi )\bmarathon\b", t):
         vus.add(42.2)
