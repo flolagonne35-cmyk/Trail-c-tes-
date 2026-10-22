@@ -1,42 +1,71 @@
 # Trail-côtes
 
-Application mobile pour traileurs et coureurs en France : analyser un parcours GPX et trouver
-les côtes proches, à partir des altitudes précises de l'IGN (RGE ALTI, 1 m à 5 m selon les zones).
+Application pour traileurs et coureurs en France : trouver des côtes et des descentes près de chez
+soi (pentes mesurées sur les altitudes IGN), composer une sortie ou une séance, préparer une course
+(plan d'entraînement, temps de passage, nutrition) et trouver les courses à venir.
 
-MVP visé, trois fonctions :
+**Essayer l'appli** : https://trail-cotes.pages.dev (à ajouter sur l'écran d'accueil du téléphone :
+Partager → « Sur l'écran d'accueil »). Elle est republiée automatiquement à chaque changement.
 
-1. **Segmentation de parcours** : import GPX, altitudes recalculées et lissées, segments
-   montée / descente / plat (distance, D+, pente moyenne et max, difficulté).
-2. **Plan nutrition** : eau, glucides et sodium par tronçon entre ravitaillements.
-3. **Côtes à proximité** : liste et carte des côtes autour de l'utilisateur, filtres, profil
-   de pente tous les 50 m.
+## Ce que fait l'appli
 
-Pas de scraping, pas de synchronisation Garmin (API fermée) : les parcours arrivent en GPX.
+| Écran | Fonctions |
+|---|---|
+| Côtes et descentes | recherche par critères en plages (pente, passage le plus raide, longueur, D+, distance, sol, voie, routes passantes), tri, 3 / 5 / 10 meilleures ou toutes, carte ou liste, détail avec pente tous les 50 m, export GPX |
+| S'entraîner | séance du coach (« 8 × 400 m à 10 % » → où la faire), sortie sur mesure (durée ou distance, relief, boucle sur le réseau des chemins, GPX), mes progrès |
+| Course | trouver sa course (nom, format ou GPX), questionnaire, plan semaine par semaine, profil, temps de passage, prépa près de chez soi |
+| Nutrition | glucides, eau et sel par heure et par ravitaillement, expliqués (ACSM, ISSN) |
+| Courses à venir | courses à pied en France par ville, département ou région, filtres et carte (DATAtourisme, OpenAgenda) |
+| Mes courses, Profil | calendrier de l'année, budget ; avatar, sorties GPX, points |
 
-## Structure du dépôt
+Couverture actuelle : Rennes Métropole et Nantes Métropole (côtes et réseau des boucles). Les
+zones se calculent sur GitHub ; pour en ajouter une, l'écrire dans `scripts/zones.json`.
+
+## Organisation du dépôt
 
 ```
-trailcotes/                       code partagé : ign (altitudes), bdtopo (réseau), profil, osm, geo, gpx
-scripts/cotes_rennes.py           grille autour d'un point → altitudes IGN → lissage → pente → zones pentues
-scripts/cotes_bdtopo.py           chemins BD TOPO → profils IGN tous les 10 m → côtes (longueur, pente, D+)
-scripts/valider_cotes.py          validation sur des montées de référence (Ventoux, Alpe d'Huez) + débit de l'API
-scripts/segmenter_gpx.py          GPX → segments montée / descente / plat (fonctionnalité 1)
-scripts/plan_nutrition.py         segments + objectif + ravitos → eau, glucides, sodium par tronçon (fonctionnalité 2)
-scripts/precalcul.py              zone découpée en tuiles → base SQLite de côtes, reprise, recherche « côtes proches »
-scripts/exporter_app.py           côtes et parcours de démonstration → app/assets/data/
-app/                              application Expo (iOS, Android, web) : les 4 écrans de la maquette
-tests/                            tests sans réseau (relief fictif, formats de réponse de l'API)
-resultats/rennes/, rennes_cotes/  sorties du dernier run GitHub Actions (CSV, GeoJSON, PNG, rapport JSON)
-.github/workflows/cotes-rennes.yml  run automatique sur Rennes + signalement des erreurs
-docs/maquette.md                  champs attendus par chaque écran de la maquette
-docs/idees.md                     idées (avatar, points, classement, calendrier…) : fait, à faire, vigilance
-requirements.txt
+app/                    application Expo (iOS, Android, web), voir app/README.md
+  src/calcul/           calculs testés sans réseau (côtes, boucles, séances, plan, nutrition, agenda…)
+  src/ecrans/           un fichier par écran ; src/composants/ : éléments partagés (carte, curseurs…)
+  assets/data/          données précalculées : côtes, réseau par zone, communes, courses à venir
+trailcotes/             code Python partagé : IGN (altitudes), BD TOPO, profils, OSM, géométrie
+scripts/                calculs lancés par GitHub Actions (précalcul des côtes, réseau, courses…)
+tests/                  tests Python sans réseau (pytest -q)
+resultats/              sorties des calculs (bases SQLite, rapports JSON avec réponses brutes)
+docs/feuille-de-route.md  état du projet et ce qu'il reste à faire (dont ce qui revient à Florian)
+CLAUDE.md               règles de travail du projet
 ```
 
-Maquette des 4 écrans : https://claude.ai/artifact/MU9jPStx1URh9ZusPGLrWf
+## Développer
 
+```bash
+cd app && npm install
+npx expo start            # « w » : navigateur, « i » / « a » : téléphone
+npm test                  # calculs
+npm run typecheck         # types (TypeScript strict)
+npm run lint              # style et règles (ESLint)
+npm run build:web         # version web installable dans app/dist
 
-## Script `cotes_rennes.py`
+pip install -r requirements.txt && pytest -q   # côté Python
+node scripts/audit_boutons.js <url>            # clique chaque bouton de chaque écran (Playwright)
+```
+
+## Automatismes GitHub (Actions)
+
+| Workflow | Rôle |
+|---|---|
+| Application (tests) | tests, types, ESLint, expo-doctor, compilation web à chaque changement de l'appli |
+| Appli web en ligne | publie la version web sur Cloudflare Pages (secret `CLOUDFLARE_API_TOKEN`) |
+| Appli Android à installer | fabrique l'APK de test (branche `apk`) |
+| Précalcul des côtes | calcule les côtes des zones de `scripts/zones.json` (API IGN) |
+| Réseau pour les boucles | réseau des chemins de chaque zone (BD TOPO + altitudes) |
+| Calendrier des courses | courses à venir, chaque lundi (DATAtourisme, OpenAgenda) |
+| Communes, Tuiles, Côtes Rennes | recherche de ville hors ligne, carte hors ligne, validation des services IGN |
+| EAS | versions pour les stores (comptes Apple / Google à créer) |
+
+## Détails techniques des calculs
+
+### Script `cotes_rennes.py`
 
 ```bash
 pip install -r requirements.txt
@@ -80,7 +109,7 @@ Ces points viennent de la documentation IGN et seront confirmés par le premier 
 
 Le `rapport.json` garde un extrait de réponse brute pour faire ces corrections.
 
-## Script `cotes_bdtopo.py` : les vraies côtes
+### Script `cotes_bdtopo.py` : les vraies côtes
 
 ```bash
 python scripts/cotes_bdtopo.py                       # autour du centre de Rennes, rayon 2 km
@@ -118,7 +147,7 @@ Limites restantes : racines et cailloux ne sont décrits que là où OSM a `smoo
 `sac_scale` ; Overpass est une API publique à usage raisonnable, l'application devra utiliser
 son propre extrait OSM (Geofabrik) plutôt que l'interroger à chaque requête.
 
-## Validation sur des montées de référence
+### Validation sur des montées de référence
 
 Faute de côtes relevées sur le terrain, `valider_cotes.py` compare le calcul aux chiffres publiés
 de deux ascensions connues (Mont Ventoux par Bédoin : 21,5 km, 1 610 m, 7,5 % ; Alpe d'Huez :
@@ -126,7 +155,7 @@ de deux ascensions connues (Mont Ventoux par Bédoin : 21,5 km, 1 610 m, 7,5 % ;
 le profil IGN et signale « à examiner » au-delà de 5 % d'écart sur la longueur ou le dénivelé.
 Il mesure aussi le débit de l'API altimétrique (GET / POST, lots de 150 à 5 000 points).
 
-## Segmentation GPX et plan nutrition
+### Segmentation GPX et plan nutrition
 
 ```bash
 python scripts/segmenter_gpx.py parcours.gpx --sortie resultats/mon_parcours
@@ -145,7 +174,7 @@ python scripts/plan_nutrition.py resultats/mon_parcours/parcours.json --objectif
   au-dessus de 15 °C ; conversion en gels, barres, litres et pastilles. Sorties `plan.csv`,
   `plan.json`, `plan.md`.
 
-## Précalcul à l'échelle d'un département
+### Précalcul à l'échelle d'un département
 
 Interroger les services à chaque ouverture de l'application serait trop lent (≈ 3 min pour
 4 km × 4 km). `precalcul.py` calcule une zone tuile par tuile (4 km, marge de 500 m pour ne pas
@@ -166,7 +195,7 @@ Débit mesuré de l'API altimétrique (run du 20/10/2026) : 140 points/s en GET 
 GET de 400 points refusé (414, URL trop longue) ; POST en formulaire refusé (500). Les essais
 GET 300 points, POST JSON et requêtes parallèles sont mesurés à chaque validation.
 
-## GitHub Actions
+### GitHub Actions
 
 Le workflow **Côtes Rennes (API IGN)** lance trois jobs en parallèle : `grille`, `bdtopo` et
 `validation` (montées de référence, puis segmentation et plan nutrition sur la trace obtenue).
@@ -181,20 +210,8 @@ Il :
 
 ## Feuille de route
 
-1. ✅ Script + README.
-2. ✅ Workflow Rennes avec résultats versionnés et signalement des erreurs.
-3. ✅ API altimétrique vérifiée (run du 20/10/2026) : 270 requêtes de 150 points, 100 % de points
-   valides, aucune erreur, ~0,8 s par requête ; `acc` vaut toujours « Variable suivant la source de
-   mesure » (inutilisable comme précision).
-4. ✅ `cotes_bdtopo.py` : côtes le long des tronçons BD TOPO, accès piétons, revêtement OSM,
-   fond Plan IGN ; fusion des montées coupées par de petites contre-pentes.
-5. ✅ Validation sur l'Alpe d'Huez et le Ventoux (chiffres publiés), mesure du débit de l'API.
-6. ✅ Segmentation GPX et plan nutrition (scripts et application).
-7. ✅ Précalcul par tuiles dans une base SQLite (Rennes) ; 🚧 à étendre à l'Ille-et-Vilaine puis
-   à la France (≈ 620 points/s en POST JSON).
-8. ✅ Application Expo (Accueil, Côtes, Course, Profil ; recherche dans toutes les communes de France) sur la base de Rennes ; 🚧 tester sur téléphone.
-9. ✅ Avatar, points vérifiés par GPX (répétitions de côtes comptées), captures en attente,
-   temps de passage, séances de côtes ; 🚧 serveur pour le classement (voir `docs/idees.md`).
+Voir `docs/feuille-de-route.md` : ce qui est fait, ce qui limite encore, et ce que Florian doit
+faire (comptes développeur, stores, partenariats, secrets).
 
 ## Licences des données
 
@@ -205,3 +222,6 @@ Si l'application diffuse une base de côtes enrichie par OSM, cette base doit el
 publiée sous ODbL (partage à l'identique) ; les champs issus d'OSM sont isolés
 (`surface_osm`, `technicite`, `revetement` quand `source_revetement` commence par « OSM ») pour
 pouvoir les retirer si besoin.
+
+Courses à venir : DATAtourisme (ADN Tourisme) et OpenAgenda, Licence Ouverte 2.0 ; le producteur
+et la date de mise à jour de chaque course sont affichés dans l'appli.

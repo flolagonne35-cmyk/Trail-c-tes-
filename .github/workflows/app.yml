@@ -24,6 +24,8 @@ jobs:
         run: npm test
       - name: Vérification des types
         run: npm run typecheck
+      - name: Style et règles du code (ESLint)
+        run: npm run lint
       - name: Contrôle du projet Expo (expo-doctor)
         run: npx -y expo-doctor@latest
       - name: Compilation web
