@@ -1,16 +1,13 @@
-// Onglet « Accueil » : mon coureur et ma semaine, puis tout ce que fait l'appli, rangé par catégorie
-// (comme le menu), et les côtes proches.
+// Onglet « Accueil » : mon coureur, mes points et ma semaine. Les rubriques de l'appli sont dans les
+// onglets du bas et le menu ☰ : l'accueil ne les répète pas.
 
 import { Pressable, ScrollView, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { Avatar } from "../avatar/Avatar.tsx";
-import { joursAvant, prochaine, type CourseInscrite } from "../calcul/calendrier.ts";
-import { kmLisibles, type CoteProche } from "../calcul/cotes.ts";
 import { score } from "../calcul/points.ts";
-import { Icone, nombre, Section } from "../composants/communs.tsx";
+import { nombre } from "../composants/communs.tsx";
 import type { Destination } from "../composants/Menu.tsx";
-import { couleurPente } from "../composants/Carte.tsx";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
 
@@ -59,87 +56,10 @@ function Bandeau({ profil, onPress }: { profil: Profil; onPress: () => void }) {
   );
 }
 
-function Tuile({ icone, titre, texte, onPress, accent }: {
-  icone: Parameters<typeof Icone>[0]["nom"]; titre: string; texte: string; onPress: () => void; accent?: boolean;
-}) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${titre}. ${texte}`}
-               style={({ pressed }) => ({ flex: 1, minWidth: 0, borderRadius: 18, padding: 14, gap: 10, minHeight: 128,
-                                          backgroundColor: accent ? C.montee : C.blanc, opacity: pressed ? 0.85 : 1 })}>
-      <View style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center",
-                     backgroundColor: accent ? "#FFFFFF33" : C.monteeClair }}>
-        <Icone nom={icone} couleur={accent ? C.blanc : C.monteeFonce} />
-      </View>
-      <View>
-        <Text style={{ fontSize: 16, fontWeight: "800", color: accent ? C.blanc : C.encre }}>{titre}</Text>
-        <Text style={{ fontSize: 12, marginTop: 2, color: accent ? "#FFFFFFD9" : C.gris }}>{texte}</Text>
-      </View>
-    </Pressable>
-  );
-}
-
-function Categorie({ titre, children }: { titre: string; children: React.ReactNode }) {
-  return (
-    <View style={{ marginTop: 18, gap: 8 }}>
-      <Text style={[S.surtitre, { fontSize: 12 }]}>{titre}</Text>
-      <View style={{ flexDirection: "row", gap: 10 }}>{children}</View>
-    </View>
-  );
-}
-
-export function EcranAccueil({ profil, proches, lieu, nbCotes, aller, ouvrirCote, courses }: {
-  profil: Profil; proches: CoteProche[]; lieu: string; nbCotes: number;
-  aller: (d: Destination) => void; ouvrirCote: (c: CoteProche, rang: number) => void; courses: CourseInscrite[];
-}) {
-  const suivante = prochaine(courses);
+export function EcranAccueil({ profil, aller }: { profil: Profil; aller: (d: Destination) => void }) {
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
       <Bandeau profil={profil} onPress={() => aller({ page: "profil" })} />
-
-      <Categorie titre="S'entraîner">
-        <Tuile accent icone="boucle" titre="Préparer une sortie" texte="2 h sur du plat, 10 km avec côtes… : GPX pour la montre"
-               onPress={() => aller({ page: "entrainement", mode: "boucle" })} />
-        <Tuile icone="seance" titre="Séance du coach" texte="« 8 × 400 m à 10 % » : où la faire"
-               onPress={() => aller({ page: "entrainement", mode: "seance" })} />
-      </Categorie>
-      <Categorie titre="Explorer">
-        <Tuile icone="cotes" titre="Côtes" texte={`${nbCotes} mesurées au mètre près`} onPress={() => aller({ page: "cotes", mode: "montee" })} />
-        <Tuile icone="cotes" titre="Descentes" texte="Pour préparer les quadriceps" onPress={() => aller({ page: "cotes", mode: "descente" })} />
-      </Categorie>
-      <Categorie titre="Courses">
-        <Tuile icone="calendrier" titre="Mes courses"
-               texte={suivante ? `${suivante.nom} : J-${joursAvant(suivante.date)}` : "Calendrier, budget, compte à rebours"}
-               onPress={() => aller({ page: "courses" })} />
-        <Tuile icone="course" titre="Préparer" texte="Profil, passages, prépa" onPress={() => aller({ page: "course" })} />
-        <Tuile icone="nutrition" titre="Nutrition" texte="Glucides, eau, sel" onPress={() => aller({ page: "nutrition" })} />
-      </Categorie>
-
-      <Pressable onPress={() => aller({ page: "profil" })} accessibilityRole="button"
-                 style={[S.ligne, { marginTop: 14, paddingVertical: 14 }]}>
-        <Icone nom="plus" couleur={C.montee} />
-        <View style={{ flex: 1 }}>
-          <Text style={S.fort}>Ajouter une sortie</Text>
-          <Text style={S.petit}>GPX de ta montre : points, côtes montées et chronos</Text>
-        </View>
-        <Icone nom="fleche" couleur={C.gris} taille={18} />
-      </Pressable>
-
-      <Section titre={`Près de ${lieu}`} action="Tout voir" onAction={() => aller({ page: "cotes", mode: "montee" })}>
-        <View style={{ gap: 8 }}>
-          {proches.length === 0 && <Text style={S.petit}>Aucune côte calculée près d'ici pour l'instant.</Text>}
-          {proches.slice(0, 3).map((c, i) => (
-            <Pressable key={c.id} onPress={() => ouvrirCote(c, i + 1)} accessibilityRole="button" style={S.ligne}>
-              <View style={{ width: 6, alignSelf: "stretch", borderRadius: 3, backgroundColor: couleurPente(c.pente_moy_pct) }} />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={S.fort}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {nombre(c.pente_moy_pct, 1)} %</Text>
-                <Text style={S.petit} numberOfLines={1}>{c.adresse || c.nom || c.type_voie}</Text>
-              </View>
-              <Text style={S.fort}>{kmLisibles(c.distance_m)}</Text>
-              <Icone nom="fleche" couleur={C.gris} taille={18} />
-            </Pressable>
-          ))}
-        </View>
-      </Section>
     </ScrollView>
   );
 }

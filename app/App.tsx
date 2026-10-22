@@ -14,7 +14,7 @@ import { Avatar } from "./src/avatar/Avatar.tsx";
 import { EditeurAvatar } from "./src/avatar/Editeur.tsx";
 import { apparenceAleatoire } from "./src/avatar/modele.ts";
 import type { CourseInscrite } from "./src/calcul/calendrier.ts";
-import { cotesProches, type Cote, type CoteProche, type Filtres, type Sens } from "./src/calcul/cotes.ts";
+import { type Cote, type CoteProche, type Filtres, type Sens } from "./src/calcul/cotes.ts";
 import type { Lieu } from "./src/calcul/geoservices.ts";
 import { PREFERENCES_DEFAUT, type Ravito } from "./src/calcul/nutrition.ts";
 import { mesPassages } from "./src/calcul/points.ts";
@@ -167,8 +167,6 @@ function Contenu() {
   const modele = useMemo(() => (profil ? modeleAllure(fusionner(profil.activites.filter((a) => a.statut === "validee").map((a) => a.allures))) : null),
                          [profil]);
 
-  // l'accueil montre les côtes proches avec les filtres par défaut
-  const proches = useMemo(() => cotesProches(COTES, depart.position, { ...FILTRES_DEFAUT, rayonM: 10000 }), [depart]);
 
   useEffect(() => setRavitos([]), [parcours]);
 
@@ -212,8 +210,7 @@ function Contenu() {
                          nomDepart={depart.nom} retour={() => setDetail(null)}
                          passages={mesPassages(profil.activites, detail.cote)} />;
   } else if (page === "accueil") {
-    ecran = <EcranAccueil profil={profil} proches={proches} lieu={depart.nom} nbCotes={COTES.length} aller={aller}
-                          ouvrirCote={ouvrirCote} courses={courses} />;
+    ecran = <EcranAccueil profil={profil} aller={aller} />;
   } else if (page === "cotes") {
     ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} source={SOURCE} mode={modeCotes} setMode={setModeCotes}
                         resultats={resultatsCotes} setResultats={setResultatsCotes} />;
