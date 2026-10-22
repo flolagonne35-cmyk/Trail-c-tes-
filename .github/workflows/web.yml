@@ -38,11 +38,13 @@ jobs:
       - name: Compilation web, installable (manifeste et icônes de public/, balises ajoutées par scripts/pwa.mjs)
         run: npm run build:web
       - name: Publier sur Cloudflare Pages
-        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        if: env.CLOUDFLARE_API_TOKEN != ''
         run: |
+          # l'identifiant de compte est facultatif : wrangler le retrouve avec le jeton
+          [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || unset CLOUDFLARE_ACCOUNT_ID
           # crée le projet la première fois (sans effet s'il existe déjà), puis publie en production
           npx -y wrangler@3 pages project create "$PROJET" --production-branch "$GITHUB_REF_NAME" || true
           npx -y wrangler@3 pages deploy dist --project-name "$PROJET" --branch "$GITHUB_REF_NAME" --commit-dirty=true
       - name: Secrets absents
-        if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
+        if: env.CLOUDFLARE_API_TOKEN == ''
         run: echo "::warning::Ajoute les secrets CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID pour publier l'appli web."
