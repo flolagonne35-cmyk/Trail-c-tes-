@@ -3,7 +3,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Platform, Share } from "react-native";
+import { Linking, Platform, Share } from "react-native";
 
 /** Ouvre le sélecteur ; renvoie { nom, texte } ou null si l'utilisateur annule. */
 export async function choisirGpx(): Promise<{ nom: string; texte: string } | null> {
@@ -33,6 +33,16 @@ export async function partagerFichier(nomFichier: string, contenu: string, type 
 
 export async function partagerTexte(titre: string, texte: string) {
   if (Platform.OS === "web") {
+    // PWA : feuille de partage du téléphone (SMS, WhatsApp…) ; sinon un SMS prérempli ; sinon un fichier
+    const nav = typeof navigator !== "undefined" ? (navigator as Navigator & { share?: (d: ShareData) => Promise<void> }) : null;
+    if (nav?.share) {
+      try { await nav.share({ title: titre, text: texte }); } catch { /* partage annulé */ }
+      return;
+    }
+    if (/Android|iPhone|iPad/i.test(nav?.userAgent ?? "")) {
+      await Linking.openURL(`sms:?&body=${encodeURIComponent(texte)}`);
+      return;
+    }
     await partagerFichier(`${titre}.txt`, texte, "text/plain");
     return;
   }

@@ -1,12 +1,19 @@
-// Onglet « Accueil » : mon coureur, mes points et ma semaine. Les rubriques de l'appli sont dans les
-// onglets du bas et le menu ☰ : l'accueil ne les répète pas.
+// Onglet « Accueil » : mon coureur, mes points et ma semaine, un petit mot d'encouragement, la
+// séance du jour (d'après mon plan) et « Je pars courir » pour prévenir un proche. Les rubriques de
+// l'appli sont dans les onglets du bas et le menu ☰ : l'accueil ne les répète pas.
 
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { Avatar } from "../avatar/Avatar.tsx";
 import { score } from "../calcul/points.ts";
-import { nombre } from "../composants/communs.tsx";
+import { messageDepart, petitMot, seanceDuJour } from "../calcul/jour.ts";
+import { genererPlan, type Seance } from "../calcul/plan.ts";
+import { Icone, nombre, Segments } from "../composants/communs.tsx";
+import type { PointDepart } from "../composants/BarreDepart.tsx";
+import { partagerTexte } from "../fichiers.ts";
+import type { MonPlan } from "../monPlan.ts";
 import type { Destination } from "../composants/Menu.tsx";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
@@ -56,10 +63,116 @@ function Bandeau({ profil, onPress }: { profil: Profil; onPress: () => void }) {
   );
 }
 
-export function EcranAccueil({ profil, aller }: { profil: Profil; aller: (d: Destination) => void }) {
+const DUREES: [string, string][] = [["45", "45 min"], ["60", "1 h"], ["90", "1 h 30"], ["120", "2 h"], ["180", "3 h"]];
+const jourCourt = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+
+function Carte({ titre, children }: { titre: string; children: React.ReactNode }) {
+  return (
+    <View style={[S.carte, { gap: 10, padding: 16 }]}>
+      <Text style={[S.surtitre, { fontSize: 12 }]} accessibilityRole="header">{titre}</Text>
+      {children}
+    </View>
+  );
+}
+
+/** Séance du jour, tirée du plan d'entraînement de ma course (Course → Plan). */
+function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSortie }: {
+  monPlan: MonPlan; faites: number; allurePlat: number; aller: (d: Destination) => void;
+  onSeance: (texte: string) => void; onSortie: (p: NonNullable<Seance["sortie"]>) => void;
+}) {
+  const { cible, questionnaire } = monPlan;
+  const plan = useMemo(() => (cible && questionnaire ? genererPlan(cible, questionnaire, allurePlat) : null), [cible, questionnaire, allurePlat]);
+  const r = seanceDuJour(plan, faites, cible?.nom ?? "", cible?.date);
+  const bouton = (texte: string, onPress: () => void) => (
+    <Pressable onPress={onPress} accessibilityRole="button" style={S.bouton}><Text style={S.boutonTexte}>{texte}</Text></Pressable>
+  );
+  if (r.cas === "pas_de_plan" || r.cas === "fini") {
+    return (
+      <Carte titre="Séance du jour">
+        <Text style={S.fort}>{r.cas === "fini" ? "Ta course est passée : bravo !" : "Pas encore de plan d'entraînement"}</Text>
+        <Text style={S.petit}>Choisis ta course et réponds au mini questionnaire : l'appli te propose chaque jour la séance à faire.</Text>
+        {bouton(r.cas === "fini" ? "Préparer la prochaine course" : "Créer mon plan", () => aller({ page: "course" }))}
+      </Carte>
+    );
+  }
+  if (r.cas === "course") {
+    return (
+      <Carte titre="Séance du jour">
+        <Text style={[S.h2, { fontSize: 20 }]}>C'est le jour J : {r.nom} !</Text>
+        <Text style={S.petit}>Échauffe-toi 10 à 15 min, pars prudemment et suis ton plan de nutrition.</Text>
+        {bouton("Ma nutrition de course", () => aller({ page: "nutrition" }))}
+      </Carte>
+    );
+  }
+  if (r.cas === "avant_plan") {
+    return (
+      <Carte titre="Séance du jour">
+        <Text style={S.fort}>Ton plan commence le {jourCourt(r.debut)}</Text>
+        <Text style={S.petit}>D'ici là, cours comme d'habitude, sans forcer.</Text>
+      </Carte>
+    );
+  }
+  if (r.cas === "semaine_faite") {
+    return (
+      <Carte titre="Séance du jour">
+        <Text style={S.fort}>Repos ou footing léger : ta semaine est faite</Text>
+        <Text style={S.petit}>Semaine {r.semaine.n} · {r.semaine.phase.toLowerCase()}. La récupération fait partie de l'entraînement.</Text>
+      </Carte>
+    );
+  }
+  const x = r.seance;
+  return (
+    <Carte titre={`Séance du jour · ${r.rang}/${r.total} de la semaine`}>
+      <Text style={[S.h2, { fontSize: 20 }]}>{x.titre}</Text>
+      <Text style={[S.petit, { color: C.encre, fontSize: 14 }]}>{x.detail}</Text>
+      <Text style={S.petit}>≈ {x.minutes} min · semaine {r.semaine.n} · {r.semaine.phase.toLowerCase()} · objectif {cible?.nom}</Text>
+      {x.seance ? bouton("Où la faire", () => onSeance(x.seance!))
+        : x.sortie ? bouton("Préparer ma sortie", () => onSortie(x.sortie!))
+        : bouton("Voir mon plan", () => aller({ page: "course" }))}
+    </Carte>
+  );
+}
+
+/** « Je pars courir » : un message pour un proche (heure de retour, point de départ), envoyé par moi. */
+function JeParsCourir({ depart }: { depart: PointDepart }) {
+  const [duree, setDuree] = useState("60");
+  return (
+    <Carte titre="Sécurité">
+      <Text style={S.fort}>Je pars courir</Text>
+      <Text style={S.petit}>
+        Préviens un proche : heure de départ, retour prévu et point de départ ({depart.gps ? "ta position" : depart.nom}).
+        Rien n'est envoyé sans toi : tu choisis le contact dans le message.
+      </Text>
+      <Text style={[S.fort, { fontWeight: "600" }]}>Durée prévue</Text>
+      <Segments options={DUREES} valeur={duree} onChange={setDuree} />
+      <Pressable onPress={() => partagerTexte("Je pars courir", messageDepart(Number(duree), { nom: depart.nom, ...depart.position, gps: depart.gps }))}
+                 accessibilityRole="button" style={[S.bouton, { flexDirection: "row", gap: 8 }]}>
+        <Icone nom="position" couleur={C.fond} taille={18} />
+        <Text style={S.boutonTexte}>Prévenir un proche</Text>
+      </Pressable>
+    </Carte>
+  );
+}
+
+export function EcranAccueil({ profil, aller, monPlan, depart, allurePlat, onSeance, onSortie }: {
+  profil: Profil; aller: (d: Destination) => void; monPlan: MonPlan; depart: PointDepart; allurePlat: number;
+  onSeance: (texte: string) => void; onSortie: (p: NonNullable<Seance["sortie"]>) => void;
+}) {
+  const s = semaine(profil);
+  // objectif de la semaine : les séances choisies dans mon questionnaire, sinon 3
+  const objectif = monPlan.questionnaire?.seances ?? 3;
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
       <Bandeau profil={profil} onPress={() => aller({ page: "profil" })} />
+      <View style={{ flexDirection: "row", gap: 10, alignItems: "center", marginTop: 12, padding: 14, borderRadius: 16, backgroundColor: C.monteeClair }}>
+        <Text style={{ fontSize: 22 }}>💪</Text>
+        <Text style={{ flex: 1, fontSize: 15, fontWeight: "700", color: C.monteeFonce }}>{petitMot(s.sorties, objectif, profil.prenom)}</Text>
+      </View>
+      <SeanceDuJourCarte monPlan={monPlan} faites={s.sorties} allurePlat={allurePlat} aller={aller} onSeance={onSeance} onSortie={onSortie} />
+      <JeParsCourir depart={depart} />
+      <Text style={[S.petit, { marginTop: 14 }]}>
+        Les entraînements comptés sont tes sorties ajoutées en GPX (Profil) depuis lundi.
+      </Text>
     </ScrollView>
   );
 }

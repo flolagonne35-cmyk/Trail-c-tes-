@@ -210,7 +210,9 @@ function Contenu() {
                          nomDepart={depart.nom} retour={() => setDetail(null)}
                          passages={mesPassages(profil.activites, detail.cote)} />;
   } else if (page === "accueil") {
-    ecran = <EcranAccueil profil={profil} aller={aller} />;
+    ecran = <EcranAccueil profil={profil} aller={aller} monPlan={monPlan} depart={depart} allurePlat={ALLURE_PLAT_MIN_KM}
+                          onSeance={(texte) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "entrainement", mode: "seance" }); }}
+                          onSortie={(p) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "entrainement", mode: "boucle" }); }} />;
   } else if (page === "cotes") {
     ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} source={SOURCE} mode={modeCotes} setMode={setModeCotes}
                         resultats={resultatsCotes} setResultats={setResultatsCotes} />;
