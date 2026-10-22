@@ -8,6 +8,8 @@ import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg"
 
 import { Avatar } from "../avatar/Avatar.tsx";
 import { score } from "../calcul/points.ts";
+import { coursesAVenir, FILTRES_AGENDA, formatsLisibles } from "../calcul/agenda.ts";
+import { kmLisibles } from "../calcul/cotes.ts";
 import { messageDepart, petitMot, seanceDuJour } from "../calcul/jour.ts";
 import { genererPlan, type Seance } from "../calcul/plan.ts";
 import { Icone, nombre, Segments } from "../composants/communs.tsx";
@@ -17,6 +19,7 @@ import type { MonPlan } from "../monPlan.ts";
 import type { Destination } from "../composants/Menu.tsx";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
+import { AGENDA } from "./Agenda.tsx";
 
 function semaine(profil: Profil) {
   const lundi = new Date();
@@ -133,6 +136,37 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
   );
 }
 
+/** Les 3 prochaines courses à moins de 30 km du point de départ (calendrier « Courses à venir »). */
+function CoursesPres({ depart, aller }: { depart: PointDepart; aller: (d: Destination) => void }) {
+  const proches = useMemo(() => coursesAVenir(AGENDA, depart.position, { ...FILTRES_AGENDA, rayonKm: 30, moisMax: 3 }).slice(0, 3),
+                          [depart.position]);
+  return (
+    <Carte titre={`Courses près de ${depart.gps ? "chez toi" : depart.nom}`}>
+      {!proches.length && <Text style={S.petit}>Aucune course connue à moins de 30 km dans les 3 prochains mois.</Text>}
+      {proches.map((c) => (
+        <Pressable key={c.id} onPress={() => aller({ page: "agenda" })} accessibilityRole="button"
+                   accessibilityLabel={`${c.nom}, ${c.commune}, le ${jourCourt(c.date)}`}
+                   style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+          <View style={{ width: 46, alignItems: "center", backgroundColor: c.type === "trail" ? C.monteeClair : C.platClair, borderRadius: 10, paddingVertical: 4 }}>
+            <Text style={{ fontSize: 18, fontWeight: "900", color: C.encre }}>{new Date(`${c.date}T12:00:00`).getDate()}</Text>
+            <Text style={{ fontSize: 11, fontWeight: "700", color: C.gris }}>{new Date(`${c.date}T12:00:00`).toLocaleDateString("fr-FR", { month: "short" })}</Text>
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={S.fort} numberOfLines={1}>{c.nom}</Text>
+            <Text style={S.petit} numberOfLines={1}>
+              {c.commune} · à {kmLisibles(c.distance_m)}{c.distances_km.length ? ` · ${formatsLisibles(c.distances_km)}` : ""}
+            </Text>
+          </View>
+          <Icone nom="fleche" couleur={C.gris} taille={18} />
+        </Pressable>
+      ))}
+      <Pressable onPress={() => aller({ page: "agenda" })} accessibilityRole="button" style={S.boutonClair}>
+        <Text style={S.boutonClairTexte}>Toutes les courses à venir</Text>
+      </Pressable>
+    </Carte>
+  );
+}
+
 /** « Je pars courir » : un message pour un proche (heure de retour, point de départ), envoyé par moi. */
 function JeParsCourir({ depart }: { depart: PointDepart }) {
   const [duree, setDuree] = useState("60");
@@ -169,6 +203,7 @@ export function EcranAccueil({ profil, aller, monPlan, depart, allurePlat, onSea
         <Text style={{ flex: 1, fontSize: 15, fontWeight: "700", color: C.monteeFonce }}>{petitMot(s.sorties, objectif, profil.prenom)}</Text>
       </View>
       <SeanceDuJourCarte monPlan={monPlan} faites={s.sorties} allurePlat={allurePlat} aller={aller} onSeance={onSeance} onSortie={onSortie} />
+      <CoursesPres depart={depart} aller={aller} />
       <JeParsCourir depart={depart} />
       <Text style={[S.petit, { marginTop: 14 }]}>
         Les entraînements comptés sont tes sorties ajoutées en GPX (Profil) depuis lundi.
