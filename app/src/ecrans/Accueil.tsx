@@ -3,7 +3,7 @@
 // l'appli sont dans les onglets du bas et le menu ☰ : l'accueil ne les répète pas.
 
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from "react-native-svg";
 
 import { Avatar } from "../avatar/Avatar.tsx";
@@ -168,8 +168,25 @@ function CoursesPres({ depart, aller }: { depart: PointDepart; aller: (d: Destin
 }
 
 /** « Je pars courir » : un message pour un proche (heure de retour, point de départ), envoyé par moi. */
+// Position en direct, écran verrouillé : les applis faites pour (WhatsApp, Localiser, montres) le font
+// de façon fiable et économe ; une page web (PWA) ne peut pas suivre le GPS écran éteint.
+type Suivi = "whatsapp" | "iphone" | "montre";
+const SUIVIS: [Suivi, string][] = [["whatsapp", "WhatsApp"], ["iphone", "iPhone"], ["montre", "Montre"]];
+const ETAPES: Record<Suivi, string> = {
+  whatsapp: "Le message s'ouvre dans WhatsApp : choisis le proche, envoie, puis dans la conversation touche ＋ (ou 📎) → Position → Partager la position en direct → 1 heure (ou 8 heures pour une longue sortie).",
+  iphone: "Envoie d'abord le message, puis dans Localiser : Moi → Partager ma position → choisis le proche → Partager pendant une heure (ou jusqu'à la fin de la journée).",
+  montre: "Garmin : dans Garmin Connect, menu → Sécurité et suivi → LiveTrack, puis lance l'activité sur la montre : tes contacts reçoivent le lien. Strava : Beacon dans l'écran d'enregistrement (abonnement). Coros, Suunto : suivi en direct dans leur appli.",
+};
+
+function ouvrir(url: string, repli?: string) {
+  Linking.openURL(url).catch(() => (repli ? Linking.openURL(repli).catch(() => undefined) : undefined));
+}
+
+/** « Je pars courir » : message pour un proche (heure de retour, point de départ) et position en direct. */
 function JeParsCourir({ depart }: { depart: PointDepart }) {
   const [duree, setDuree] = useState("60");
+  const [suivi, setSuivi] = useState<Suivi>("whatsapp");
+  const message = () => messageDepart(Number(duree), { nom: depart.nom, ...depart.position, gps: depart.gps });
   return (
     <Carte titre="Sécurité">
       <Text style={S.fort}>Je pars courir</Text>
@@ -179,11 +196,33 @@ function JeParsCourir({ depart }: { depart: PointDepart }) {
       </Text>
       <Text style={[S.fort, { fontWeight: "600" }]}>Durée prévue</Text>
       <Segments options={DUREES} valeur={duree} onChange={setDuree} />
-      <Pressable onPress={() => partagerTexte("Je pars courir", messageDepart(Number(duree), { nom: depart.nom, ...depart.position, gps: depart.gps }))}
+      <Pressable onPress={() => partagerTexte("Je pars courir", message())}
                  accessibilityRole="button" style={[S.bouton, { flexDirection: "row", gap: 8 }]}>
         <Icone nom="position" couleur={C.fond} taille={18} />
         <Text style={S.boutonTexte}>Prévenir un proche</Text>
       </Pressable>
+
+      <View style={{ gap: 8, marginTop: 6, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.aire }}>
+        <Text style={S.fort}>Me suivre en direct</Text>
+        <Text style={S.petit}>Pour que ton proche voie où tu es pendant la sortie, même écran verrouillé :</Text>
+        <Segments options={SUIVIS} valeur={suivi} onChange={setSuivi} />
+        <Text style={[S.petit, { color: C.encre, fontSize: 14, lineHeight: 20 }]}>{ETAPES[suivi]}</Text>
+        {suivi === "whatsapp" && (
+          <Pressable onPress={() => ouvrir(`https://wa.me/?text=${encodeURIComponent(message())}`)} accessibilityRole="button" style={S.boutonClair}>
+            <Text style={S.boutonClairTexte}>Envoyer par WhatsApp</Text>
+          </Pressable>
+        )}
+        {suivi === "iphone" && (
+          <Pressable onPress={() => ouvrir("findmy://")} accessibilityRole="button" style={S.boutonClair}>
+            <Text style={S.boutonClairTexte}>Ouvrir Localiser</Text>
+          </Pressable>
+        )}
+        {suivi === "montre" && (
+          <Pressable onPress={() => ouvrir("strava://", "https://www.strava.com")} accessibilityRole="button" style={S.boutonClair}>
+            <Text style={S.boutonClairTexte}>Ouvrir Strava</Text>
+          </Pressable>
+        )}
+      </View>
     </Carte>
   );
 }
