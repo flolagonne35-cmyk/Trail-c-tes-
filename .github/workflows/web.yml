@@ -3,7 +3,7 @@ name: Appli web en ligne (Cloudflare Pages)
 # À chaque changement de l'appli, la version web est reconstruite et publiée sur Cloudflare Pages
 # (projet « trail-cotes », adresse https://trail-cotes.pages.dev), installable sur l'écran
 # d'accueil du téléphone (PWA). Il faut les secrets CLOUDFLARE_API_TOKEN (permission « Pages :
-# Edit ») et CLOUDFLARE_ACCOUNT_ID ; sans eux, la publication est sautée.
+# Edit ») ; CLOUDFLARE_ACCOUNT_ID est facultatif. Sans jeton, la publication est sautée.
 
 on:
   workflow_dispatch:
