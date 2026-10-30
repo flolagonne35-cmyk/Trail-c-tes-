@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-30T18:06:00+00:00",
+  "date_utc": "2026-10-30T23:37:30+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -159,8 +159,10 @@
       "gravel": 50,
       "paved": 40
     },
-    "erreurs": [],
-    "duree_s": 33.1
+    "erreurs": [
+      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a"
+    ],
+    "duree_s": 38.1
   },
   "fond_erreurs": [],
   "wfs": {
@@ -279,7 +281,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.7
+    "duree_s": 5.5
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -290,7 +292,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 25.5,
+    "duree_s": 22.1,
     "codes_http": {
       "200": 7
     },
