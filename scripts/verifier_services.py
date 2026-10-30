@@ -78,7 +78,7 @@ def main(argv=None) -> int:
     ]
     for profil in ("car", "pedestrian"):
         resultats.append(appeler(f"itinéraire {profil}", ITINERAIRE, {
-            "resource": "bdtopo-osrm", "profile": profil, "optimization": "fastest", "start": dep, "end": arr,
+            "resource": "bdtopo-valhalla", "profile": profil, "optimization": "fastest", "start": dep, "end": arr,
             "distanceUnit": "meter", "timeUnit": "minute", "getSteps": "false", "geometryFormat": "geojson"},
             lire_itineraire))
 

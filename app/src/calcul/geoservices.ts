@@ -82,7 +82,7 @@ export function adresseDe(p: Position): Promise<string | null> {
 
 export async function itineraire(depart: Position, arrivee: Position, profil: "car" | "pedestrian"): Promise<Trajet | null> {
   const params = new URLSearchParams({
-    resource: "bdtopo-osrm", profile: profil, optimization: "fastest",
+    resource: "bdtopo-valhalla", profile: profil, optimization: "fastest",
     start: `${depart.lon.toFixed(6)},${depart.lat.toFixed(6)}`, end: `${arrivee.lon.toFixed(6)},${arrivee.lat.toFixed(6)}`,
     distanceUnit: "meter", timeUnit: "minute", getSteps: "false", geometryFormat: "geojson",
   });
