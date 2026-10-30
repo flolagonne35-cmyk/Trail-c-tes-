@@ -1,17 +1,19 @@
 {
-  "date_utc": "2026-10-21T00:12:23+00:00",
+  "date_utc": "2026-10-30T23:30:29+00:00",
   "statut": "ok",
   "resume": {
     "Zone": "47.99,-1.86,48.21,-1.50",
     "Tuiles": "58 faites / 49 (-9 restantes)",
-    "Ce passage": "49 tuiles ok, 0 en échec",
+    "Ce passage": "0 tuiles ok, 0 en échec",
     "Côtes dans la base": 848,
-    "Adresses trouvées / en échec (ce passage)": "680 / 0",
+    "Adresses trouvées / en échec (ce passage)": "0 / 0",
     "Durée moyenne par tuile": "105 s",
     "Points altimétriques": 1203767
   },
   "parametres": {
     "zone": "47.99,-1.86,48.21,-1.50",
+    "departement": null,
+    "duree_max": 0,
     "tuile": 4000,
     "marge": 500,
     "max_tuiles": 0,
