@@ -72,6 +72,8 @@ jobs:
             sleep $((i * 20))
           done
           python -c "import json; r=json.load(open('resultats/base/rapport_dep_${DEP}.json')); print('## ${DEP} : ' + str(r['resume']))" >> "$GITHUB_STEP_SUMMARY"
+          # l'appli web sert les côtes par département : republiée dès qu'un département a avancé
+          gh workflow run web.yml --ref "$GITHUB_REF_NAME" || true
 
   suite:
     needs: calcul

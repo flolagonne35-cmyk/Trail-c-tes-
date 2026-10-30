@@ -60,3 +60,11 @@ viennent en direct du WMTS de la Géoplateforme (jusqu'au zoom 18).
   `calcul.test.ts` vérifie qu'ils donnent les mêmes résultats sur la même trace.
 - `src/ecrans/`, `src/composants/` : interface.
 - Versions des paquets : celles d'Expo SDK 58 (`node_modules/expo/bundledNativeModules.json`).
+
+## Côtes de toute la France
+
+Les côtes de chaque département sont calculées sur GitHub (workflow « Précalcul des côtes
+(France) ») et servies avec la version web, dans `/cotes/` (un fichier par département et un
+`index.json`). L'appli charge les départements à moins de 40 km du point de départ
+(`src/cotesFrance.ts`) ; Rennes et Nantes restent embarquées pour le hors-ligne.
+
