@@ -119,3 +119,30 @@ def test_reseau_par_zone_et_index(tmp_path):
     ts = ir.index(tmp_path)
     assert 'nom: "rennes", libelle: "Rennes Métropole", emprise: [48.1, -1.7, 48.12, -1.66]' in ts
     assert 'require("../../assets/data/reseau/rennes.reseau")' in ts
+
+
+def test_grille_france_par_departement(tmp_path):
+    """Grille France : chaque tuile appartient à un seul département, pas de tuile en pleine mer."""
+    import precalcul as pc
+    # trois communes fictives : deux en « 35 », une en « 44 », à 30 km l'une de l'autre
+    communes = [["A", "35000", "35", 48.11, -1.68, 1], ["B", "35500", "35", 48.12, -1.20, 1],
+                ["C", "44000", "44", 47.85, -1.55, 1]]
+    t35 = list(pc.tuiles_departement("35", 4000, communes))
+    t44 = list(pc.tuiles_departement("44", 4000, communes))
+    assert t35 and t44 and not ({t[0] for t in t35} & {t[0] for t in t44})
+    # aucune tuile à plus de 8 km de toute commune
+    for _, lat, lon, *_ in t35 + t44:
+        assert min(((lat - c[3]) * 111.2) ** 2 + ((lon - c[4]) * 74) ** 2 for c in communes) <= 8.5 ** 2
+
+
+def test_export_departement_identifiants_uniques(tmp_path):
+    import precalcul as pc
+    import exporter_departement as ed
+    base = tmp_path / "dep_35.sqlite"
+    assert pc.main(["--zone", "48.10,-1.70,48.12,-1.66", "--demo", "--base", str(base), "--max-tuiles", "1"]) in (0, 2)
+    r = ed.exporter("35", base, tmp_path / "sortie")
+    donnees = json.loads((tmp_path / "sortie" / "cotes_35.json").read_text())
+    assert r["nombre"] == donnees["nombre"] == len(donnees["cotes"]) > 0
+    assert all(35_000_000 < c["id"] < 36_000_000 for c in donnees["cotes"])
+    assert ed.numero("2A") == 200 and ed.numero("974") == 974
+    assert r["fichiers"] == ["cotes_35.json"] and len(donnees["cotes"][0]["geometrie"]) <= 30

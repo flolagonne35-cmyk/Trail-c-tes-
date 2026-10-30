@@ -1,0 +1,109 @@
+name: Précalcul des côtes (France)
+
+# Toutes les côtes de France, département par département, sur une grille commune (tuiles de 4 km).
+# Chaque job calcule au plus ~5 h de tuiles de son département, puis range la base et l'export
+# pour l'appli dans la release « donnees-cotes » (hors du dépôt Git : trop volumineux). Un dernier
+# job relance le workflow tant qu'il reste des tuiles et qu'un passage a fait avancer le calcul,
+# et republie l'appli web (qui sert les côtes par département).
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/precalcul-france.yml"
+      - "scripts/exporter_departement.py"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: precalcul-france
+  cancel-in-progress: false
+
+env:
+  RELEASE: donnees-cotes
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  departements:
+    runs-on: ubuntu-latest
+    outputs:
+      liste: ${{ steps.l.outputs.liste }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Release des données (créée une fois)
+        run: |
+          gh release view "$RELEASE" >/dev/null 2>&1 || gh release create "$RELEASE" --target "$GITHUB_SHA" \
+            --title "Données des côtes (France)" --notes "Bases SQLite et fichiers de l'appli, par département. Mis à jour par le workflow « Précalcul des côtes (France) »."
+      - id: l
+        # Bretagne et Pays de la Loire d'abord, puis le reste de la France
+        run: |
+          echo "liste=$(python3 -c 'import json; d=["35","44","56","22","29","49","53","72","85"]; t=[f"{i:02d}" for i in range(1, 96) if i != 20]+["2A","2B","971","972","973","974","976"]; print(json.dumps(d+[x for x in t if x not in d]))')" >> "$GITHUB_OUTPUT"
+
+  calcul:
+    needs: departements
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        dep: ${{ fromJSON(needs.departements.outputs.liste) }}
+    env:
+      DEP: ${{ matrix.dep }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Reprendre la base du département
+        run: gh release download "$RELEASE" -p "dep_${DEP}.sqlite" -D resultats/base || echo "première fois"
+      - name: Calcul (au plus 5 h, reprise au passage suivant)
+        run: python scripts/precalcul.py --departement "$DEP" --duree-max 290 --pente-min 4 || true
+      - name: Export pour l'appli et rangement dans la release
+        if: always() && hashFiles('resultats/base/dep_*.sqlite') != ''
+        run: |
+          python scripts/exporter_departement.py --departement "$DEP" --base "resultats/base/dep_${DEP}.sqlite" --sortie resultats/departements
+          for i in 1 2 3; do
+            gh release upload "$RELEASE" "resultats/base/dep_${DEP}.sqlite" "resultats/base/rapport_dep_${DEP}.json" resultats/departements/cotes_${DEP}*.json --clobber && break
+            sleep $((i * 20))
+          done
+          python -c "import json; r=json.load(open('resultats/base/rapport_dep_${DEP}.json')); print('## ${DEP} : ' + str(r['resume']))" >> "$GITHUB_STEP_SUMMARY"
+
+  suite:
+    needs: calcul
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Avancement de la France
+        id: a
+        run: |
+          mkdir -p r && gh release download "$RELEASE" -p "rapport_dep_*.json" -D r || true
+          gh release download "$RELEASE" -p "avancement.json" -D r || true
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib, re
+          faites = restantes = cotes = 0
+          for f in pathlib.Path("r").glob("rapport_dep_*.json"):
+              r = json.loads(f.read_text())["resume"]
+              m = re.match(r"(\d+) faites / (\d+) \((\d+) restantes\)", r["Tuiles"])
+              if m:
+                  faites += int(m.group(1)); restantes += int(m.group(3))
+              cotes += int(r["Côtes dans la base"])
+          avant = json.loads(pathlib.Path("r/avancement.json").read_text())["faites"] if pathlib.Path("r/avancement.json").exists() else -1
+          pathlib.Path("avancement.json").write_text(json.dumps({"faites": faites, "restantes": restantes, "cotes": cotes}))
+          print(f"faites={faites}"); print(f"restantes={restantes}"); print(f"cotes={cotes}")
+          print(f"progres={'oui' if faites > avant else 'non'}")
+          PY
+      - name: Résumé et relance
+        run: |
+          echo "## France : ${{ steps.a.outputs.faites }} tuiles faites, ${{ steps.a.outputs.restantes }} restantes, ${{ steps.a.outputs.cotes }} côtes" >> "$GITHUB_STEP_SUMMARY"
+          gh release upload "$RELEASE" avancement.json --clobber
+          # l'appli web sert les côtes par département : on la republie avec les nouvelles données
+          gh workflow run web.yml --ref "$GITHUB_REF_NAME" || true
+          if [ "${{ steps.a.outputs.restantes }}" != "0" ] && [ "${{ steps.a.outputs.progres }}" = "oui" ]; then
+            gh workflow run precalcul-france.yml --ref "$GITHUB_REF_NAME"
+          fi

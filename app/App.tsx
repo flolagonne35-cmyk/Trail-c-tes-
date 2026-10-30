@@ -40,10 +40,14 @@ import type { PresetSortie } from "./src/ecrans/Plan.tsx";
 import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
+import { cotesAutour } from "./src/cotesFrance.ts";
+import { fusionnerCotes } from "./src/calcul/departements.ts";
 
 type Donnees = { source: string; zones?: { nom: string; lat: number; lon: number; cotes: number }[]; cotes: Cote[] };
 const DONNEES = cotesExportees as unknown as Donnees;
-const COTES = DONNEES.cotes;
+// côtes embarquées (Rennes, Nantes) : disponibles sans réseau ; le reste de la France est chargé
+// par département autour du départ (src/cotesFrance.ts)
+const COTES_EMBARQUEES = DONNEES.cotes;
 const SOURCE = DONNEES.source.includes("sqlite") ? "base précalculée" : "zone de Rennes";
 // zones dont les côtes sont calculées (proposées dans la recherche et hors zone)
 const ZONES: Lieu[] = DONNEES.zones?.length
@@ -179,6 +183,15 @@ function Contenu() {
     setPage(d.page);
   };
   const ouvrirCote = (cote: CoteProche, rang: number) => setDetail({ cote, rang });
+
+  // côtes des départements autour du départ (gardées tant qu'un nouveau chargement n'a rien donné)
+  const [cotesFrance, setCotesFrance] = useState<{ cotes: Cote[]; emprises: number[][] }>({ cotes: [], emprises: [] });
+  useEffect(() => {
+    let actif = true;
+    cotesAutour(depart.position).then((r) => { if (actif && r.cotes.length) setCotesFrance(r); });
+    return () => { actif = false; };
+  }, [depart]);
+  const COTES = useMemo(() => fusionnerCotes(cotesFrance.cotes, cotesFrance.emprises, COTES_EMBARQUEES), [cotesFrance]);
 
   if (profil === undefined) return <View style={{ flex: 1, backgroundColor: C.fond }} />;
 

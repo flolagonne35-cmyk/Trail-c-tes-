@@ -37,6 +37,13 @@ jobs:
       - run: npm ci
       - name: Compilation web, installable (manifeste et icônes de public/, balises ajoutées par scripts/pwa.mjs)
         run: npm run build:web
+      - name: Côtes de France par département (release « donnees-cotes », remplie par le précalcul France)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/cotes
+          gh release download donnees-cotes -p "cotes_*.json" -D dist/cotes || echo "pas encore de côtes par département"
+          python3 ../scripts/index_departements.py dist/cotes
       - name: Publier sur Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: |

@@ -9,7 +9,12 @@ tuile sont gardées, et les doublons sont écartés par la base.
 La base garde l'état de chaque tuile : on peut relancer après une interruption (--max-tuiles
 limite le travail d'un passage, par exemple pour tenir dans un job GitHub Actions).
 
+France entière : --departement 35 découpe le département sur une grille commune à toute la France
+(tuiles de 4 km, attribuées au département de la commune la plus proche de leur centre) ;
+--duree-max arrête de lancer des tuiles au bout de N minutes, le passage suivant reprend.
+
 Exemples :
+  python scripts/precalcul.py --departement 35 --duree-max 300
   python scripts/precalcul.py --zone 48.08,-1.75,48.15,-1.62 --base resultats/base/rennes.sqlite
   python scripts/precalcul.py --zone 48.08,-1.75,48.15,-1.62 --max-tuiles 4   # puis relancer
   python scripts/precalcul.py --cherche 48.1113,-1.68 --rayon 3000 --base resultats/base/rennes.sqlite
@@ -47,14 +52,60 @@ def tuiles(lat_min, lon_min, lat_max, lon_max, cote_m):
             yield f"{cote_m:g}m_{lat:.5f}_{lon:.5f}", lat, lon, dlat / 2, dlon / 2
 
 
+# grille de la France entière : même découpage pour tous les départements (pas de recouvrement)
+ORIGINE_GRILLE = (40.0, -6.0)
+# départements couverts par les données IGN (métropole et départements d'outre-mer)
+DEPARTEMENTS = [f"{i:02d}" for i in range(1, 96) if i != 20] + ["2A", "2B", "971", "972", "973", "974", "976"]
+COMMUNES = Path(__file__).resolve().parents[1] / "app/assets/data/communes.json"
+
+
+def tuiles_departement(dep: str, cote_m: float, communes: list | None = None):
+    """Tuiles de la grille France dont le centre est plus proche d'une commune du département
+    que de toute autre commune (et à moins de 8 km d'une commune : pas de tuile en pleine mer)."""
+    from scipy.spatial import cKDTree
+    import numpy as np
+    communes = communes if communes is not None else json.loads(COMMUNES.read_text())["communes"]
+    lat0, lon0 = ORIGINE_GRILLE
+    dlat = math.degrees(cote_m / RAYON_TERRE)
+    pts = np.array([[c[3], c[4]] for c in communes])
+    deps = [c[2] for c in communes]
+    # distances approchées en km (longitude réduite par le cosinus de la latitude)
+    def xy(lat, lon):
+        return np.column_stack([np.asarray(lat) * 111.2, np.asarray(lon) * 111.2 * np.cos(np.radians(np.asarray(lat)))])
+    arbre = cKDTree(xy(pts[:, 0], pts[:, 1]))
+    miennes = pts[[d == dep for d in deps]]
+    if not len(miennes):
+        return
+    i_min = math.floor((miennes[:, 0].min() - lat0) / dlat) - 2
+    i_max = math.floor((miennes[:, 0].max() - lat0) / dlat) + 2
+    for i in range(i_min, i_max + 1):
+        lat = lat0 + (i + 0.5) * dlat
+        dlon = math.degrees(cote_m / (RAYON_TERRE * math.cos(math.radians(lat))))
+        j_min = math.floor((miennes[:, 1].min() - lon0) / dlon) - 2
+        j_max = math.floor((miennes[:, 1].max() - lon0) / dlon) + 2
+        lons = lon0 + (np.arange(j_min, j_max + 1) + 0.5) * dlon
+        dist, idx = arbre.query(xy(np.full(len(lons), lat), lons))
+        for j, lon, d, k in zip(range(j_min, j_max + 1), lons, dist, idx):
+            if deps[k] == dep and d <= 8:
+                yield f"g{cote_m:g}_{i}_{j}", lat, float(lon), dlat / 2, dlon / 2
+
+
 def precalculer(args) -> int:
-    lat_min, lon_min, lat_max, lon_max = (float(v) for v in args.zone.split(","))
     con = ouvrir(args.base)
-    liste = list(tuiles(lat_min, lon_min, lat_max, lon_max, args.tuile))
+    if args.departement:
+        liste = list(tuiles_departement(args.departement, args.tuile))
+        args.zone = f"département {args.departement}"
+    else:
+        lat_min, lon_min, lat_max, lon_max = (float(v) for v in args.zone.split(","))
+        liste = list(tuiles(lat_min, lon_min, lat_max, lon_max, args.tuile))
+    debut = time.monotonic()
     a_faire = [t for t in liste if not tuile_faite(con, t[0])]
     print(f"{len(liste)} tuiles de {args.tuile / 1000:g} km, {len(a_faire)} à calculer")
     faites, echecs = 0, 0
     for ident, lat, lon, demi_lat, demi_lon in a_faire[:args.max_tuiles or None]:
+        if args.duree_max and time.monotonic() - debut > args.duree_max * 60:
+            print(f"\nDurée maximale atteinte ({args.duree_max:g} min) : la suite au prochain passage.")
+            break
         print(f"\n== tuile {ident}")
         t0 = time.monotonic()
         params = cotes_bdtopo.parser_arguments([
@@ -113,6 +164,8 @@ def precalculer(args) -> int:
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--zone", help="lat_min,lon_min,lat_max,lon_max")
+    p.add_argument("--departement", help="code du département (35, 2A, 974…) : grille France, base resultats/base/dep_<code>.sqlite")
+    p.add_argument("--duree-max", type=float, default=0, help="minutes : n'entame plus de tuile au-delà (0 : sans limite)")
     p.add_argument("--tuile", type=float, default=4000, help="côté des tuiles, en m (défaut 4000)")
     p.add_argument("--marge", type=float, default=500, help="marge autour de chaque tuile, en m (défaut 500)")
     p.add_argument("--max-tuiles", type=int, default=0, help="tuiles calculées par passage (0 : toutes)")
@@ -126,18 +179,19 @@ def main(argv=None) -> int:
     p.add_argument("--sans-osm", action="store_true")
     p.add_argument("--sans-adresses", action="store_true", help="ne pas chercher l'adresse du pied des côtes")
     p.add_argument("--demo", action="store_true", help="réseau et relief fictifs, sans appel réseau")
-    p.add_argument("--base", default="resultats/base/cotes.sqlite")
+    p.add_argument("--base", help="base SQLite (défaut : resultats/base/dep_<code>.sqlite ou resultats/base/cotes.sqlite)")
     p.add_argument("--cherche", help="lat,lon : affiche les côtes proches dans la base, sans calcul")
     p.add_argument("--rayon", type=float, default=3000, help="rayon de --cherche, en m")
     args = p.parse_args(argv)
+    args.base = args.base or (f"resultats/base/dep_{args.departement}.sqlite" if args.departement else "resultats/base/cotes.sqlite")
     if args.cherche:
         lat, lon = (float(v) for v in args.cherche.split(","))
         for c in cotes_proches(ouvrir(args.base), lat, lon, args.rayon):
             print(f"{c['distance_m']:>6} m  {c['longueur_m']:>5.0f} m à {c['pente_moy_pct']:>4} % "
                   f"(+{c['dplus_m']} m, max {c['pente_max_pct']} %)  {c['type_voie']}, {c['revetement']}  {c['nom']}")
         return 0
-    if not args.zone:
-        p.error("--zone ou --cherche est requis")
+    if not args.zone and not args.departement:
+        p.error("--zone, --departement ou --cherche est requis")
     return precalculer(args)
 
 
