@@ -61,8 +61,11 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Reprendre la base du département
         run: gh release download "$RELEASE" -p "dep_${DEP}.sqlite" -D resultats/base || echo "première fois"
-      - name: Calcul (au plus 5 h, reprise au passage suivant)
-        run: python scripts/precalcul.py --departement "$DEP" --duree-max 290 --pente-min 4 || true
+      # la base est enregistrée après chaque tuile : si le calcul est coupé (limite de l'étape), on
+      # range quand même ce qui est fait. Adresses des côtes : cherchées par l'appli à l'affichage.
+      - name: Calcul (au plus 4 h, reprise au passage suivant)
+        timeout-minutes: 270
+        run: python scripts/precalcul.py --departement "$DEP" --duree-max 240 --pente-min 4 --sans-adresses || true
       - name: Export pour l'appli et rangement dans la release
         if: always() && hashFiles('resultats/base/dep_*.sqlite') != ''
         run: |
