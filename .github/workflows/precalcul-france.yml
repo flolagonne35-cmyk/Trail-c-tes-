@@ -47,7 +47,7 @@ jobs:
     timeout-minutes: 340
     strategy:
       fail-fast: false
-      max-parallel: 20
+      max-parallel: 16  # 4 places libres pour les tests et la mise à jour de l'appli web
       matrix:
         dep: ${{ fromJSON(needs.departements.outputs.liste) }}
     env:
