@@ -1,6 +1,7 @@
 name: Précalcul des côtes (France)
 
 # Toutes les côtes de France, département par département, sur une grille commune (tuiles de 4 km).
+# (dépôt public : minutes GitHub Actions gratuites et illimitées)
 # Chaque job calcule au plus ~5 h de tuiles de son département, puis range la base et l'export
 # pour l'appli dans la release « donnees-cotes » (hors du dépôt Git : trop volumineux). Un dernier
 # job relance le workflow tant qu'il reste des tuiles et qu'un passage a fait avancer le calcul,
