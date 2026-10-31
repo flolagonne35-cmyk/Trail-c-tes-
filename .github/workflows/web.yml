@@ -50,7 +50,11 @@ jobs:
           # l'identifiant de compte est facultatif : wrangler le retrouve avec le jeton
           [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || unset CLOUDFLARE_ACCOUNT_ID
           # crée le projet la première fois (sans effet s'il existe déjà), puis publie en production
-          npx -y wrangler@3 pages project create "$PROJET" --production-branch "$GITHUB_REF_NAME" || true
+          npx -y wrangler@3 pages project create "$PROJET" --production-branch main || true
+          # le projet a été créé avec une autre branche de production : on la passe à main (une fois)
+          COMPTE="${CLOUDFLARE_ACCOUNT_ID:-$(npx -y wrangler@3 whoami 2>/dev/null | grep -oE '[0-9a-f]{32}' | head -1)}"
+          curl -s -X PATCH -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/accounts/$COMPTE/pages/projects/$PROJET" -d '{"production_branch":"main"}' | head -c 300; echo
           npx -y wrangler@3 pages deploy dist --project-name "$PROJET" --branch "$GITHUB_REF_NAME" --commit-dirty=true
       - name: Secrets absents
         if: env.CLOUDFLARE_API_TOKEN == ''

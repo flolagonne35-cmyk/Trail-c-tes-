@@ -65,7 +65,7 @@ Dans l'ordre. Je te prépare tout le reste (configuration, textes, captures).
 ### 2.1 Tout de suite (gratuit)
 
 1. **Essayer l'appli sur ton téléphone Android** : sur le téléphone, connecté à GitHub, ouvrir le
-   dépôt → choisir la branche **`apk`** → `trail-cotes.apk` → « Download » (ou « View raw ») →
+   dépôt → **Releases** → « Appli Android de test » → `trail-cotes.apk` →
    ouvrir le fichier et autoriser l'installation depuis le navigateur. Une nouvelle version se fabrique avec *Actions* → « Appli Android à installer »
    → *Run workflow*. (Sur iPhone, il faut le compte Apple : voir 2.2.)
 2. **Créer un compte Expo** sur expo.dev, puis un *access token* (Settings → Access tokens) et
@@ -141,7 +141,7 @@ Ce qui manque encore, et comment l'obtenir :
 ### 3.1 Étape 1 — une vraie appli de test (2 à 4 semaines)
 
 - ✅ **Version installable Android** : APK fabriqué sur GitHub (workflow « Appli Android à
-  installer », ≈ 15 min), publié sur la branche `apk` ; icône et écran de démarrage, permissions
+  installer », ≈ 15 min), publié dans la release « apk » ; icône et écran de démarrage, permissions
   minimales expliquées en français.
 - **iPhone et stores** : workflow EAS prêt, attend les comptes (2.1 et 2.2). Identifiant choisi :
   `fr.trailcotes.app` (à changer avant la première publication si le nom change).

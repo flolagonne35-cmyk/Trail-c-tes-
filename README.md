@@ -56,7 +56,7 @@ node scripts/audit_boutons.js <url>            # clique chaque bouton de chaque 
 |---|---|
 | Application (tests) | tests, types, ESLint, expo-doctor, compilation web à chaque changement de l'appli |
 | Appli web en ligne | publie la version web sur Cloudflare Pages (secret `CLOUDFLARE_API_TOKEN`) |
-| Appli Android à installer | fabrique l'APK de test (branche `apk`) |
+| Appli Android à installer | fabrique l'APK de test (release « apk ») |
 | Précalcul des côtes | calcule les côtes des zones de `scripts/zones.json` (API IGN) |
 | Réseau pour les boucles | réseau des chemins de chaque zone (BD TOPO + altitudes) |
 | Calendrier des courses | courses à venir, chaque lundi (DATAtourisme, OpenAgenda) |
