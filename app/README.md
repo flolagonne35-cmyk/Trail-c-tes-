@@ -68,3 +68,5 @@ Les côtes de chaque département sont calculées sur GitHub (workflow « Préca
 `index.json`). L'appli charge les départements à moins de 40 km du point de départ
 (`src/cotesFrance.ts`) ; Rennes et Nantes restent embarquées pour le hors-ligne.
 
+
+Développement sur la seule branche `main` ; la version web est publiée depuis `main`.
