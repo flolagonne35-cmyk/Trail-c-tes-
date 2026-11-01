@@ -1,18 +1,18 @@
 {
-  "date_utc": "2026-10-30T18:04:58+00:00",
-  "statut": "echec_service",
+  "date_utc": "2026-11-01T11:52:58+00:00",
+  "statut": "ok",
   "resume": {
     "recherche « Rennes mairie »": "ok — [{\"label\": \"Place de la Mairie 35000 Rennes\", \"lon\": -1.679255, \"lat\": 48.110964}, {\"label\": \"Allée Sainte-Marie 35700 R",
     "recherche « Bédoin »": "ok — [{\"label\": \"Bédoin\", \"lon\": 5.233366, \"lat\": 44.120195}]",
     "adresse du pied (rue Gambetta)": "ok — \"3 Rue Gambetta 35000 Rennes\"",
-    "itinéraire car": "ÉCHEC — null",
-    "itinéraire pedestrian": "ÉCHEC — null"
+    "itinéraire car": "ok — {\"distance_m\": 1336.681, \"duree_min\": 5.880933333333333}",
+    "itinéraire pedestrian": "ok — {\"distance_m\": 517.971, \"duree_min\": 7.786233333333333}"
   },
   "services": [
     {
       "service": "recherche « Rennes mairie »",
       "http": 200,
-      "duree_s": 1.33,
+      "duree_s": 2.08,
       "lu": [
         {
           "label": "Place de la Mairie 35000 Rennes",
@@ -31,7 +31,7 @@
     {
       "service": "recherche « Bédoin »",
       "http": 200,
-      "duree_s": 0.81,
+      "duree_s": 0.48,
       "lu": [
         {
           "label": "Bédoin",
@@ -45,26 +45,32 @@
     {
       "service": "adresse du pied (rue Gambetta)",
       "http": 200,
-      "duree_s": 0.79,
+      "duree_s": 0.81,
       "lu": "3 Rue Gambetta 35000 Rennes",
       "ok": true,
       "extrait": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[-1.674645,48.110916]},\"properties\":{\"type\":\"housenumber\",\"name\":\"3 Rue Gambetta\",\"label\":\"3 Rue Gambetta 35000 Rennes\",\"street\":\"Rue Gambetta\",\"postcode\":\"35000\",\"citycode\":\"35238\",\"city\":\"Rennes\",\"oldcitycode\":null,\"oldcity\":null,\"context\":\"35, Ille-et-Vilaine, Bretagne\",\"importance\":0.6908,\"housenumber\":\"3\",\"id\":\"35238_3480_00003\",\"banId\":\"a6764df1-9a07-4375-b23d-5494a19e75d6\",\"x\":352299.77,\"y\":6789244.43,\"distance\":10,\"score\":0.999,\"_type\":\"address\"}}]}"
     },
     {
       "service": "itinéraire car",
-      "http": 400,
-      "duree_s": 0.69,
-      "lu": null,
-      "ok": false,
-      "extrait": "{\"error\":{\"message\":\" Parameter 'resource' is invalid: it does not exist on this service \"}}"
+      "http": 200,
+      "duree_s": 0.47,
+      "lu": {
+        "distance_m": 1336.681,
+        "duree_min": 5.880933333333333
+      },
+      "ok": true,
+      "extrait": "{\"resource\":\"bdtopo-valhalla\",\"resourceVersion\":\"2026-10-30\",\"start\":\"-1.680243,48.111293\",\"end\":\"-1.674536,48.110965\",\"profile\":\"car\",\"optimization\":\"fastest\",\"geometry\":{\"type\":\"LineString\",\"coordinates\":[[-1.68024,48.11129],[-1.68022,48.11094],[-1.68101,48.11092],[-1.6813,48.11092],[-1.68131,48.11099],[-1.68135,48.1114],[-1.68137,48.11167],[-1.68138,48.11177],[-1.68117,48.11178],[-1.68027,48.11178],[-1.67934,48.11177],[-1.6793,48.11177],[-1.67897,48.11176],[-1.67865,48.11175],[-1.6783,48.11175],[-1.67785,48.11175],[-1.67737,48.11174],[-1.67736,48.11243],[-1.67732,48.11243],[-1.67513,48.1124"
     },
     {
       "service": "itinéraire pedestrian",
-      "http": 400,
-      "duree_s": 0.6,
-      "lu": null,
-      "ok": false,
-      "extrait": "{\"error\":{\"message\":\" Parameter 'resource' is invalid: it does not exist on this service \"}}"
+      "http": 200,
+      "duree_s": 0.48,
+      "lu": {
+        "distance_m": 517.971,
+        "duree_min": 7.786233333333333
+      },
+      "ok": true,
+      "extrait": "{\"resource\":\"bdtopo-valhalla\",\"resourceVersion\":\"2026-10-31\",\"start\":\"-1.680243,48.111293\",\"end\":\"-1.674536,48.110965\",\"profile\":\"pedestrian\",\"optimization\":\"fastest\",\"geometry\":{\"type\":\"LineString\",\"coordinates\":[[-1.68024,48.11129],[-1.68022,48.11094],[-1.67922,48.11096],[-1.67891,48.11098],[-1.67834,48.11099],[-1.67826,48.11099],[-1.67782,48.111],[-1.67744,48.111],[-1.67711,48.11092],[-1.67663,48.1108],[-1.67654,48.11084],[-1.67646,48.11087],[-1.67641,48.11088],[-1.67623,48.11092],[-1.67624,48.11107],[-1.67553,48.11121],[-1.67516,48.11128],[-1.67478,48.11136],[-1.67454,48.11097]]},\"crs\":\"EP"
     }
   ]
 }
