@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-10-30T23:37:30+00:00",
+  "date_utc": "2026-11-01T11:54:02+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -38,7 +38,7 @@
     "Côtes trouvées": 7,
     "Tronçons exclus (privés / interdits aux piétons)": 80,
     "Revêtement": "OSM surface : 7",
-    "OpenStreetMap": "ok (14824 voies)",
+    "OpenStreetMap": "ok (14843 voies)",
     "Fond Plan IGN": "ok",
     "Requêtes WFS / altimétrie": "6 / 7"
   },
@@ -141,28 +141,26 @@
   "osm": {
     "statut": "ok",
     "url": "https://overpass-api.de/api/interpreter",
-    "nb_voies": 14824,
+    "nb_voies": 14843,
     "valeurs_surface": {
-      "asphalt": 6918,
-      "—": 4189,
-      "paving_stones": 1002,
-      "concrete": 828,
-      "compacted": 614,
-      "sett": 336,
-      "fine_gravel": 211,
-      "wood": 157,
+      "asphalt": 6924,
+      "—": 4171,
+      "paving_stones": 1008,
+      "concrete": 836,
+      "compacted": 620,
+      "sett": 335,
+      "fine_gravel": 212,
+      "wood": 158,
       "concrete:plates": 122,
       "ground": 91,
-      "grass": 64,
-      "dirt": 55,
+      "grass": 65,
+      "dirt": 56,
       "metal": 53,
-      "gravel": 50,
+      "gravel": 51,
       "paved": 40
     },
-    "erreurs": [
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a"
-    ],
-    "duree_s": 38.1
+    "erreurs": [],
+    "duree_s": 46.4
   },
   "fond_erreurs": [],
   "wfs": {
@@ -281,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 5.5
+    "duree_s": 4.5
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -292,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 22.1,
+    "duree_s": 24.6,
     "codes_http": {
       "200": 7
     },
