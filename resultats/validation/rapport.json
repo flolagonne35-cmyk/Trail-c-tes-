@@ -1,15 +1,15 @@
 {
-  "date_utc": "2026-10-30T23:33:18+00:00",
+  "date_utc": "2026-11-01T11:53:44+00:00",
   "statut": "ok",
   "resume": {
     "Mont Ventoux par Bédoin": "conforme — 21.91 km, 1570 m, 7.17 % ; écarts {'longueur_pct': 1.9, 'denivele_pct': -2.5, 'pente_pts': -0.33, 'alt_arrivee_m': -12.7}",
     "Alpe d'Huez par Le Bourg-d'Oisans": "conforme — 13.31 km, 1090 m, 8.19 % ; écarts {'longueur_pct': -3.5, 'denivele_pct': -2.6, 'pente_pts': 0.09, 'alt_arrivee_m': -52.1}",
-    "Débit GET lot 150 (6 déc., ×1)": "131.5 pts/s {'200': 3}",
-    "Débit GET lot 300 (6 déc., ×1)": "136.4 pts/s {'200': 3}",
-    "Débit GET lot 330 (5 déc., ×1)": "342.1 pts/s {'200': 3}",
-    "Débit POST_JSON lot 1000 (6 déc., ×1)": "581.3 pts/s {'200': 1}",
-    "Débit POST_JSON lot 5000 (6 déc., ×1)": "589.1 pts/s {'200': 1}",
-    "Débit GET lot 150 (6 déc., ×4)": "321.8 pts/s {'200': 8}"
+    "Débit GET lot 150 (6 déc., ×1)": "200.1 pts/s {'200': 3}",
+    "Débit GET lot 300 (6 déc., ×1)": "303.0 pts/s {'200': 3}",
+    "Débit GET lot 330 (5 déc., ×1)": "255.0 pts/s {'200': 3}",
+    "Débit POST_JSON lot 1000 (6 déc., ×1)": "331.7 pts/s {'200': 1}",
+    "Débit POST_JSON lot 5000 (6 déc., ×1)": "771.2 pts/s {'200': 1}",
+    "Débit GET lot 150 (6 déc., ×4)": "272.0 pts/s {'200': 5, '429': 3}"
   },
   "montees": [
     {
@@ -406,7 +406,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 3.8
+      "alti_duree_s": 2.9
     },
     {
       "cle": "alpe_d_huez",
@@ -787,7 +787,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 2.0
+      "alti_duree_s": 1.9
     }
   ],
   "debit_api": [
@@ -800,9 +800,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.4,
+      "duree_s": 2.23,
       "points_ok": 447,
-      "points_par_s": 131.5,
+      "points_par_s": 200.1,
       "erreur": ""
     },
     {
@@ -814,9 +814,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 6.57,
+      "duree_s": 2.96,
       "points_ok": 897,
-      "points_par_s": 136.4,
+      "points_par_s": 303.0,
       "erreur": ""
     },
     {
@@ -828,9 +828,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 2.88,
+      "duree_s": 3.87,
       "points_ok": 987,
-      "points_par_s": 342.1,
+      "points_par_s": 255.0,
       "erreur": ""
     },
     {
@@ -842,9 +842,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 1.72,
+      "duree_s": 3.01,
       "points_ok": 997,
-      "points_par_s": 581.3,
+      "points_par_s": 331.7,
       "erreur": ""
     },
     {
@@ -856,9 +856,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 8.45,
+      "duree_s": 6.46,
       "points_ok": 4979,
-      "points_par_s": 589.1,
+      "points_par_s": 771.2,
       "erreur": ""
     },
     {
@@ -868,12 +868,13 @@
       "paralleles": 4,
       "points": 1200,
       "codes_http": {
-        "200": 8
+        "200": 5,
+        "429": 3
       },
-      "duree_s": 3.72,
-      "points_ok": 1197,
-      "points_par_s": 321.8,
-      "erreur": ""
+      "duree_s": 2.75,
+      "points_ok": 747,
+      "points_par_s": 272.0,
+      "erreur": "HTTP 429 lot 750-900 : <html>\r\n<head><title>429 Too Many Requests</title></head>\r\n<body>\r\n<center><h1>429 Too Many Requests</h1></center>\r\n</body>\r\n</html>\r\n"
     }
   ],
   "rayon_terre_m": 6371000.0
