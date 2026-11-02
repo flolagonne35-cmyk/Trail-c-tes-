@@ -124,14 +124,17 @@ def precalculer(args) -> int:
             continue
         dedans = [c for c in calcul.cotes
                   if abs(c.lat_depart - lat) <= demi_lat and abs(c.lon_depart - lon) <= demi_lon]
-        statut = "ok" if calcul.troncons and calcul.taux_valide >= 0.95 else "echec"
+        if calcul.troncons:
+            statut = "ok" if calcul.taux_valide >= 0.95 else "echec"
+        else:  # aucune voie : tuile vide si le WFS a répondu sans erreur, sinon reprise au passage suivant
+            statut = "echec" if calcul.wfs.erreurs else "vide"
         detail = {"troncons": len(calcul.troncons), "points_valides": round(calcul.taux_valide, 4),
                   "codes_alti": calcul.alti.codes_http, "codes_wfs": calcul.wfs.codes_http,
                   "osm": calcul.osm.statut}
         ajoutees = enregistrer_tuile(con, ident, lat, lon, statut, dedans if statut == "ok" else [],
                                      calcul.nb_points, time.monotonic() - t0, detail)
-        faites += statut == "ok"
-        echecs += statut != "ok"
+        faites += statut != "echec"
+        echecs += statut == "echec"
         print(f"  {statut} : {ajoutees} côtes ajoutées, {calcul.nb_points} points, "
               f"{time.monotonic() - t0:.0f} s")
 
@@ -142,12 +145,14 @@ def precalculer(args) -> int:
     total = con.execute("SELECT COUNT(*) FROM cotes").fetchone()[0]
     etat = dict(con.execute("SELECT statut, COUNT(*) FROM tuiles GROUP BY statut").fetchall())
     duree = con.execute("SELECT AVG(duree_s), SUM(points_alti) FROM tuiles WHERE statut = 'ok'").fetchone()
-    restantes = len(liste) - etat.get("ok", 0)
+    finies = etat.get("ok", 0) + etat.get("vide", 0)
+    restantes = len(liste) - finies
     rapport = {
         "date_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "statut": "ok" if echecs == 0 else "echec_partiel",
         "resume": {
-            "Zone": args.zone, "Tuiles": f"{etat.get('ok', 0)} faites / {len(liste)} ({restantes} restantes)",
+            "Zone": args.zone, "Tuiles": f"{finies} faites / {len(liste)} ({restantes} restantes)",
+            "Tuiles sans voie (mer, forêt…)": etat.get("vide", 0),
             "Ce passage": f"{faites} tuiles ok, {echecs} en échec",
             "Côtes dans la base": total,
             "Adresses trouvées / en échec (ce passage)": f"{adresses[0]} / {adresses[1]}",

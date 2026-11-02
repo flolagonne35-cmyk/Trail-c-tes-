@@ -13,6 +13,8 @@ on:
     paths:
       - ".github/workflows/precalcul-france.yml"
       - "scripts/exporter_departement.py"
+      - "scripts/precalcul.py"
+      - "trailcotes/**"
 
 permissions:
   contents: write

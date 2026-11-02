@@ -146,3 +146,27 @@ def test_export_departement_identifiants_uniques(tmp_path):
     assert all(35_000_000 < c["id"] < 36_000_000 for c in donnees["cotes"])
     assert ed.numero("2A") == 200 and ed.numero("974") == 974
     assert r["fichiers"] == ["cotes_35.json"] and len(donnees["cotes"][0]["geometrie"]) <= 30
+
+
+def test_tuile_sans_voie_terminee_mais_erreur_wfs_reprise(tmp_path, monkeypatch):
+    """Mer, forêt, Guyane : aucune voie et WFS sans erreur → « vide », terminée. Erreur WFS → reprise."""
+    import types
+    erreurs: list = []
+
+    def calculer(params):
+        return types.SimpleNamespace(troncons=[], cotes=[], taux_valide=0.0, nb_points=0,
+                                     wfs=types.SimpleNamespace(erreurs=list(erreurs), codes_http={}),
+                                     alti=types.SimpleNamespace(codes_http={}), osm=types.SimpleNamespace(statut=""))
+    monkeypatch.setattr(precalcul.cotes_bdtopo, "calculer", calculer)
+    base = tmp_path / "b.sqlite"
+    args = ["--zone", "48.10,-1.70,48.13,-1.65", "--base", str(base), "--tuile", "2000", "--sans-adresses"]
+    n = len(list(precalcul.tuiles(48.10, -1.70, 48.13, -1.65, 2000)))
+    erreurs.append("HTTP 503")
+    assert precalcul.main(args) == 2  # service en panne : tuiles en échec, reprises plus tard
+    con = ouvrir(base)
+    assert con.execute("SELECT COUNT(*) FROM tuiles WHERE statut='echec'").fetchone()[0] == n
+    erreurs.clear()
+    assert precalcul.main(args) == 0  # le service répond : tuiles vides, terminées
+    assert con.execute("SELECT COUNT(*) FROM tuiles WHERE statut='vide'").fetchone()[0] == n
+    rapport = json.loads((tmp_path / "rapport_b.json").read_text())
+    assert rapport["resume"]["Tuiles"] == f"{n} faites / {n} (0 restantes)"

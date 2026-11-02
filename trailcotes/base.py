@@ -50,7 +50,12 @@ def cle_cote(c) -> str:
 
 def tuile_faite(con: sqlite3.Connection, ident: str) -> bool:
     ligne = con.execute("SELECT statut FROM tuiles WHERE id = ?", (ident,)).fetchone()
-    return ligne is not None and ligne["statut"] == "ok"
+    return ligne is not None and ligne["statut"] in STATUTS_FAITS
+
+
+# « vide » : le service a bien répondu mais la tuile n'a aucune voie (mer, forêt, marais, Guyane…).
+# Elle est terminée : la recalculer à chaque passage ne trouverait jamais rien.
+STATUTS_FAITS = ("ok", "vide")
 
 
 def enregistrer_tuile(con, ident: str, lat: float, lon: float, statut: str, cotes: list,
