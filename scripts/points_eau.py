@@ -14,6 +14,7 @@ par case (eau_<lat>_<lon>.json, coin sud-ouest). L'appli ne charge que les cases
 
 Exemples :
   python scripts/points_eau.py --sortie resultats/eau
+  python scripts/points_eau.py --sortie resultats/eau --duree-max 150 --age-max 20   # reprise
   python scripts/points_eau.py --case 48,-2 --sortie /tmp/eau        # une seule case
 """
 
@@ -63,14 +64,14 @@ def requete(la: int, lo: int) -> str:
             f");out center tags;")
 
 
-def interroger(texte: str, essais: int = 3, pause: float = 10) -> list[dict] | None:
+def interroger(texte: str, essais: int = 2, pause: float = 10) -> list[dict] | None:
     """Éléments Overpass, ou None si aucun serveur n'a répondu (la case est alors gardée telle quelle)."""
     import requests
 
     for essai in range(essais):
         for url in OVERPASS_URLS:
             try:
-                r = requests.post(url, data={"data": texte}, timeout=240,
+                r = requests.post(url, data={"data": texte}, timeout=150,
                                   headers={"User-Agent": "trail-cotes/0.1 (+https://github.com/flolagonne35-cmyk/Trail-c-tes-)"})
                 if r.status_code == 200:
                     donnees = r.json()
@@ -124,12 +125,28 @@ def main(argv=None, interroger=interroger) -> int:
     p.add_argument("--sortie", default="resultats/eau")
     p.add_argument("--case", help="lat,lon du coin sud-ouest d'une seule case (essais)")
     p.add_argument("--pause", type=float, default=2, help="secondes entre deux requêtes (serveurs partagés)")
+    p.add_argument("--duree-max", type=float, default=0, help="minutes ; les cases restantes au passage suivant")
+    p.add_argument("--age-max", type=float, default=0,
+                   help="jours : une case mise à jour plus récemment est gardée telle quelle (reprise)")
     args = p.parse_args(argv)
     dossier = Path(args.sortie)
     dossier.mkdir(parents=True, exist_ok=True)
     liste = [tuple(int(v) for v in args.case.split(","))] if args.case else cases()
-    total, echecs = 0, []
+    total, echecs, restantes = 0, [], []
+    debut = time.monotonic()
+    maintenant = datetime.now(timezone.utc)
     for la, lo in liste:
+        f = dossier / f"eau_{la}_{lo}.json"
+        if args.age_max and f.exists():
+            try:
+                date = datetime.fromisoformat(json.loads(f.read_text())["date_utc"])
+                if (maintenant - date).total_seconds() < args.age_max * 86400:
+                    continue
+            except (ValueError, KeyError):
+                pass
+        if args.duree_max and time.monotonic() - debut > args.duree_max * 60:
+            restantes.append(f"{la},{lo}")
+            continue
         elements = interroger(requete(la, lo))
         if elements is None:
             echecs.append(f"{la},{lo}")
@@ -139,10 +156,10 @@ def main(argv=None, interroger=interroger) -> int:
         print(f"case {la},{lo} : {n} points d'eau", flush=True)
         time.sleep(args.pause)
     rapport = {"date_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"), "cases": len(liste),
-               "points": total, "cases_en_echec": echecs}
+               "points": total, "cases_en_echec": echecs, "cases_restantes": restantes}
     (dossier / "rapport_eau.json").write_text(json.dumps(rapport, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(rapport, ensure_ascii=False))
-    return 0 if not echecs else 2
+    return 0 if not echecs and not restantes else 2
 
 
 if __name__ == "__main__":

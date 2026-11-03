@@ -8,14 +8,16 @@ import {
   cotesProches, distanceCouverture, enDescente, kmLisibles, meilleures, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres, TRIS,
   type Cote, type CoteProche, type Filtres, type Sens,
 } from "../calcul/cotes.ts";
+import { eauPresDesCotes, type PointEau } from "../calcul/eau.ts";
 import { distanceM, type Position } from "../calcul/geo.ts";
 import { adresseDe, type Lieu } from "../calcul/geoservices.ts";
 import { dureeLisible, tempsTrajets } from "../calcul/trajets.ts";
 import { zoomAjuste } from "../calcul/tuiles.ts";
-import { Carte, couleurPente } from "../composants/Carte.tsx";
+import { Carte, couleurPente, type Marqueur } from "../composants/Carte.tsx";
 import { Icone, nombre, Segments } from "../composants/communs.tsx";
 import { CarteHorsLigne } from "../composants/HorsLigne.tsx";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
+import { pointsEauAutour } from "../pointsEau.ts";
 import { C, S } from "../theme.ts";
 import { ChoixResultats, FILTRES_DEFAUT, RechercheCotes, titreResultats } from "./RechercheCotes.tsx";
 
@@ -133,6 +135,18 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
     return () => { actif = false; };
   }, [affichees]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // points d'eau (OpenStreetMap) près du pied ou du sommet des côtes affichées : utile pour les répétitions
+  const [eau, setEau] = useState<PointEau[]>([]);
+  const cleEau = affichees.slice(0, 15).map((c) => c.id).join("-");
+  useEffect(() => {
+    let actif = true;
+    const premieres = affichees.slice(0, 15);
+    if (!premieres.length) { setEau([]); return; }
+    pointsEauAutour([position, ...premieres.map((c) => ({ lat: c.lat, lon: c.lon }))])
+      .then((p) => { if (actif) setEau(eauPresDesCotes(p, premieres)); });
+    return () => { actif = false; };
+  }, [cleEau, position.lat, position.lon]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const carte = (
     <Carte hauteur={vue === "carte" ? 380 : 220} centre={position} position={position}
            rayonM={cotes.length ? filtres.rayonM : undefined}
@@ -140,12 +154,14 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
            cle={`${position.lat},${position.lon},${affichees.map((c) => c.id).join("-")}`}
            traces={affichees.map((c) => ({ id: c.id, couleur: couleurPente(c.pente_moy_pct),
                                            points: c.geometrie.map(([lon, lat]) => ({ lat, lon })) }))}
-           marqueurs={affichees.slice(0, 15).map((c, i) => ({
+           marqueurs={[...affichees.slice(0, 15).map((c, i): Marqueur => ({
              id: String(c.id), position: { lat: c.lat, lon: c.lon }, texte: String(i + 1),
              couleur: i === 0 ? C.encre : couleurPente(c.pente_moy_pct),
              label: `Côte ${i + 1}, ${Math.round(c.longueur_m)} mètres à ${c.pente_moy_pct} %`,
              onPress: () => onChoisir(c, i + 1),
-           }))} />
+           })), ...eau.map((e, i): Marqueur => ({
+             id: `eau${i}`, position: e, texte: "💧", couleur: C.descente, label: `Point d'eau${e.nom ? ` : ${e.nom}` : ""}`,
+           }))]} />
   );
 
   return (
@@ -230,6 +246,12 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                   ))}
                   <Text style={[S.petit, { flex: 1, textAlign: "right" }]}>Touchez un numéro</Text>
                 </View>
+                {eau.length > 0 && (
+                  <Text style={[S.petit, { marginTop: 4 }]}>
+                    💧 {eau.length} point{eau.length > 1 ? "s" : ""} d'eau potable à moins de 300 m du pied ou du sommet de ces côtes
+                    (© contributeurs OpenStreetMap) : de quoi remplir ta flasque entre deux répétitions. À vérifier sur place.
+                  </Text>
+                )}
                 <CarteHorsLigne centre={position} nom={depart.nom === "Ma position" ? "ta position" : depart.nom} />
                 <View style={{ gap: 8, marginTop: 14 }}>
                   {affichees.slice(0, 3).map((c, i) => (

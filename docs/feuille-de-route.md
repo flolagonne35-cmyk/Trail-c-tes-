@@ -167,7 +167,8 @@ Ce qui manque encore, et comment l'obtenir :
   l'écart quand une course est importée après coup.
 - ✅ **Points d'eau** : fontaines et robinets d'eau potable OpenStreetMap (toute la France, mis à
   jour chaque mois) sur la carte de la boucle, avec le km de passage, le caractère saisonnier et la
-  date de dernière vérification ; ajoutés au GPX pour la montre. À faire : sur la carte des côtes.
+  date de dernière vérification ; ajoutés au GPX pour la montre ; sur la carte des côtes, ceux à
+  moins de 300 m du pied ou du sommet (pour les répétitions).
 - **Sécurité** : partage de position en direct avec un proche, alerte si arrêt prolongé (demande
   la localisation en arrière-plan : à justifier auprès d'Apple et Google).
 - **Signalements** des coureurs : boue, arbre tombé, chemin fermé, technicité réelle ; validés

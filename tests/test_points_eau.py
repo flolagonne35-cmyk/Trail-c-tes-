@@ -37,3 +37,14 @@ def test_points_tries_filtres_et_case_en_echec_gardee(tmp_path):
     # serveurs injoignables : code d'échec, et aucun fichier écrasé
     assert pe.main(["--sortie", str(tmp_path), "--case", "49,-2", "--pause", "0"], interroger=faux) == 2
     assert not (tmp_path / "eau_49_-2.json").exists()
+
+
+def test_reprise_cases_recentes_sautees(tmp_path):
+    appels = []
+
+    def faux(texte):
+        appels.append(texte)
+        return ELEMENTS
+    assert pe.main(["--sortie", str(tmp_path), "--case", "48,-2", "--pause", "0"], interroger=faux) == 0
+    assert pe.main(["--sortie", str(tmp_path), "--case", "48,-2", "--pause", "0", "--age-max", "20"], interroger=faux) == 0
+    assert len(appels) == 1  # case à jour : pas de nouvelle requête

@@ -42,12 +42,20 @@ jobs:
           mkdir -p resultats/eau
           # une case dont le serveur ne répond pas garde sa version précédente
           gh release download "$RELEASE" -p "eau.tar.gz" -D "$RUNNER_TEMP" && tar -xzf "$RUNNER_TEMP/eau.tar.gz" -C resultats/eau || echo "première fois"
+      # serveurs Overpass partagés et parfois lents : au plus 2 h 30 par passage ; les cases à jour
+      # (moins de 20 jours) sont sautées, le passage suivant reprend les autres
       - name: Points d'eau de toute la France
-        run: python scripts/points_eau.py --sortie resultats/eau || true
+        timeout-minutes: 160
+        run: python scripts/points_eau.py --sortie resultats/eau --duree-max 150 --age-max 20 || true
       - name: Rangement et republication de l'appli web
+        if: always()
         run: |
+          [ -f resultats/eau/rapport_eau.json ] || exit 0
           cat resultats/eau/rapport_eau.json
           python -c "import json; r=json.load(open('resultats/eau/rapport_eau.json')); print(f\"## Points d'eau : {r['points']} sur {r['cases']} cases, {len(r['cases_en_echec'])} cases en échec\")" >> "$GITHUB_STEP_SUMMARY"
           tar -czf eau.tar.gz -C resultats/eau .
           gh release upload "$RELEASE" eau.tar.gz --clobber
           gh workflow run web.yml --ref "$GITHUB_REF_NAME" || true
+          # des cases restent et ce passage en a fait : on relance
+          python -c "import json,sys; r=json.load(open('resultats/eau/rapport_eau.json')); sys.exit(0 if (r['cases_restantes'] or r['cases_en_echec']) and r['points'] > 0 else 1)" \
+            && gh workflow run eau.yml --ref "$GITHUB_REF_NAME" || true

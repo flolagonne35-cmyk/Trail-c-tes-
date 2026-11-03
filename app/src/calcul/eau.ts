@@ -65,3 +65,18 @@ export function libelleEau(e: PointEau): string {
           e.saison ? `saisonnier${e.saison !== "oui" ? ` (${e.saison})` : ""}, souvent coupé l'hiver` : "",
           e.verif ? `vérifié en ${e.verif.slice(0, 7)}` : ""].filter(Boolean).join(" · ");
 }
+
+/** Points d'eau à moins de `margeM` du pied ou du sommet d'une des côtes (les plus proches d'abord). */
+export function eauPresDesCotes(points: PointEau[], cotes: { lat: number; lon: number; geometrie: [number, number][] }[],
+                                margeM = 300, max = 20): PointEau[] {
+  const reperes = cotes.flatMap((c) => {
+    const fin = c.geometrie[c.geometrie.length - 1];
+    return fin ? [{ lat: c.lat, lon: c.lon }, { lat: fin[1], lon: fin[0] }] : [{ lat: c.lat, lon: c.lon }];
+  });
+  return points
+    .map((e) => ({ e, d: Math.min(...reperes.map((r) => distanceM(e, r))) }))
+    .filter((x) => x.d <= margeM)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, max)
+    .map((x) => x.e);
+}
