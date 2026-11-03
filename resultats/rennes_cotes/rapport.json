@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-02T17:41:38+00:00",
+  "date_utc": "2026-11-03T06:14:46+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -38,8 +38,8 @@
     "Côtes trouvées": 7,
     "Tronçons exclus (privés / interdits aux piétons)": 80,
     "Revêtement": "OSM surface : 7",
-    "OpenStreetMap": "ok (14843 voies)",
-    "Fond Plan IGN": "échec",
+    "OpenStreetMap": "ok (14852 voies)",
+    "Fond Plan IGN": "ok",
     "Requêtes WFS / altimétrie": "6 / 7"
   },
   "accroche": {
@@ -98,7 +98,7 @@
       "dplus_m": 9.0,
       "type_voie": "route",
       "revetement": "goudronné",
-      "technicite": "",
+      "technicite": "correct",
       "nom": "Rue Paul Féval"
     },
     {
@@ -141,10 +141,10 @@
   "osm": {
     "statut": "ok",
     "url": "https://overpass-api.de/api/interpreter",
-    "nb_voies": 14843,
+    "nb_voies": 14852,
     "valeurs_surface": {
-      "asphalt": 6933,
-      "—": 4160,
+      "asphalt": 6937,
+      "—": 4165,
       "paving_stones": 1008,
       "concrete": 837,
       "compacted": 620,
@@ -160,11 +160,9 @@
       "paved": 40
     },
     "erreurs": [],
-    "duree_s": 37.1
+    "duree_s": 47.6
   },
-  "fond_erreurs": [
-    "WMS Plan IGN HTTP 400 text/xml; charset=UTF-8 : <ServiceExceptionReport version=\"1.3.0\" xmlns=\"http://www.opengis.net/ogc\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.opengis.net/ogc http://schemas.opengis.n"
-  ],
+  "fond_erreurs": [],
   "wfs": {
     "requetes": 6,
     "codes_http": {
@@ -281,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.4
+    "duree_s": 4.1
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -292,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 23.6,
+    "duree_s": 21.8,
     "codes_http": {
       "200": 7
     },
