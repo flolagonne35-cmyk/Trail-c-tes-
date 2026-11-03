@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-03T06:14:46+00:00",
+  "date_utc": "2026-11-03T10:50:26+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -143,10 +143,10 @@
     "url": "https://overpass-api.de/api/interpreter",
     "nb_voies": 14852,
     "valeurs_surface": {
-      "asphalt": 6937,
-      "—": 4165,
+      "asphalt": 6943,
+      "—": 4158,
       "paving_stones": 1008,
-      "concrete": 837,
+      "concrete": 838,
       "compacted": 620,
       "sett": 335,
       "fine_gravel": 213,
@@ -160,7 +160,7 @@
       "paved": 40
     },
     "erreurs": [],
-    "duree_s": 47.6
+    "duree_s": 48.1
   },
   "fond_erreurs": [],
   "wfs": {
@@ -279,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.1
+    "duree_s": 5.1
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -290,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 21.8,
+    "duree_s": 50.4,
     "codes_http": {
       "200": 7
     },
