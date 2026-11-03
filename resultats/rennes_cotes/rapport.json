@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-03T15:52:28+00:00",
+  "date_utc": "2026-11-03T19:07:52+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -38,7 +38,7 @@
     "Côtes trouvées": 7,
     "Tronçons exclus (privés / interdits aux piétons)": 80,
     "Revêtement": "OSM surface : 7",
-    "OpenStreetMap": "ok (12805 voies)",
+    "OpenStreetMap": "ok (14852 voies)",
     "Fond Plan IGN": "ok",
     "Requêtes WFS / altimétrie": "6 / 7"
   },
@@ -98,7 +98,7 @@
       "dplus_m": 9.0,
       "type_voie": "route",
       "revetement": "goudronné",
-      "technicite": "",
+      "technicite": "correct",
       "nom": "Rue Paul Féval"
     },
     {
@@ -140,30 +140,27 @@
   ],
   "osm": {
     "statut": "ok",
-    "url": "https://overpass.kumi.systems/api/interpreter",
-    "nb_voies": 12805,
+    "url": "https://overpass-api.de/api/interpreter",
+    "nb_voies": 14852,
     "valeurs_surface": {
-      "asphalt": 5766,
-      "—": 3529,
-      "paving_stones": 877,
-      "concrete": 785,
-      "compacted": 598,
-      "sett": 330,
-      "fine_gravel": 208,
-      "wood": 154,
-      "concrete:plates": 119,
-      "ground": 90,
-      "grass": 62,
+      "asphalt": 6943,
+      "—": 4158,
+      "paving_stones": 1008,
+      "concrete": 838,
+      "compacted": 620,
+      "sett": 335,
+      "fine_gravel": 213,
+      "wood": 158,
+      "concrete:plates": 122,
+      "ground": 91,
+      "grass": 65,
+      "dirt": 56,
       "metal": 53,
-      "dirt": 52,
-      "gravel": 49,
-      "paved": 39
+      "gravel": 51,
+      "paved": 40
     },
-    "erreurs": [
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a",
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a"
-    ],
-    "duree_s": 161.3
+    "erreurs": [],
+    "duree_s": 29.4
   },
   "fond_erreurs": [],
   "wfs": {
@@ -282,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 6.6
+    "duree_s": 5.1
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -293,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 26.7,
+    "duree_s": 24.5,
     "codes_http": {
       "200": 7
     },
