@@ -57,7 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp "app/${{ steps.v.outputs.nom }}.apk" trail-cotes.apk
+          cp "${{ steps.v.outputs.nom }}.apk" trail-cotes.apk  # (on est déjà dans app/)
           gh release view apk >/dev/null 2>&1 || gh release create apk --target "$GITHUB_SHA" --title "Appli Android de test" \
             --notes "Sur le téléphone Android : télécharger trail-cotes.apk, l'ouvrir et autoriser l'installation depuis le navigateur."
           gh release upload apk trail-cotes.apk --clobber
