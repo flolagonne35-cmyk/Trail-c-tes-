@@ -55,8 +55,8 @@ def cases() -> list[tuple[int, int]]:
     return vues
 
 
-def requete(la: int, lo: int) -> str:
-    bbox = f"{la},{lo},{la + 1},{lo + 1}"
+def requete(la: float, lo: float, cote: float = 1) -> str:
+    bbox = f"{la},{lo},{la + cote},{lo + cote}"
     return (f"[out:json][timeout:180];("
             f"nwr[\"amenity\"=\"drinking_water\"]({bbox});"
             f"nwr[\"amenity\"=\"water_point\"][\"drinking_water\"=\"yes\"]({bbox});"
@@ -148,6 +148,10 @@ def main(argv=None, interroger=interroger) -> int:
             restantes.append(f"{la},{lo}")
             continue
         elements = interroger(requete(la, lo))
+        if elements is None:
+            # case trop chargée pour le serveur (grande ville) : en quatre quarts
+            quarts = [interroger(requete(la + a, lo + b, 0.5)) for a in (0, 0.5) for b in (0, 0.5)]
+            elements = None if any(q is None for q in quarts) else [e for q in quarts for e in q]
         if elements is None:
             echecs.append(f"{la},{lo}")
             continue

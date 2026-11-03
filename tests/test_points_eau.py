@@ -48,3 +48,10 @@ def test_reprise_cases_recentes_sautees(tmp_path):
     assert pe.main(["--sortie", str(tmp_path), "--case", "48,-2", "--pause", "0"], interroger=faux) == 0
     assert pe.main(["--sortie", str(tmp_path), "--case", "48,-2", "--pause", "0", "--age-max", "20"], interroger=faux) == 0
     assert len(appels) == 1  # case à jour : pas de nouvelle requête
+
+
+def test_case_trop_chargee_en_quatre_quarts(tmp_path):
+    def faux(texte):
+        return None if "48,-2,49,-1" in texte else ELEMENTS[:1]
+    assert pe.main(["--sortie", str(tmp_path), "--case", "48,-2", "--pause", "0"], interroger=faux) == 0
+    assert len(json.loads((tmp_path / "eau_48_-2.json").read_text())["points"]) == 1  # 4 quarts, doublons écartés
