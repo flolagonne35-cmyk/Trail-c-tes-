@@ -214,3 +214,50 @@ export function zoneContenant<Z extends { emprise: number[] }>(zones: Z[], p: Po
   const centre = ({ emprise: [a, b, c, d] }: Z) => distanceM(p, { lat: (a + c) / 2, lon: (b + d) / 2 });
   return dedans.sort((x, y) => centre(x) - centre(y))[0] ?? null;
 }
+
+// ---- Réseau France : blocs de ≈ 12 km précalculés par département (scripts/reseau_france.py) ----
+
+export type IndexReseau = { blocs: { f: string; e: number[]; n: number }[] };
+
+/** Blocs dont l'emprise [lat_min, lon_min, lat_max, lon_max] passe à moins de rayonKm du départ. */
+export function blocsAutour(idx: IndexReseau, p: Position, rayonKm: number): string[] {
+  const dLat = rayonKm / 111.2;
+  const dLon = rayonKm / (111.2 * Math.cos((p.lat * Math.PI) / 180));
+  return idx.blocs
+    .filter(({ e }) => p.lat >= e[0] - dLat && p.lat <= e[2] + dLat && p.lon >= e[1] - dLon && p.lon <= e[3] + dLon)
+    .map((b) => b.f);
+}
+
+/** Rayon de réseau à charger pour une boucle de `km` : on ne s'éloigne jamais de plus de la moitié. */
+export const rayonPourBoucle = (km: number) => Math.min(20, Math.max(3, km / 2 + 1));
+
+/**
+ * Plusieurs blocs → un seul réseau. Les carrefours en limite de bloc (mêmes coordonnées entières)
+ * deviennent un seul nœud : la boucle passe d'un bloc à l'autre.
+ */
+export function fusionnerReseaux(blocs: ReseauBrut[]): ReseauBrut {
+  if (blocs.length === 1) return blocs[0];
+  const numero = new Map<string, number>();
+  const noeuds: [number, number][] = [];
+  const noms: string[] = [];
+  const numNom = new Map<string, number>();
+  const aretes: ReseauBrut["aretes"] = [];
+  for (const r of blocs) {
+    const local = r.noeuds.map(([lo, la]) => {
+      const cle = `${lo},${la}`;
+      let k = numero.get(cle);
+      if (k === undefined) { k = noeuds.length; numero.set(cle, k); noeuds.push([lo, la]); }
+      return k;
+    });
+    for (const [a, b, L, p, m, t, s, nom, inter] of r.aretes) {
+      let n = -1;
+      if (nom >= 0) {
+        const texte = r.noms[nom];
+        n = numNom.get(texte) ?? noms.length;
+        if (n === noms.length) { numNom.set(texte, n); noms.push(texte); }
+      }
+      aretes.push([local[a], local[b], L, p, m, t, s, n, inter]);
+    }
+  }
+  return { source: blocs[0]?.source ?? "", types: blocs[0]?.types ?? [], trafics: blocs[0]?.trafics ?? [], noeuds, aretes, noms };
+}

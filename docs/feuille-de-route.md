@@ -45,11 +45,11 @@ Il manque deux secrets du dépôt (Settings → Secrets and variables → Action
 
 ### Ce qui limite encore
 
-- **Deux métropoles calculées** : Rennes Métropole (848 côtes) et Nantes Métropole, Couëron
-  compris (1 470 côtes). Le réseau des boucles couvre les deux métropoles entières (60 000 et
-  99 000 carrefours, un fichier par zone chargé seulement pour la zone du départ) ; boucles
-  vérifiées depuis Rennes, Saint-Jacques, Couëron et Rezé (0,5 à 2 s sur ordinateur). Ailleurs,
-  l'appli le dit et propose la zone la plus proche.
+- **Côtes : toute la France** (≈ 2,07 millions de côtes, 36 805 tuiles de 4 km, terminé le
+  03/11), servies par département sur le site de l'appli.
+- **Boucles : réseau de toute la France en cours de calcul** (workflow « Réseau des boucles
+  (France) », mêmes tuiles, publié par blocs de 12 km dans /reseau/). L'appli charge seulement les
+  blocs à la distance utile pour la boucle demandée. Hors connexion : Rennes et Nantes embarqués.
 - **Pas de serveur** : pas de compte, pas de classement entre coureurs, pas de sauvegarde si on
   change de téléphone.
 - **Pas encore sur un vrai téléphone** : on teste la version web. Il faut une version installable.

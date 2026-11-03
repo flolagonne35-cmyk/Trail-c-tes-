@@ -191,3 +191,30 @@ def test_tuile_en_bord_de_couverture_ign(tmp_path, monkeypatch):
     assert precalcul.main(args) == 0
     con = ouvrir(base)
     assert con.execute("SELECT COUNT(*) FROM tuiles WHERE statut != 'ok'").fetchone()[0] == 0
+
+
+def test_reseau_france_tuiles_raccordees_et_blocs(tmp_path):
+    """Réseau France : chaque tronçon dans une seule tuile (son milieu), extrémités en coordonnées
+    entières qui raccordent les tuiles, reprise, export par blocs et index de l'appli."""
+    import reseau_france as rf
+    import index_reseau_france as irf
+    base = tmp_path / "r.sqlite"
+    args = ["--zone", "48.10,-1.70,48.13,-1.65", "--demo", "--base", str(base)]
+    assert rf.main(args) == 0
+    con = rf.ouvrir(base)
+    n_tuiles, n_ok = con.execute("SELECT COUNT(*), SUM(statut = 'ok') FROM tuiles").fetchone()
+    assert n_tuiles > 1 and n_ok >= 1
+    assert rf.main(args) == 0  # reprise : rien à recalculer
+    assert con.execute("SELECT COUNT(*) FROM tuiles").fetchone()[0] == n_tuiles
+    toutes = [a for (x,) in con.execute("SELECT aretes FROM tuiles WHERE statut='ok'") for a in json.loads(x)]
+    cles = [tuple(a[:4]) + (a[4],) for a in toutes]
+    assert len(cles) == len(set(cles))  # pas de tronçon en double entre tuiles voisines
+    sortie = tmp_path / "dist"
+    assert rf.main(["--base", str(base), "--exporter", str(sortie)]) == 0
+    assert irf.main([str(sortie)]) == 0
+    idx = json.loads((sortie / "index.json").read_text())
+    assert idx["blocs"] and all(len(b["e"]) == 4 and b["n"] > 0 for b in idx["blocs"])
+    bloc = json.loads((sortie / idx["blocs"][0]["f"]).read_text())
+    n = len(bloc["noeuds"])
+    assert all(0 <= a[0] < n and 0 <= a[1] < n and len(a[8]) % 2 == 0 for a in bloc["aretes"])
+    assert sum(len(json.loads((sortie / b["f"]).read_text())["aretes"]) for b in idx["blocs"]) == len(toutes)

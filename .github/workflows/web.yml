@@ -45,6 +45,15 @@ jobs:
           mkdir -p dist/cotes
           gh release download donnees-cotes -p "cotes_*.json" -D dist/cotes || echo "pas encore de côtes par département"
           python3 ../scripts/index_departements.py dist/cotes
+      - name: Réseau des boucles par blocs (release « donnees-reseau », remplie par le workflow « Réseau des boucles (France) »)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/res" dist/reseau
+          gh release download donnees-reseau -p "reseau_*.tar.gz" -D "$RUNNER_TEMP/res" || echo "pas encore de réseau France"
+          for f in "$RUNNER_TEMP"/res/reseau_*.tar.gz; do [ -e "$f" ] && tar -xzf "$f" -C dist/reseau; done
+          python3 ../scripts/index_reseau_france.py dist/reseau
+          echo "fichiers publiés : $(find dist -type f | wc -l) (limite Cloudflare Pages : 20 000)"
       - name: Publier sur Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: |

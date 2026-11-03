@@ -14,7 +14,7 @@ import { centreDe, zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { Ajusteur, nombre, Segments, Tuiles } from "../composants/communs.tsx";
 import { partagerFichier } from "../fichiers.ts";
-import { grapheDeZone, zoneDuDepart, ZONES_RESEAU } from "../reseauZones.ts";
+import { grapheAutour, grapheDeZone, zoneDuDepart, ZONES_RESEAU } from "../reseauZones.ts";
 import { C, S } from "../theme.ts";
 
 const DPLUS: [string, string][] = [["0", "Libre"], ["100", "100 m"], ["200", "200 m"], ["300", "300 m"]];
@@ -71,13 +71,15 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
     // on laisse l'indicateur s'afficher avant le calcul (0,2 à 2 s, plus au premier chargement de la zone)
     setTimeout(async () => {
       try {
+        // réseau de toute la France (en ligne), sinon les zones embarquées (hors connexion)
         const zone = zoneDuDepart(position);
-        if (!zone) {
-          setResultat(`Pas encore de boucles autour de ${nomDepart} : le réseau des chemins est calculé pour ${ZONES_RESEAU.join(", ")}. `
-            + "Choisis un départ dans l'une de ces zones avec la barre de recherche.");
+        const g = await grapheAutour(position, km) ?? (zone ? await grapheDeZone(zone) : null);
+        if (!g) {
+          setResultat(`Les chemins autour de ${nomDepart} ne sont pas disponibles : soit pas de connexion internet, `
+            + "soit ce coin n'est pas encore calculé (le calcul de toute la France est en cours). "
+            + `Hors connexion, les boucles marchent pour ${ZONES_RESEAU.join(", ")}.`);
           return;
         }
-        const g = await grapheDeZone(zone);
         const demande = relief === "cotes"
           ? { nbCotes, dplusVise: Number(dplus) || null }
           : { nbCotes: 0, dplusVise: DPLUS_PAR_KM[relief] * km };

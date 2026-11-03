@@ -77,17 +77,9 @@ def denivele(z: np.ndarray, seuil: float = 2.0) -> tuple[float, float]:
     return plus, moins
 
 
-def construire(troncons, proj: Projection, z_points, pas: float, tolerance: float) -> dict:
-    """`z_points(x, y)` → altitudes. Renvoie le réseau au format de l'application."""
-    noeuds: dict[tuple[float, float], int] = {}
-
-    def noeud(p) -> int:
-        cle = (round(float(p[0]), 1), round(float(p[1]), 1))
-        if cle not in noeuds:
-            noeuds[cle] = len(noeuds)
-        return noeuds[cle]
-
-    # échantillons pour les altitudes
+def aretes_brutes(troncons, proj: Projection, z_points, pas: float, tolerance: float) -> tuple[list, dict]:
+    """Arêtes avec leurs extrémités en coordonnées entières (lon, lat × 1e5) : deux tuiles calculées
+    séparément se raccordent sur ces coordonnées. `z_points(x, y)` → altitudes."""
     echantillons = []
     for t in troncons:
         c = longueurs_cumulees(t.xy)
@@ -95,9 +87,12 @@ def construire(troncons, proj: Projection, z_points, pas: float, tolerance: floa
         echantillons.append((d, np.interp(d, c, t.xy[:, 0]), np.interp(d, c, t.xy[:, 1])))
     xs = np.concatenate([e[1] for e in echantillons]) if echantillons else np.zeros(0)
     ys = np.concatenate([e[2] for e in echantillons]) if echantillons else np.zeros(0)
-    z_tous = z_points(xs, ys)
+    z_tous = z_points(xs, ys) if len(xs) else np.zeros(0)
 
-    noms: dict[str, int] = {}
+    def entier(xy):
+        lon, lat = proj.lonlat(np.atleast_1d(xy[..., 0]), np.atleast_1d(xy[..., 1]))
+        return [v for o, a_ in zip(lon, lat) for v in (int(round(float(o) * 1e5)), int(round(float(a_) * 1e5)))]
+
     aretes = []
     debut = 0
     sans_altitude = 0
@@ -111,26 +106,39 @@ def construire(troncons, proj: Projection, z_points, pas: float, tolerance: floa
             else:
                 z = np.interp(d, [0, d[-1]], [z[0], z[-1]])
         plus, moins = denivele(z)
-        a, b = noeud(t.xy[0]), noeud(t.xy[-1])
-        if a == b and t.longueur < 5:
+        a_, b_ = entier(t.xy[0]), entier(t.xy[-1])
+        if a_ == b_ and t.longueur < 5:
             continue
-        idx = douglas_peucker(t.xy, tolerance)[1:-1]
-        lon, lat = proj.lonlat(t.xy[idx, 0], t.xy[idx, 1])
-        inter = [v for o, a_ in zip(lon, lat) for v in (int(round(o * 1e5)), int(round(a_ * 1e5)))]
-        nom = noms.setdefault(t.nom, len(noms)) if t.nom else -1
-        aretes.append([a, b, int(round(t.longueur)), round(plus, 1), round(moins, 1), TYPES.index(t.type_voie),
-                       TRAFICS.index(t.trafic), nom, inter])
+        inter = entier(t.xy[douglas_peucker(t.xy, tolerance)[1:-1]]) if len(t.xy) > 2 else []
+        aretes.append([*a_, *b_, int(round(t.longueur)), round(plus, 1), round(moins, 1), TYPES.index(t.type_voie),
+                       TRAFICS.index(t.trafic), t.nom or "", inter])
+    stats = {"points_altitude": int(len(xs)), "aretes_sans_altitude": sans_altitude,
+             "points_valides_pct": round(100 * float(np.isfinite(z_tous).mean()), 2) if len(z_tous) else 100.0}
+    return aretes, stats
 
-    xy = np.array(list(noeuds.keys())) if noeuds else np.zeros((0, 2))
-    lon, lat = proj.lonlat(xy[:, 0], xy[:, 1]) if len(xy) else (np.zeros(0), np.zeros(0))
-    return {
-        "types": list(TYPES), "trafics": list(TRAFICS),
-        "noeuds": [[int(round(o * 1e5)), int(round(a_ * 1e5))] for o, a_ in zip(lon, lat)],
-        "aretes": aretes, "noms": list(noms.keys()),
-        "_stats": {"noeuds": len(noeuds), "aretes": len(aretes), "points_altitude": int(len(xs)),
-                   "points_valides_pct": round(100 * float(np.isfinite(z_tous).mean()), 2) if len(z_tous) else 0,
-                   "aretes_sans_altitude": sans_altitude},
-    }
+
+def indexer(aretes: list) -> dict:
+    """Arêtes à extrémités en coordonnées → format de l'application (nœuds numérotés, noms en table)."""
+    noeuds: dict[tuple[int, int], int] = {}
+    noms: dict[str, int] = {}
+
+    def noeud(lo, la) -> int:
+        return noeuds.setdefault((lo, la), len(noeuds))
+
+    sortie = []
+    for lo_a, la_a, lo_b, la_b, longueur, plus, moins, t, s, nom, inter in aretes:
+        sortie.append([noeud(lo_a, la_a), noeud(lo_b, la_b), longueur, plus, moins, t, s,
+                       noms.setdefault(nom, len(noms)) if nom else -1, inter])
+    return {"types": list(TYPES), "trafics": list(TRAFICS), "noeuds": [list(k) for k in noeuds],
+            "aretes": sortie, "noms": list(noms)}
+
+
+def construire(troncons, proj: Projection, z_points, pas: float, tolerance: float) -> dict:
+    """`z_points(x, y)` → altitudes. Renvoie le réseau au format de l'application."""
+    aretes, stats = aretes_brutes(troncons, proj, z_points, pas, tolerance)
+    r = indexer(aretes)
+    r["_stats"] = {"noeuds": len(r["noeuds"]), "aretes": len(r["aretes"]), **stats}
+    return r
 
 
 def reseau_zone(zone: str, args, wfs: StatsWfs, alti: StatsApi) -> dict:
