@@ -37,7 +37,7 @@ import csv
 import json
 import sys
 from collections import Counter
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -277,6 +277,39 @@ class Calcul:
     cotes: list = field(default_factory=list)
 
 
+# Trou d'altitude toléré sur le sol (hors ponts et tunnels, toujours interpolés) : au-delà, la voie
+# sort de la couverture du RGE ALTI (frontière, mer) et elle est coupée en morceaux.
+TROU_MAX_M = 30.0
+
+
+def decouper_hors_couverture(v, z: np.ndarray, trou_max_m: float, longueur_min: float):
+    """Morceaux de la voie séparés par les trous d'altitude au sol plus longs que `trou_max_m`.
+    Les points d'ouvrage (ponts, tunnels) n'ont pas d'altitude par construction : ils restent interpolés."""
+    manque = ~np.isfinite(z) & ~v.ouvrage
+    coupe = np.zeros(len(z), bool)
+    i = 0
+    while i < len(z):
+        if manque[i]:
+            j = i
+            while j + 1 < len(z) and manque[j + 1]:
+                j += 1
+            if v.d[min(j + 1, len(z) - 1)] - v.d[max(i - 1, 0)] > trou_max_m:
+                coupe[i:j + 1] = True
+            i = j + 1
+        else:
+            i += 1
+    if not coupe.any():
+        yield v, z
+        return
+    garde = np.flatnonzero(~coupe)
+    for bloc in np.split(garde, np.flatnonzero(np.diff(garde) > 1) + 1):
+        if len(bloc) < 2 or v.d[bloc[-1]] - v.d[bloc[0]] < longueur_min:
+            continue
+        sl = slice(bloc[0], bloc[-1] + 1)
+        yield replace(v, d=v.d[sl] - v.d[bloc[0]], x=v.x[sl], y=v.y[sl], troncon=v.troncon[sl],
+                      offset=v.offset[sl], ouvrage=v.ouvrage[sl], z=None), z[sl]
+
+
 def calculer(args: argparse.Namespace) -> Calcul:
     proj = Projection(args.lat, args.lon)
     wfs, alti, osm = StatsWfs(), StatsApi(ressource=args.ressource), StatsOsm()
@@ -329,10 +362,13 @@ def calculer(args: argparse.Namespace) -> Calcul:
     debut = 0
     for v in voies:
         n = len(v.d)
-        v.z = boucher_et_lisser(v.d, z[debut:debut + n], args.lissage, args.pas)
+        zv = z[debut:debut + n]
         debut += n
-        if v.z is not None:
-            cotes += cotes_de_voie(v, troncons, proj, reseau, args)
+        # hors couverture IGN (Espagne, Suisse, mer) : la voie est coupée, on n'invente pas de pente
+        for morceau, zm in decouper_hors_couverture(v, zv, TROU_MAX_M, args.longueur_min):
+            morceau.z = boucher_et_lisser(morceau.d, zm, args.lissage, args.pas)
+            if morceau.z is not None:
+                cotes += cotes_de_voie(morceau, troncons, proj, reseau, args)
     cotes = dedoublonner(cotes, proj)
     cotes.sort(key=lambda c: c.distance_m)
     for n, c in enumerate(cotes, start=1):

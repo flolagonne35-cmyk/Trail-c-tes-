@@ -213,3 +213,19 @@ def test_trafic_bdtopo():
     assert trafic({"importance": "5", "vitesse_moyenne_vl": 70}, "route") == "passant"
     assert trafic({"importance": "5", "nombre_de_voies": 4}, "route") == "passant"
     assert trafic({"importance": "2", "itineraire_vert": True}, "route") == "calme"
+
+
+def test_voie_coupee_hors_couverture_ign():
+    """Frontière ou mer : un long trou d'altitude au sol coupe la voie (pas de pente inventée) ;
+    un pont reste interpolé, un petit trou aussi."""
+    d = np.arange(0, 1001, 10.0)
+    n = len(d)
+    v = bdtopo.Voie([(0, False)], d, d.copy(), np.zeros(n), np.zeros(n, int), d.copy(), np.zeros(n, bool))
+    z = d * 0.08
+    z[40:60] = np.nan                        # 200 m sans altitude au sol (Espagne, Suisse, mer)
+    z[80:82] = np.nan                        # 20 m : simple point manquant, interpolé
+    morceaux = list(cb.decouper_hors_couverture(v, z, cb.TROU_MAX_M, 150))
+    assert [round(m.d[-1]) for m, _ in morceaux] == [390, 400]
+    assert all(m.d[0] == 0 and len(m.d) == len(zm) for m, zm in morceaux)
+    v.ouvrage[40:60] = True                  # même trou, mais sur un pont : interpolé
+    assert len(list(cb.decouper_hors_couverture(v, z, cb.TROU_MAX_M, 150))) == 1

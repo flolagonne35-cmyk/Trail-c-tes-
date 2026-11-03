@@ -170,3 +170,24 @@ def test_tuile_sans_voie_terminee_mais_erreur_wfs_reprise(tmp_path, monkeypatch)
     assert con.execute("SELECT COUNT(*) FROM tuiles WHERE statut='vide'").fetchone()[0] == n
     rapport = json.loads((tmp_path / "rapport_b.json").read_text())
     assert rapport["resume"]["Tuiles"] == f"{n} faites / {n} (0 restantes)"
+
+
+def test_tuile_en_bord_de_couverture_ign(tmp_path, monkeypatch):
+    """Points sans altitude alors que tous les lots ont répondu (frontière, mer) : tuile terminée.
+    Lots d'altitude en échec : tuile reprise au passage suivant."""
+    import types
+    lots_en_echec = [1]
+
+    def calculer(params):
+        return types.SimpleNamespace(troncons=[1], cotes=[], taux_valide=0.6, nb_points=100,
+                                     wfs=types.SimpleNamespace(erreurs=[], codes_http={}),
+                                     alti=types.SimpleNamespace(codes_http={}, lots_en_echec=lots_en_echec[0]),
+                                     osm=types.SimpleNamespace(statut=""))
+    monkeypatch.setattr(precalcul.cotes_bdtopo, "calculer", calculer)
+    base = tmp_path / "b.sqlite"
+    args = ["--zone", "48.10,-1.70,48.13,-1.65", "--base", str(base), "--tuile", "2000", "--sans-adresses"]
+    assert precalcul.main(args) == 2
+    lots_en_echec[0] = 0
+    assert precalcul.main(args) == 0
+    con = ouvrir(base)
+    assert con.execute("SELECT COUNT(*) FROM tuiles WHERE statut != 'ok'").fetchone()[0] == 0

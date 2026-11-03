@@ -125,7 +125,10 @@ def precalculer(args) -> int:
         dedans = [c for c in calcul.cotes
                   if abs(c.lat_depart - lat) <= demi_lat and abs(c.lon_depart - lon) <= demi_lon]
         if calcul.troncons:
-            statut = "ok" if calcul.taux_valide >= 0.95 else "echec"
+            # altitudes manquantes alors que le service a répondu à tous les lots : la tuile déborde
+            # de la couverture IGN (frontière, mer), les voies y sont coupées. Sinon : reprise.
+            couverture = calcul.nb_points == 0 or calcul.alti.lots_en_echec == 0
+            statut = "ok" if calcul.taux_valide >= 0.95 or couverture else "echec"
         else:  # aucune voie : tuile vide si le WFS a répondu sans erreur, sinon reprise au passage suivant
             statut = "echec" if calcul.wfs.erreurs else "vide"
         detail = {"troncons": len(calcul.troncons), "points_valides": round(calcul.taux_valide, 4),
