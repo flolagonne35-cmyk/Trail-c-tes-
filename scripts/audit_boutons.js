@@ -4,7 +4,7 @@
 // clics). Pour chacun, on note : erreur de page, effet visible (la page change),
 // fichier téléchargé, sélecteur de fichier ou lien ouvert. Un bouton sans aucun effet est signalé.
 //
-//   EXPO_PUBLIC_TUILES_LOCALES=1 npx expo export --platform web --output-dir <dossier>
+//   npx expo export --platform web --output-dir <dossier>
 //   (servir <dossier> sur http://127.0.0.1:8765/)
 //   NODE_PATH=<node_modules avec playwright> node scripts/audit_boutons.js [url] [rapport.json]
 //

@@ -43,16 +43,10 @@ depuis la distance (marqués « ≈ »).
 
 ## Données
 
-`assets/data/cotes.json` et `assets/data/parcours_demo.json` sont produits par
-`python scripts/exporter_app.py` (à la racine du dépôt) à partir des résultats des scripts
-(`resultats/`). Pour l'instant : Rennes Métropole (848 côtes), Nantes Métropole dont Couëron (1 470 côtes) et un parcours de démonstration.
-
-## Version de test sans réseau
-
-`EXPO_PUBLIC_TUILES_LOCALES=1 npx expo export --platform web` : la carte lit les tuiles dans
-`tuiles/<z>/<x>/<y>.png` à côté de la page (zooms 11 à 15, téléchargées par
-`scripts/telecharger_tuiles.py`, workflow « Tuiles Plan IGN »). Sans cette variable, les tuiles
-viennent en direct du WMTS de la Géoplateforme (jusqu'au zoom 18).
+Embarqués dans l'appli : les communes (recherche sans réseau), les courses à venir et un parcours
+de démonstration. Le reste est chargé autour du départ depuis le site de l'appli : côtes
+(`/cotes/`, `src/cotesFrance.ts`), réseau des boucles (`/reseau/`, `src/reseauZones.ts`) et points
+d'eau (`/eau/`, `src/pointsEau.ts`), calculés sur GitHub pour toute la France.
 
 ## Code
 
@@ -66,7 +60,7 @@ viennent en direct du WMTS de la Géoplateforme (jusqu'au zoom 18).
 Les côtes de chaque département sont calculées sur GitHub (workflow « Précalcul des côtes
 (France) ») et servies avec la version web, dans `/cotes/` (un fichier par département et un
 `index.json`). L'appli charge les départements à moins de 40 km du point de départ
-(`src/cotesFrance.ts`) ; Rennes et Nantes restent embarquées pour le hors-ligne.
+(`src/cotesFrance.ts`).
 
 
 Développement sur la seule branche `main` ; la version web est publiée depuis `main`.

@@ -8,13 +8,12 @@ import Svg, { Circle, Polyline } from "react-native-svg";
 
 import type { Position } from "../calcul/geo.ts";
 import {
-  metresParPixel, SOURCE_IGN, SOURCE_LOCALE, surEcran, tuilesVisibles, versPixel, versPosition,
+  metresParPixel, SOURCE_IGN, surEcran, tuilesVisibles, versPixel, versPosition,
 } from "../calcul/tuiles.ts";
 import { tuileLocale } from "../cartesHorsLigne.ts";
 import { C } from "../theme.ts";
 
-// version de test sans réseau : tuiles publiées avec la page
-const SOURCE = process.env.EXPO_PUBLIC_TUILES_LOCALES === "1" ? SOURCE_LOCALE : SOURCE_IGN;
+const SOURCE = SOURCE_IGN;
 const Z_MAX = 18;
 
 export type Trace = { id: number; points: Position[]; couleur: string; epaisseur?: number };
@@ -25,7 +24,7 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
   hauteur?: number; centre: Position; zoom: number; traces?: Trace[]; marqueurs?: Marqueur[];
   position?: Position; rayonM?: number; cle: string; // une nouvelle clé recentre la carte
 }) {
-  // au-delà de zMax + 1, les tuiles agrandies deviennent floues (version de test sans réseau)
+  // au-delà de zMax + 1, les tuiles agrandies deviennent floues
   zoomInitial = Math.min(zoomInitial, SOURCE.zMax + 1);
   const [largeur, setLargeur] = useState(0);
   const [centre, setCentre] = useState(centreInitial);
@@ -83,7 +82,7 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
           accessibilityLabel={`Carte : ${traces.length} côte${traces.length > 1 ? "s" : ""}`}>
       <View style={[{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }, decalage]} {...glissement.panHandlers}>
         {tuiles.map((t) => (
-          <Image key={t.cle} source={{ uri: SOURCE === SOURCE_IGN ? tuileLocale(...t.zxy) ?? t.url : t.url }} accessibilityIgnoresInvertColors
+          <Image key={t.cle} source={{ uri: tuileLocale(...t.zxy) ?? t.url }} accessibilityIgnoresInvertColors
                  style={{ position: "absolute", left: t.gauche, top: t.haut, width: t.taille, height: t.taille }} />
         ))}
         {largeur > 0 && (

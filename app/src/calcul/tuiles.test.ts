@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { SOURCE_IGN, SOURCE_LOCALE, centreDe, metresParPixel, surEcran, tuilesVisibles, versPixel, versPosition, zoomAjuste } from "./tuiles.ts";
+import { SOURCE_IGN, centreDe, metresParPixel, surEcran, tuilesVisibles, versPixel, versPosition, zoomAjuste } from "./tuiles.ts";
 
 const MAIRIE = { lat: 48.1113, lon: -1.68 };
 
@@ -20,7 +20,8 @@ test("tuiles visibles et agrandissement au-delà du zoom de la source", () => {
   assert.ok(t.length >= 4 && t.length <= 6);
   assert.match(t[0].url, /TILEMATRIX=15&TILEROW=\d+&TILECOL=\d+/);
   assert.ok(t.every((x) => x.gauche > -256 && x.gauche < 390 && x.haut > -256 && x.haut < 300));
-  const agrandies = tuilesVisibles(MAIRIE, 17, 390, 300, SOURCE_LOCALE);
+  const jusquA15 = { url: (z: number, x: number, y: number) => `tuiles/${z}/${x}/${y}.png`, zMin: 11, zMax: 15 };
+  const agrandies = tuilesVisibles(MAIRIE, 17, 390, 300, jusquA15);
   assert.ok(agrandies.every((x) => x.taille === 1024 && x.url.startsWith("tuiles/15/")));
 });
 

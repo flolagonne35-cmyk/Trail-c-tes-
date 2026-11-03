@@ -8,7 +8,7 @@ sommet, aux couleurs de l'appli. Dessiné en 4× puis réduit (anticrénelage).
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 ENCRE = (27, 42, 34)
 CRETE_LOIN = (46, 74, 59)

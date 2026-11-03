@@ -1,7 +1,7 @@
 // Recherche d'un point de départ, en plein écran :
 // - villes : toutes les communes de France, instantané et sans réseau ;
 // - adresses précises : géocodage IGN (Base Adresse Nationale) quand le réseau répond ;
-// - sans saisie : ma position, lieux récents, zones déjà calculées.
+// - sans saisie : ma position, lieux récents.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -41,8 +41,8 @@ function Ligne({ icone, titre, detail, onPress, premier }: {
   );
 }
 
-export function RechercheLieu({ pres, recents, zones, onLieu, onLocaliser, onFermer }: {
-  pres: Position; recents: Lieu[]; zones: Lieu[];
+export function RechercheLieu({ pres, recents, onLieu, onLocaliser, onFermer }: {
+  pres: Position; recents: Lieu[];
   onLieu: (l: Lieu) => void; onLocaliser: () => void; onFermer: () => void;
 }) {
   const [q, setQ] = useState("");
@@ -120,10 +120,6 @@ export function RechercheLieu({ pres, recents, zones, onLieu, onLocaliser, onFer
                                               onPress={() => choisir(l)} />)}
               </Groupe>
             )}
-            <Groupe titre="Zones déjà calculées">
-              {zones.map((l, i) => <Ligne key={l.label} premier={!i} icone="cotes" titre={l.label} detail={l.detail}
-                                          onPress={() => choisir(l)} />)}
-            </Groupe>
             <Text style={[S.petit, { marginTop: 14 }]}>
               Toutes les communes de France (35 000) se cherchent sans réseau. Les adresses précises utilisent le
               géocodage de l'IGN.

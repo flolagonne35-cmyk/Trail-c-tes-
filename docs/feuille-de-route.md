@@ -47,9 +47,10 @@ Il manque deux secrets du dépôt (Settings → Secrets and variables → Action
 
 - **Côtes : toute la France** (≈ 2,07 millions de côtes, 36 805 tuiles de 4 km, terminé le
   03/11), servies par département sur le site de l'appli.
-- **Boucles : réseau de toute la France en cours de calcul** (workflow « Réseau des boucles
+- **Boucles : réseau de toute la France** (terminé le 03/11) (workflow « Réseau des boucles
   (France) », mêmes tuiles, publié par blocs de 12 km dans /reseau/). L'appli charge seulement les
-  blocs à la distance utile pour la boucle demandée. Hors connexion : Rennes et Nantes embarqués.
+  blocs à la distance utile pour la boucle demandée. Les données de Rennes et Nantes embarquées ont
+  été retirées le 03/11 (appli deux fois plus légère) : il faut une connexion pour charger une zone.
 - **Pas de serveur** : pas de compte, pas de classement entre coureurs, pas de sauvegarde si on
   change de téléphone.
 - **Pas encore sur un vrai téléphone** : on teste la version web. Il faut une version installable.
@@ -75,8 +76,6 @@ Dans l'ordre. Je te prépare tout le reste (configuration, textes, captures).
 3. **Trouver 12 testeurs traileurs** (Mathieu, Théo, ton club). Google l'exige : un compte
    développeur personnel doit faire tester l'appli à **au moins 12 personnes pendant 14 jours**
    avant de pouvoir la publier.
-4. **Choisir les zones suivantes** : il suffit d'ajouter une ligne dans `scripts/zones.json`
-   (nom et rectangle lat/lon) ; le calcul part tout seul sur GitHub.
 
 ### 2.2 Avant la publication (≈ 120 € la première année)
 

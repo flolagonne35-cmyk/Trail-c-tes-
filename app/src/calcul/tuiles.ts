@@ -1,6 +1,5 @@
 // Carte en tuiles (Web Mercator, tuiles de 256 px) : projection, tuiles visibles, zoom adapté.
-// Fond : Plan IGN v2 (WMTS Géoplateforme, pyramide PM), Licence Ouverte. La version de test sans
-// réseau charge des tuiles publiées avec la page (EXPO_PUBLIC_TUILES_LOCALES=1, zooms 11 à 15).
+// Fond : Plan IGN v2 (WMTS Géoplateforme, pyramide PM), Licence Ouverte.
 
 import type { Position } from "./geo.ts";
 
@@ -16,8 +15,6 @@ export const SOURCE_IGN: Source = {
   zMin: 5,
   zMax: 18,
 };
-
-export const SOURCE_LOCALE: Source = { url: (z, x, y) => `tuiles/${z}/${x}/${y}.png`, zMin: 11, zMax: 15 };
 
 /** Coordonnées en pixels « monde » au zoom z. */
 export function versPixel(p: Position, z: number): [number, number] {

@@ -1,15 +1,15 @@
 // Onglet « Côtes » : un point de départ (ma position, une ville, une adresse), un résumé des filtres,
-// puis la carte ou la liste des côtes les plus proches. Hors des zones calculées, on le dit clairement.
+// puis la carte ou la liste des côtes les plus proches (toute la France, chargée autour du départ).
 
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 import {
   cotesProches, distanceCouverture, enDescente, kmLisibles, meilleures, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres, TRIS,
   type Cote, type CoteProche, type Filtres, type Sens,
 } from "../calcul/cotes.ts";
 import { eauPresDesCotes, type PointEau } from "../calcul/eau.ts";
-import { distanceM, type Position } from "../calcul/geo.ts";
+import type { Position } from "../calcul/geo.ts";
 import { adresseDe, type Lieu } from "../calcul/geoservices.ts";
 import { dureeLisible, tempsTrajets } from "../calcul/trajets.ts";
 import { zoomAjuste } from "../calcul/tuiles.ts";
@@ -69,31 +69,34 @@ function LigneCote({ c, rang, position, allurePlat, onPress, adresse }: {
   );
 }
 
-export function HorsZone({ depart, distance, zones, onLieu }: { depart: PointDepart; distance: number; zones: Lieu[]; onLieu: (l: Lieu) => void }) {
+export function HorsZone({ depart, distance, chargement }: { depart: PointDepart; distance: number; chargement: boolean }) {
+  if (chargement) {
+    return (
+      <View style={[S.carte, { gap: 10, padding: 18, alignItems: "center" }]}>
+        <ActivityIndicator color={C.montee} />
+        <Text style={S.petit}>Chargement des côtes autour de {depart.nom}…</Text>
+      </View>
+    );
+  }
   return (
     <View style={[S.carte, { gap: 10, padding: 18 }]}>
       <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: C.monteeClair, alignItems: "center", justifyContent: "center" }}>
         <Icone nom="cotes" couleur={C.monteeFonce} />
       </View>
-      <Text style={[S.h2, { fontSize: 19 }]}>Pas encore de côtes autour de {depart.nom}</Text>
+      <Text style={[S.h2, { fontSize: 19 }]}>Pas de côtes autour de {depart.nom}</Text>
       <Text style={[S.petit, { fontSize: 14, lineHeight: 20 }]}>
-        Chaque côte est mesurée à partir des altitudes IGN, zone par zone. La plus proche est à {kmLisibles(distance)}.
-        Cette zone sera calculée dans une prochaine version.
+        Les côtes couvrent toute la France, outre-mer compris{Number.isFinite(distance) ? ` ; la plus proche chargée est à ${kmLisibles(distance)}` : ""}.
+        Vérifie ta connexion internet : les côtes sont chargées autour de ton point de départ. Hors de France, il n'y a pas encore de données.
       </Text>
-      {[...zones].sort((a, b) => distanceM(depart.position, a) - distanceM(depart.position, b)).slice(0, 2).map((z) => (
-        <Pressable key={z.label} onPress={() => onLieu(z)} accessibilityRole="button" style={S.bouton}>
-          <Text style={S.boutonTexte}>Voir les côtes de {z.label}</Text>
-        </Pressable>
-      ))}
     </View>
   );
 }
 
 export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, onChoisir, allurePlat, onLocaliser,
-                             onRecherche, onLieu, zones, source, mode, setMode, resultats, setResultats }: {
+                             onRecherche, chargement, mode, setMode, resultats, setResultats }: {
   toutes: Cote[]; depart: PointDepart; localisation: Localisation; filtres: Filtres; setFiltres: (f: Filtres) => void;
   onChoisir: (c: CoteProche, rang: number) => void; allurePlat: number; onLocaliser: () => void; onRecherche: () => void;
-  onLieu: (l: Lieu) => void; zones: Lieu[]; source: string; mode: Sens; setMode: (m: Sens) => void;
+  onLieu: (l: Lieu) => void; chargement: boolean; mode: Sens; setMode: (m: Sens) => void;
   resultats: boolean; setResultats: (v: boolean) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
@@ -177,7 +180,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
         )}
 
         {horsZone ? (
-          <HorsZone depart={depart} distance={couverture} zones={zones} onLieu={onLieu} />
+          <HorsZone depart={depart} distance={couverture} chargement={chargement} />
         ) : !resultats ? (
           <RechercheCotes filtres={filtres} toutes={base} position={position} mot={mot}
                           onValider={(f) => { setFiltres(f); setResultats(true); }} />
@@ -278,7 +281,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
 
         <Text style={[S.petit, { marginTop: 18 }]}>
           Distances à vol d'oiseau, temps estimés ; le détail d'une côte donne l'itinéraire calculé. Altitudes IGN RGE ALTI,
-          réseau BD TOPO, adresses BAN (Licence Ouverte) · revêtements © contributeurs OpenStreetMap (ODbL) · {source}
+          réseau BD TOPO, adresses BAN (Licence Ouverte) · revêtements et points d'eau © contributeurs OpenStreetMap (ODbL).
         </Text>
       </ScrollView>
     </View>

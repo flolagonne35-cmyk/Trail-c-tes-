@@ -1,10 +1,9 @@
-// Départements à charger autour du départ, et fusion avec les côtes embarquées.
+// Départements à charger autour du départ.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { emprisesProches, fusionnerCotes, type IndexDepartements } from "./departements.ts";
-import type { Cote } from "./cotes.ts";
+import { emprisesProches, type IndexDepartements } from "./departements.ts";
 
 const idx: IndexDepartements = { departements: {
   "35": { emprise: [47.6, -2.3, 48.7, -1.0], nombre: 10, fichiers: ["cotes_35.json"] },
@@ -18,8 +17,3 @@ test("départements autour du départ", () => {
   assert.deepEqual(emprisesProches(idx, { lat: 45.0, lon: 2.0 }, 40), []);
 });
 
-test("fusion : les côtes embarquées d'un département chargé ne sont pas en double", () => {
-  const c = (id: number, lat: number, lon: number) => ({ id, lat, lon }) as Cote;
-  const r = fusionnerCotes([c(35000001, 48.1, -1.7)], [[47.6, -2.3, 48.7, -1.0]], [c(1, 48.1, -1.7), c(2, 47.2, -1.75)]);
-  assert.deepEqual(r.map((x) => x.id), [35000001, 2]);
-});

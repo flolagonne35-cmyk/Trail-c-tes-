@@ -1,6 +1,5 @@
-// Choix des départements à charger autour d'un point, et fusion avec les côtes embarquées.
+// Choix des départements à charger autour d'un point.
 
-import type { Cote } from "./cotes.ts";
 import type { Position } from "./geo.ts";
 
 export type IndexDepartements = { departements: Record<string, { emprise: number[]; nombre: number; fichiers: string[] }> };
@@ -13,11 +12,4 @@ export function emprisesProches(idx: IndexDepartements, p: Position, rayonKm: nu
     .filter(([, d]) => d.emprise && p.lat >= d.emprise[0] - dLat && p.lat <= d.emprise[2] + dLat
                        && p.lon >= d.emprise[1] - dLon && p.lon <= d.emprise[3] + dLon)
     .map(([k]) => k);
-}
-
-const dans = (c: Cote, e: number[]) => c.lat >= e[0] && c.lat <= e[2] && c.lon >= e[1] && c.lon <= e[3];
-
-/** Côtes chargées, plus les côtes embarquées qui ne tombent dans aucun département chargé (pas de doublon). */
-export function fusionnerCotes(chargees: Cote[], emprises: number[][], embarquees: Cote[]): Cote[] {
-  return [...chargees, ...embarquees.filter((c) => !emprises.some((e) => dans(c, e)))];
 }

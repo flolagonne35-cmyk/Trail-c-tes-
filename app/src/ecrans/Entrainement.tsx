@@ -7,7 +7,6 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { allureLisible, TRANCHES, type Modele } from "../calcul/allure.ts";
 import { distanceCouverture, RAYON_COUVERTURE_M, type Cote, type CoteProche, type Filtres } from "../calcul/cotes.ts";
 import { distanceM } from "../calcul/geo.ts";
-import type { Lieu } from "../calcul/geoservices.ts";
 import { cleCote, mesPassages, vitesseAscensionnelle, type Activite } from "../calcul/points.ts";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { nombre, Section, Segments } from "../composants/communs.tsx";
@@ -99,10 +98,10 @@ function MesCotes({ cotes, activites, position, onChoisir }: {
   );
 }
 
-export function EcranEntrainement({ mode, setMode, toutes, depart, localisation, onRecherche, onLocaliser, onLieu, zones,
+export function EcranEntrainement({ mode, setMode, toutes, depart, localisation, onRecherche, onLocaliser, chargement,
                                     filtres, allurePlat, onChoisir, activites, modele, onAjouterSortie, demandeSeance, demandeSortie }: {
   mode: ModeEntrainement; setMode: (m: ModeEntrainement) => void; toutes: Cote[]; depart: PointDepart;
-  localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; onLieu: (l: Lieu) => void; zones: Lieu[];
+  localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; chargement: boolean;
   filtres: Filtres; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void; activites: Activite[];
   modele: Modele | null; onAjouterSortie: () => void;
   demandeSeance: { texte: string; n: number } | null; demandeSortie: (PresetSortie & { n: number }) | null;
@@ -122,7 +121,7 @@ export function EcranEntrainement({ mode, setMode, toutes, depart, localisation,
         </View>
       )}
       {horsZone ? (
-        <HorsZone depart={depart} distance={couverture} zones={zones} onLieu={onLieu} />
+        <HorsZone depart={depart} distance={couverture} chargement={chargement} />
       ) : mode === "seance" ? (
         <VueSeance key={demandeSeance?.n ?? 0} texteInitial={demandeSeance?.texte} toutes={toutes} position={position} filtres={filtres}
                    allurePlat={allurePlat} onChoisir={onChoisir} />

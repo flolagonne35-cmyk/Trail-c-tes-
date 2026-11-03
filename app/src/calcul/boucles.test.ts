@@ -92,15 +92,6 @@ test("départ hors du réseau : message clair", () => {
   assert.match(String(r), /hors du réseau/);
 });
 
-test("zone du départ : emprise avec marge, la plus centrée si plusieurs", async () => {
-  const { zoneContenant } = await import("./reseau.ts");
-  const zones = [{ nom: "a", emprise: [48, -2, 48.2, -1.5] }, { nom: "b", emprise: [48.1, -1.8, 48.4, -1.2] }];
-  assert.equal(zoneContenant(zones, { lat: 48.05, lon: -1.9 })?.nom, "a");
-  assert.equal(zoneContenant(zones, { lat: 48.35, lon: -1.3 })?.nom, "b");
-  assert.equal(zoneContenant(zones, { lat: 48.203, lon: -1.95 })?.nom, "a"); // 330 m au-delà du bord
-  assert.equal(zoneContenant(zones, { lat: 47.5, lon: -1.9 }), null);
-});
-
 test("départ près d'un petit morceau de voie isolé : accroché au réseau principal", async () => {
   const { construireGraphe, noeudLePlusProche } = await import("./reseau.ts");
   // une longue rue de 300 carrefours (tous les 10 m), et un bout isolé de 2 carrefours juste à côté du départ

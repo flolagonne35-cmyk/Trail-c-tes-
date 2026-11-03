@@ -18,8 +18,8 @@ Partager → « Sur l'écran d'accueil »). Elle est republiée automatiquement 
 | Courses à venir | courses à pied en France par ville, département ou région, filtres et carte (DATAtourisme, OpenAgenda) |
 | Mes courses, Profil | calendrier de l'année, budget ; avatar, sorties GPX, points |
 
-Couverture actuelle : Rennes Métropole et Nantes Métropole (côtes et réseau des boucles). Les
-zones se calculent sur GitHub ; pour en ajouter une, l'écrire dans `scripts/zones.json`.
+Couverture : toute la France, outre-mer compris (côtes, réseau des boucles, points d'eau),
+calculée sur GitHub et chargée par l'appli autour du point de départ.
 
 ## Organisation du dépôt
 
@@ -57,10 +57,11 @@ node scripts/audit_boutons.js <url>            # clique chaque bouton de chaque 
 | Application (tests) | tests, types, ESLint, expo-doctor, compilation web à chaque changement de l'appli |
 | Appli web en ligne | publie la version web sur Cloudflare Pages (secret `CLOUDFLARE_API_TOKEN`) |
 | Appli Android à installer | fabrique l'APK de test (release « apk ») |
-| Précalcul des côtes | calcule les côtes des zones de `scripts/zones.json` (API IGN) |
-| Réseau pour les boucles | réseau des chemins de chaque zone (BD TOPO + altitudes) |
+| Précalcul des côtes (France) | côtes de chaque département (API IGN), release « donnees-cotes » |
+| Réseau des boucles (France) | réseau des chemins de chaque département (BD TOPO + altitudes), release « donnees-reseau » |
+| Points d'eau (OpenStreetMap) | fontaines et robinets d'eau potable, chaque mois, release « donnees-eau » |
 | Calendrier des courses | courses à venir, chaque lundi (DATAtourisme, OpenAgenda) |
-| Communes, Tuiles, Côtes Rennes | recherche de ville hors ligne, carte hors ligne, validation des services IGN |
+| Communes, Côtes Rennes | recherche de ville hors ligne, validation des services IGN sur Rennes |
 | EAS | versions pour les stores (comptes Apple / Google à créer) |
 
 ## Détails techniques des calculs

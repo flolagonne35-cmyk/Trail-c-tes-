@@ -8,7 +8,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import cotesExportees from "./assets/data/cotes.json";
 import parcoursDemo from "./assets/data/parcours_demo.json";
 import { Avatar } from "./src/avatar/Avatar.tsx";
 import { EditeurAvatar } from "./src/avatar/Editeur.tsx";
@@ -41,18 +40,7 @@ import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
 import { cotesAutour } from "./src/cotesFrance.ts";
-import { fusionnerCotes } from "./src/calcul/departements.ts";
 
-type Donnees = { source: string; zones?: { nom: string; lat: number; lon: number; cotes: number }[]; cotes: Cote[] };
-const DONNEES = cotesExportees as unknown as Donnees;
-// côtes embarquées (Rennes, Nantes) : disponibles sans réseau ; le reste de la France est chargé
-// par département autour du départ (src/cotesFrance.ts)
-const COTES_EMBARQUEES = DONNEES.cotes;
-const SOURCE = DONNEES.source.includes("sqlite") ? "base précalculée" : "zone de Rennes";
-// zones dont les côtes sont calculées (proposées dans la recherche et hors zone)
-const ZONES: Lieu[] = DONNEES.zones?.length
-  ? DONNEES.zones.map((z) => ({ label: z.nom, detail: `${z.cotes} côtes calculées`, lat: z.lat, lon: z.lon }))
-  : [{ label: "Rennes", detail: "Rennes et communes proches", lat: 48.1113, lon: -1.68 }];
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {
@@ -184,14 +172,20 @@ function Contenu() {
   };
   const ouvrirCote = (cote: CoteProche, rang: number) => setDetail({ cote, rang });
 
-  // côtes des départements autour du départ (gardées tant qu'un nouveau chargement n'a rien donné)
-  const [cotesFrance, setCotesFrance] = useState<{ cotes: Cote[]; emprises: number[][] }>({ cotes: [], emprises: [] });
+  // côtes des départements autour du départ (src/cotesFrance.ts), gardées tant qu'un nouveau
+  // chargement n'a rien donné (pas de réseau)
+  const [COTES, setCotes] = useState<Cote[]>([]);
+  const [chargement, setChargement] = useState(true);
   useEffect(() => {
     let actif = true;
-    cotesAutour(depart.position).then((r) => { if (actif && r.cotes.length) setCotesFrance(r); });
+    setChargement(true);
+    cotesAutour(depart.position).then((r) => {
+      if (!actif) return;
+      if (r.cotes.length) setCotes(r.cotes);
+      setChargement(false);
+    });
     return () => { actif = false; };
   }, [depart]);
-  const COTES = useMemo(() => fusionnerCotes(cotesFrance.cotes, cotesFrance.emprises, COTES_EMBARQUEES), [cotesFrance]);
 
   if (profil === undefined) return <View style={{ flex: 1, backgroundColor: C.fond }} />;
 
@@ -216,7 +210,7 @@ function Contenu() {
   if (!profil) return null;
 
   const commun = { toutes: COTES, depart, localisation, onLocaliser: localiser, onRecherche: () => setRecherche(true),
-                   onLieu: choisirLieu, zones: ZONES, allurePlat: ALLURE_PLAT_MIN_KM, onChoisir: ouvrirCote };
+                   onLieu: choisirLieu, chargement, allurePlat: ALLURE_PLAT_MIN_KM, onChoisir: ouvrirCote };
   let ecran;
   if (detail) {
     ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} depart={depart.position}
@@ -227,7 +221,7 @@ function Contenu() {
                           onSeance={(texte) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "entrainement", mode: "seance" }); }}
                           onSortie={(p) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "entrainement", mode: "boucle" }); }} />;
   } else if (page === "cotes") {
-    ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} source={SOURCE} mode={modeCotes} setMode={setModeCotes}
+    ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} mode={modeCotes} setMode={setModeCotes}
                         resultats={resultatsCotes} setResultats={setResultatsCotes} />;
   } else if (page === "entrainement") {
     ecran = <EcranEntrainement {...commun} mode={modeEntrainement} setMode={setModeEntrainement} filtres={filtres}
@@ -279,7 +273,7 @@ function Contenu() {
       )}
       {recherche && (
         <View style={{ position: "absolute", left: 0, right: 0, top: bords.top, bottom: 0 }}>
-          <RechercheLieu pres={depart.position} recents={recents} zones={ZONES} onLieu={choisirLieu} onLocaliser={localiser}
+          <RechercheLieu pres={depart.position} recents={recents} onLieu={choisirLieu} onLocaliser={localiser}
                          onFermer={() => setRecherche(false)} />
         </View>
       )}
