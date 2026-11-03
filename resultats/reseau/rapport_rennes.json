@@ -1,17 +1,17 @@
 {
-  "date_utc": "2026-10-21T05:13:57+00:00",
+  "date_utc": "2026-11-03T11:07:12+00:00",
   "statut": "ok",
   "zones": [
     "47.99,-1.86,48.21,-1.50"
   ],
   "resume": {
-    "noeuds": 60329,
-    "aretes": 81224,
-    "points_altitude": 387803,
-    "points_valides_pct": 100,
+    "noeuds": 60356,
+    "aretes": 81270,
+    "points_altitude": 387882,
     "aretes_sans_altitude": 0,
-    "taille_ko": 4749,
-    "duree_s": 553
+    "points_valides_pct": 100,
+    "taille_ko": 4751,
+    "duree_s": 1108
   },
   "wfs": {
     "requetes": 83,
@@ -19,36 +19,37 @@
       "200": 83
     },
     "erreurs": [],
-    "nb_objets": 82918,
+    "nb_objets": 82941,
     "ordre_bbox": "lat,lon EPSG:4326",
     "axes_inverses": false,
     "natures": {
-      "Route à 1 chaussée": 54222,
-      "Sentier": 14809,
+      "Route à 1 chaussée": 54239,
+      "Sentier": 14811,
       "Rond-point": 3999,
-      "Route empierrée": 3416,
-      "Chemin": 3194,
-      "Route à 2 chaussées": 2146,
+      "Route empierrée": 3421,
+      "Chemin": 3186,
+      "Route à 2 chaussées": 2152,
       "Type autoroutier": 557,
-      "Bretelle": 491,
-      "Escalier": 84
+      "Bretelle": 490,
+      "Escalier": 86
     },
-    "troncons_retenus": 81224,
-    "exclus_acces": 167,
+    "troncons_retenus": 81270,
+    "exclus_acces": 161,
     "valeurs_acces": {
-      "prive=False / acces_pieton=None": 71603,
-      "prive=False / acces_pieton=Libre": 8645,
-      "prive=True / acces_pieton=None": 160,
-      "prive=None / acces_pieton=None": 779,
-      "prive=True / acces_pieton=Libre": 7,
+      "prive=False / acces_pieton=None": 71601,
+      "prive=False / acces_pieton=Libre": 8691,
+      "prive=True / acces_pieton=None": 155,
+      "prive=None / acces_pieton=None": 781,
+      "prive=True / acces_pieton=Libre": 6,
       "prive=None / acces_pieton=Libre": 197
     },
-    "duree_s": 154.4
+    "duree_s": 215.0
   },
   "alti": {
-    "requetes": 78,
+    "requetes": 82,
     "codes_http": {
-      "200": 78
+      "200": 78,
+      "502": 1
     }
   }
 }
