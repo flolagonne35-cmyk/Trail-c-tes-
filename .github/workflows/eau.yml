@@ -1,0 +1,53 @@
+name: Points d'eau (OpenStreetMap)
+
+# Fontaines et robinets d'eau potable de toute la France (OpenStreetMap, ODbL), un fichier par case
+# de 1°, rangés dans la release « donnees-eau » puis publiés par l'appli web (dossier /eau/).
+# Mis à jour chaque mois : les contributeurs OSM en ajoutent et en corrigent sans cesse.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 2 * *"  # le 2 de chaque mois, 3 h 17 UTC
+  push:
+    paths:
+      - "scripts/points_eau.py"
+      - ".github/workflows/eau.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: eau
+  cancel-in-progress: false
+
+jobs:
+  eau:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE: donnees-eau
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Release des données (créée une fois) et cases du mois précédent
+        run: |
+          gh release view "$RELEASE" >/dev/null 2>&1 || gh release create "$RELEASE" --target "$GITHUB_SHA" \
+            --title "Points d'eau (France)" --notes "Points d'eau potable OpenStreetMap (© contributeurs, ODbL), par case de 1°. Mis à jour par le workflow « Points d'eau (OpenStreetMap) »."
+          mkdir -p resultats/eau
+          # une case dont le serveur ne répond pas garde sa version précédente
+          gh release download "$RELEASE" -p "eau.tar.gz" -D "$RUNNER_TEMP" && tar -xzf "$RUNNER_TEMP/eau.tar.gz" -C resultats/eau || echo "première fois"
+      - name: Points d'eau de toute la France
+        run: python scripts/points_eau.py --sortie resultats/eau || true
+      - name: Rangement et republication de l'appli web
+        run: |
+          cat resultats/eau/rapport_eau.json
+          python -c "import json; r=json.load(open('resultats/eau/rapport_eau.json')); print(f\"## Points d'eau : {r['points']} sur {r['cases']} cases, {len(r['cases_en_echec'])} cases en échec\")" >> "$GITHUB_STEP_SUMMARY"
+          tar -czf eau.tar.gz -C resultats/eau .
+          gh release upload "$RELEASE" eau.tar.gz --clobber
+          gh workflow run web.yml --ref "$GITHUB_REF_NAME" || true

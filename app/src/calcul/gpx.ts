@@ -45,7 +45,11 @@ export function lireGpx(texte: string, nomParDefaut = "Parcours"): TraceGpx {
 
 const echapper = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-export function ecrireGpx(nom: string, points: { lat: number; lon: number; ele?: number; temps?: number; fc?: number }[]): string {
+/** Trace GPX ; `reperes` (points d'eau…) deviennent des waypoints, affichés par la plupart des montres. */
+export function ecrireGpx(nom: string, points: { lat: number; lon: number; ele?: number; temps?: number; fc?: number }[],
+                          reperes: { lat: number; lon: number; nom: string; detail?: string }[] = []): string {
+  const wpts = reperes.map((r) => `  <wpt lat="${r.lat.toFixed(6)}" lon="${r.lon.toFixed(6)}"><name>${echapper(r.nom)}</name>`
+    + (r.detail ? `<desc>${echapper(r.detail)}</desc>` : "") + "<sym>Drinking Water</sym></wpt>\n").join("");
   const pts = points
     .map((p) => `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}">` +
       (p.ele !== undefined ? `<ele>${p.ele.toFixed(1)}</ele>` : "") +
@@ -56,7 +60,7 @@ export function ecrireGpx(nom: string, points: { lat: number; lon: number; ele?:
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="trail-cotes" xmlns="http://www.topografix.com/GPX/1/1"
      xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1">
-  <trk>
+${wpts}  <trk>
     <name>${echapper(nom)}</name>
     <trkseg>
 ${pts}

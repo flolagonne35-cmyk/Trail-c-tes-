@@ -165,8 +165,9 @@ Ce qui manque encore, et comment l'obtenir :
 - **Prévisions à mon allure** : à partir de mes GPX, mon allure réelle par tranche de pente
   (−20 % … +25 %), puis temps de passage et durées de séance calculés avec elle. Indiquer
   l'écart quand une course est importée après coup.
-- **Points d'eau** : fontaines et points d'eau OpenStreetMap (`amenity=drinking_water`) sur les
-  boucles et la carte, avec la date de dernière vérification.
+- ✅ **Points d'eau** : fontaines et robinets d'eau potable OpenStreetMap (toute la France, mis à
+  jour chaque mois) sur la carte de la boucle, avec le km de passage, le caractère saisonnier et la
+  date de dernière vérification ; ajoutés au GPX pour la montre. À faire : sur la carte des côtes.
 - **Sécurité** : partage de position en direct avec un proche, alerte si arrêt prolongé (demande
   la localisation en arrière-plan : à justifier auprès d'Apple et Google).
 - **Signalements** des coureurs : boue, arbre tombé, chemin fermé, technicité réelle ; validés

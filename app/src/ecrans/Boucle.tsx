@@ -1,12 +1,13 @@
 // S'entraîner → Sortie : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
 // « 10 km avec 3 côtes ». La boucle est composée sur le téléphone, sans réseau, puis exportée en GPX.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Switch, Text, View } from "react-native";
 
 import { composerBoucles, pointsBoucle, type Boucle } from "../calcul/boucles.ts";
 import type { Modele } from "../calcul/allure.ts";
 import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
+import { eauSurParcours, libelleEau, MARGE_M, type EauSurParcours } from "../calcul/eau.ts";
 import { distanceM, type Position } from "../calcul/geo.ts";
 import { ecrireGpx } from "../calcul/gpx.ts";
 import { dureeLisible } from "../calcul/trajets.ts";
@@ -14,6 +15,7 @@ import { centreDe, zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { Ajusteur, nombre, Segments, Tuiles } from "../composants/communs.tsx";
 import { partagerFichier } from "../fichiers.ts";
+import { pointsEauAutour } from "../pointsEau.ts";
 import { grapheAutour, grapheDeZone, zoneDuDepart, ZONES_RESEAU } from "../reseauZones.ts";
 import { C, S } from "../theme.ts";
 
@@ -35,9 +37,10 @@ function Interrupteur({ nom, detail, valeur, onChange }: { nom: string; detail: 
   );
 }
 
-function exporter(b: Boucle, i: number) {
+function exporter(b: Boucle, i: number, eau: EauSurParcours[]) {
   const nom = `Boucle ${nombre(b.distance_m / 1000, 1)} km +${b.dplus_m} m (${b.cotes.length} côte${b.cotes.length > 1 ? "s" : ""})`;
-  return partagerFichier(`boucle-${i + 1}.gpx`, ecrireGpx(nom, pointsBoucle(b)));
+  const reperes = eau.map((e) => ({ lat: e.lat, lon: e.lon, nom: `Eau km ${nombre(e.km, 1)}`, detail: libelleEau(e) }));
+  return partagerFichier(`boucle-${i + 1}.gpx`, ecrireGpx(nom, pointsBoucle(b), reperes));
 }
 
 export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, modele, preset }: {
@@ -96,6 +99,17 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
 
   const b = Array.isArray(resultat) ? resultat[choix] : null;
   const pts = b ? pointsBoucle(b) : [];
+  // points d'eau (OpenStreetMap) le long de la boucle affichée ; null pendant le chargement
+  const [eau, setEau] = useState<EauSurParcours[] | null>(null);
+  const cleBoucle = b ? `${choix}-${b.distance_m}-${pts[0]?.lat}-${pts[0]?.lon}` : "";
+  useEffect(() => {
+    if (!b) return;
+    let actif = true;
+    setEau(null);
+    const trace = pointsBoucle(b);
+    pointsEauAutour(trace).then((p) => { if (actif) setEau(eauSurParcours(p, trace)); });
+    return () => { actif = false; };
+  }, [cleBoucle]); // eslint-disable-line react-hooks/exhaustive-deps
   // temps : allure du plat sur la distance, + 1 min par 10 m de D+ (règle des « km-effort » : 100 m de D+ ≈ 1 km)
   const minutes = b ? (b.distance_m / 1000 + b.dplus_m / 100) * allureMinKm : 0;
 
@@ -159,6 +173,8 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
                    ...b.cotes.map((c, i) => ({ id: `c${c.id}`, position: { lat: c.lat, lon: c.lon }, texte: String(i + 1),
                                                couleur: couleurPente(c.pente_moy_pct), label: `Côte ${i + 1}`,
                                                onPress: () => onChoisir({ ...c, distance_m: distanceM(position, c) }, i + 1) })),
+                   ...(eau ?? []).map((e, i) => ({ id: `eau${i}`, position: e, texte: "💧", couleur: C.descente,
+                                                   label: `Point d'eau au km ${nombre(e.km, 1)}` })),
                  ]} />
           <Tuiles valeurs={[["Distance", `${nombre(b.distance_m / 1000, 1)} km`], ["D+", `${nombre(b.dplus_m)} m`],
                             ["Durée*", `≈ ${dureeLisible(minutes)}`]]} />
@@ -192,7 +208,30 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
               </Pressable>
             ))}
           </View>
-          <Pressable onPress={() => exporter(b, choix)} accessibilityRole="button" style={S.bouton}>
+          <View style={[S.carte, { marginTop: 0, gap: 6 }]}>
+            <Text style={S.fort}>💧 Points d'eau sur le parcours</Text>
+            {eau === null && <Text style={S.petit}>Recherche des fontaines…</Text>}
+            {eau?.length === 0 && (
+              <Text style={S.petit}>
+                Aucun point d'eau potable connu à moins de {MARGE_M} m du tracé (ou pas de connexion) : pars avec ce qu'il faut
+                (≈ 0,4 à 0,8 L par heure selon la chaleur, voir Nutrition).
+              </Text>
+            )}
+            {eau?.map((e, i) => (
+              <Text key={i} style={S.petit}>
+                <Text style={{ fontWeight: "700", color: C.descenteFonce }}>km {nombre(e.km, 1)}</Text>
+                {" "}· {libelleEau(e)}{e.ecart_m > 30 ? ` · à ${e.ecart_m} m du tracé` : ""}
+              </Text>
+            ))}
+            {!!eau?.length && (
+              <Text style={S.petit}>
+                Fontaines et robinets d'eau potable signalés par les contributeurs d'OpenStreetMap : vérifie sur place (coupures
+                l'hiver, travaux). Ils sont ajoutés au GPX pour ta montre.
+              </Text>
+            )}
+            <Text style={[S.petit, { fontSize: 11 }]}>Données © les contributeurs d'OpenStreetMap (ODbL).</Text>
+          </View>
+          <Pressable onPress={() => exporter(b, choix, eau ?? [])} accessibilityRole="button" style={S.bouton}>
             <Text style={S.boutonTexte}>Envoyer à ma montre (GPX)</Text>
           </Pressable>
           <Text style={S.petit}>

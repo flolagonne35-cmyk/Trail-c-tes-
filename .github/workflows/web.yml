@@ -54,6 +54,13 @@ jobs:
           for f in "$RUNNER_TEMP"/res/reseau_*.tar.gz; do [ -e "$f" ] && tar -xzf "$f" -C dist/reseau; done
           python3 ../scripts/index_reseau_france.py dist/reseau
           echo "fichiers publiés : $(find dist -type f | wc -l) (limite Cloudflare Pages : 20 000)"
+      - name: Points d'eau (release « donnees-eau », remplie par le workflow « Points d'eau (OpenStreetMap) »)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist/eau
+          gh release download donnees-eau -p "eau.tar.gz" -D "$RUNNER_TEMP" && tar -xzf "$RUNNER_TEMP/eau.tar.gz" -C dist/eau || echo "pas encore de points d'eau"
+          rm -f dist/eau/rapport_eau.json
       - name: Publier sur Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: |

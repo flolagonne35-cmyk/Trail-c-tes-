@@ -12,6 +12,7 @@ const SOURCES: [string, string][] = [
   ["Adresses et itinéraires", "Géocodage IGN (Base Adresse Nationale) et calcul d'itinéraire IGN (voiture, piéton)."],
   ["Communes", "geo.api.gouv.fr : les 35 000 communes, cherchables sans réseau."],
   ["Revêtement", "© contributeurs OpenStreetMap (ODbL), quand la BD TOPO ne le précise pas."],
+  ["Points d'eau", "© contributeurs OpenStreetMap (ODbL) : fontaines et robinets d'eau potable publics, mis à jour chaque mois. À vérifier sur place (coupures l'hiver)."],
   ["Courses à venir", "DATAtourisme (événements des offices de tourisme, ADN Tourisme) et OpenAgenda (agendas publics), sous Licence Ouverte 2.0 ; le producteur et la date de mise à jour sont indiqués sur chaque course."],
   ["Effort selon la pente", "Minetti et al. 2002 (coût énergétique de la course), recalé sur tes sorties ; km-effort de l'ITRA (100 m de D+ ≈ 1 km)."],
   ["Nutrition", "ACSM / Thomas et al. 2016, Jeukendrup 2014 (glucides) ; ISSN, Tiller et al. 2019 (eau et sodium en ultra)."],
