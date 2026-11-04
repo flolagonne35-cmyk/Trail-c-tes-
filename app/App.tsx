@@ -40,6 +40,7 @@ import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C } from "./src/theme.ts";
 import { cotesAutour } from "./src/cotesFrance.ts";
+import { useEnLigne } from "./src/zoneHorsLigne.ts";
 
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
@@ -187,6 +188,7 @@ function Contenu() {
     return () => { actif = false; };
   }, [depart]);
 
+  const enLigne = useEnLigne();
   if (profil === undefined) return <View style={{ flex: 1, backgroundColor: C.fond }} />;
 
   // premier lancement (ou personnalisation) : plein écran, sans barre d'onglets
@@ -261,6 +263,13 @@ function Contenu() {
       {!detail && (
         <BarreHaut titre={TITRES[page]} onMenu={() => setMenu(true)} onProfil={() => aller({ page: "profil" })} avatar={avatar}
                    surProfil={page === "profil"} />
+      )}
+      {!enLigne && (
+        <View style={{ backgroundColor: C.encre, paddingHorizontal: 16, paddingVertical: 6 }} accessibilityRole="alert">
+          <Text style={{ color: C.blanc, fontSize: 12 }}>
+            Hors connexion : seules les zones déjà vues ou gardées s'affichent (côtes, boucles, points d'eau, carte).
+          </Text>
+        </View>
       )}
       <View style={{ flex: 1 }}>{ecran}</View>
       <Navigation actif={detail ? page : page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />

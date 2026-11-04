@@ -6,7 +6,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 const fichier = process.argv[2] ?? "dist/index.html";
 const balises = '<link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" href="/apple-touch-icon.png">'
   + '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Trail-côtes">'
-  + '<meta name="theme-color" content="#1B2A22">';
+  + '<meta name="theme-color" content="#1B2A22">'
+  // service worker (public/sw.js) : l'appli s'ouvre et garde ses données sans réseau
+  + '<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("/sw.js"));</script>';
 const html = readFileSync(fichier, "utf8");
 if (!html.includes("manifest.webmanifest")) writeFileSync(fichier, html.replace("</head>", `${balises}</head>`));
 console.log("PWA : balises ajoutées à", fichier);

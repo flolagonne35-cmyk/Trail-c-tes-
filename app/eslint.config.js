@@ -23,4 +23,6 @@ module.exports = tseslint.config(
     languageOptions: { globals: globals.node },
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
+  // service worker de la version web
+  { files: ["public/sw.js"], languageOptions: { globals: globals.serviceworker } },
 );

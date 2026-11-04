@@ -13,6 +13,7 @@ import { ecrireGpx } from "../calcul/gpx.ts";
 import { dureeLisible } from "../calcul/trajets.ts";
 import { centreDe, zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
+import { CarteHorsLigne } from "../composants/HorsLigne.tsx";
 import { Ajusteur, nombre, Segments, Tuiles } from "../composants/communs.tsx";
 import { partagerFichier } from "../fichiers.ts";
 import { pointsEauAutour } from "../pointsEau.ts";
@@ -237,6 +238,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
           </Text>
         </View>
       )}
+      <CarteHorsLigne centre={position} nom={nomDepart} />
     </View>
   );
 }

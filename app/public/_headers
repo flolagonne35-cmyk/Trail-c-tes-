@@ -1,0 +1,6 @@
+# Cloudflare Pages : le service worker doit toujours être relu (sinon une nouvelle version de
+# l'appli peut attendre jusqu'à 24 h) ; le code compilé (_expo/, noms avec empreinte) ne change jamais.
+/sw.js
+  Cache-Control: no-cache
+/_expo/*
+  Cache-Control: public, max-age=31536000, immutable

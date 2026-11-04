@@ -153,6 +153,10 @@ Ce qui manque encore, et comment l'obtenir :
 - **Base géographique** : les côtes et le réseau dans une base (PostgreSQL + PostGIS, ou
   Supabase hébergé en Europe) ; l'appli ne télécharge que la zone utile et la garde pour le hors
   ligne.
+- ✅ **Hors connexion (version web)** : l'appli s'ouvre sans réseau (service worker) ; les côtes,
+  boucles, points d'eau et la carte déjà consultés restent disponibles ; bouton « Garder cette zone
+  hors connexion » (côtes à 40 km, boucles jusqu'à 30 km, carte à 5 km) ; bandeau « hors connexion ».
+  Appli native : seule la carte se garde pour l'instant.
 - **Carte hors ligne** : « Télécharger cette zone » (tuiles Plan IGN de la zone, quelques dizaines
   de Mo) ; à terme carte vectorielle (MapLibre + Plan IGN vectoriel) : plus nette, plus légère,
   rotation, relief.
