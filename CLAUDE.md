@@ -26,7 +26,9 @@ des coureurs exigeants partout en France :
    conseillées. Jamais un chiffre sans contexte.
 3. **Vérifier de bout en bout avant de livrer** : tests hors réseau, puis la version web au
    format téléphone (Playwright) en cliquant **chaque bouton** de chaque écran
-   (`scripts/audit_boutons.js` ou équivalent), sans erreur de page. Captures relues.
+   (`scripts/audit_boutons.js` ou équivalent), sans erreur de page. Captures : vérifier d'abord par
+   le texte (erreurs de page, éléments présents, ordre) ; n'ouvrir une image qu'en cas de doute
+   visuel, une ou deux au plus par tâche (elles coûtent cher en tokens, demande de Florian 05/11).
 4. **Penser au coureur sur le terrain** : sans réseau, montre GPS (export GPX), sécurité (routes
    fréquentées, ponts et tunnels qui faussent les pentes), données personnelles qui restent sur
    le téléphone sauf accord explicite.
