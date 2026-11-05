@@ -1,6 +1,7 @@
 name: Calendrier des courses (données ouvertes)
 
-# Courses à venir en France depuis DATAtourisme et OpenAgenda (Licence Ouverte), chaque semaine.
+# Courses à venir en France depuis DATAtourisme et OpenAgenda (Licence Ouverte), chaque jour
+# (DATAtourisme publie son export une fois par jour : inutile de lire plus souvent).
 
 on:
   workflow_dispatch:
@@ -9,7 +10,7 @@ on:
       - "scripts/courses_ouvertes.py"
       - ".github/workflows/courses.yml"
   schedule:
-    - cron: "17 5 * * 1" # chaque lundi
+    - cron: "17 5 * * *" # chaque jour à 5 h 17 UTC
 
 permissions:
   contents: write

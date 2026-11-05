@@ -1,10 +1,10 @@
-// « Que cherches-tu ? » (onglet Côtes) : critères en plages min–max (pente, passage le plus raide,
-// longueur, D+, distance), sol, type de voie, trafic ; puis l'ordre des résultats et leur nombre.
+// « Que cherches-tu ? » (onglet Côtes) : critères en plages min–max (pente, longueur, D+, distance),
+// sol, type de voie, trafic ; puis l'ordre des résultats et leur nombre.
 
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { cotesProches, TRIS, type CleTri, type Cote, type Filtres, type Sol, type TypeVoie } from "../calcul/cotes.ts";
+import { cotesProches, TRIS, TRIS_PROPOSES, type Cote, type Filtres, type Sol, type TypeVoie } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { nombre, Segments } from "../composants/communs.tsx";
 import { indiceDe, Plage } from "../composants/Plage.tsx";
@@ -18,7 +18,6 @@ export const FILTRES_DEFAUT: Filtres = {
 // échelles des curseurs : fines là où ça compte, plus larges au-delà ; Infinity = « et plus »
 const pas = (de: number, a: number, p: number) => Array.from({ length: Math.round((a - de) / p) + 1 }, (_, i) => Math.round((de + i * p) * 10) / 10);
 const ECH_PENTE = [...pas(4, 20, 0.5), Infinity];
-const ECH_RAIDE = [...pas(4, 30, 1), Infinity];
 const ECH_LONGUEUR = [...pas(0, 1000, 50), ...pas(1100, 2000, 100), 2500, 3000, 4000, 5000, Infinity];
 const ECH_DPLUS = [...pas(0, 100, 5), ...pas(110, 200, 10), ...pas(250, 500, 50), ...pas(600, 1000, 100), Infinity];
 const ECH_RAYON = [...pas(0.5, 5, 0.5), ...pas(6, 10, 1), ...pas(12, 20, 2), 25, 30, 40, 50];
@@ -83,7 +82,7 @@ export function ChoixResultats({ f, setF, total, mot }: { f: Filtres; setF: (f: 
         </Pressable>
       </View>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {(Object.keys(TRIS) as CleTri[]).map((k) => {
+        {TRIS_PROPOSES.map((k) => {
           const actif = k === cle;
           return (
             <Pressable key={k} onPress={() => setF({ ...f, tri: k, croissant: k === "distance" })} accessibilityRole="tab"
@@ -107,11 +106,11 @@ export function ChoixResultats({ f, setF, total, mot }: { f: Filtres; setF: (f: 
 }
 
 /** « Que cherches-tu ? » : les côtes n'apparaissent qu'une fois la recherche lancée. */
-export function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
-  filtres: Filtres; toutes: Cote[]; position: Position; mot: string; onValider: (f: Filtres) => void;
+export function RechercheCotes({ filtres, toutes, position, mot, ici, onValider }: {
+  filtres: Filtres; toutes: Cote[]; position: Position; mot: string; ici: string; onValider: (f: Filtres) => void;
 }) {
   const [f, setF] = useState(filtres);
-  const n = useMemo(() => cotesProches(toutes, position, f).length, [toutes, position, f]);
+  const n = useMemo(() => cotesProches(toutes, position, { ...f, raideMin: undefined, raideMax: undefined }).length, [toutes, position, f]);
   const parDefaut = JSON.stringify(f) === JSON.stringify(FILTRES_DEFAUT);
   const basculer = (t: TypeVoie) => {
     const groupe: TypeVoie[] = t === "route" ? ["route", "piste cyclable"] : [t]; // pistes cyclables avec les routes
@@ -132,13 +131,6 @@ export function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
                raccourcis={[{ nom: "Toutes", bas: 4, haut: Infinity }, { nom: "4 à 6 %", bas: 4, haut: 6 },
                             { nom: "6 à 10 %", bas: 6, haut: 10 }, { nom: "≥ 10 %", bas: 10, haut: Infinity }]}
                aide="Moyenne du pied au sommet. 4 à 6 % : on court, allure soutenue ; 6 à 10 % : côtes classiques, puissance ; ≥ 10 % : souvent marche active, comme en trail de montagne." />
-        <Plage etiquette="Passage le plus raide" valeurs={ECH_RAIDE}
-               bas={indiceDe(ECH_RAIDE, f.raideMin, 0)} haut={indiceDe(ECH_RAIDE, f.raideMax, ECH_RAIDE.length - 1)}
-               format={etPlus(ECH_RAIDE, (v) => `${v} %`)} resume={resumePlage(ECH_RAIDE, indiceDe(ECH_RAIDE, f.raideMin, 0), indiceDe(ECH_RAIDE, f.raideMax, ECH_RAIDE.length - 1), (v) => `${v} %`, "Tous")}
-               onChange={(b, h) => setF({ ...f, raideMin: b ? ECH_RAIDE[b] : undefined, raideMax: borne(ECH_RAIDE, h) })}
-               raccourcis={[{ nom: "Tous", bas: 4, haut: Infinity }, { nom: "Régulière ≤ 10 %", bas: 4, haut: 10 },
-                            { nom: "Avec un mur ≥ 15 %", bas: 15, haut: Infinity }]}
-               aide="La pente des 50 m les plus raides. Une côte régulière se court d'un bout à l'autre ; un mur à 15 % et plus oblige souvent à marcher." />
         <Plage etiquette="Longueur" valeurs={ECH_LONGUEUR}
                bas={indiceDe(ECH_LONGUEUR, f.longueurMin, 0)} haut={indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1)}
                format={etPlus(ECH_LONGUEUR, metres)} resume={resumePlage(ECH_LONGUEUR, indiceDe(ECH_LONGUEUR, f.longueurMin, 0), indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1), metres, "Toutes")}
@@ -153,7 +145,7 @@ export function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
                raccourcis={[{ nom: "Tout", bas: 0, haut: Infinity }, { nom: "≥ 20 m", bas: 20, haut: Infinity },
                             { nom: "≥ 40 m", bas: 40, haut: Infinity }, { nom: "≥ 80 m", bas: 80, haut: Infinity }]}
                aide="Mètres gagnés du pied au sommet : c'est lui qui compte pour préparer une course (D+ total ÷ D+ de la côte = nombre de montées)." />
-        <Plage etiquette="Distance du point de départ" valeurs={ECH_RAYON} unique bas={0}
+        <Plage etiquette={`Jusqu'à combien de km de ${ici} ?`} valeurs={ECH_RAYON} unique bas={0}
                haut={indiceDe(ECH_RAYON, f.rayonM / 1000, 9)} format={(v) => `${fr(v)} km`}
                resume={`≤ ${fr(f.rayonM / 1000)} km`}
                onChange={(_, h) => setF({ ...f, rayonM: ECH_RAYON[h] * 1000 })}
@@ -214,7 +206,7 @@ export function RechercheCotes({ filtres, toutes, position, mot, onValider }: {
           <Text style={[S.h2, { fontSize: 18, marginTop: 12 }]} accessibilityRole="header">Résultats</Text>
           <ChoixResultats f={f} setF={setF} total={n} mot={mot} />
         </View>
-        <Pressable onPress={() => onValider(f)} disabled={!n} accessibilityRole="button" style={[S.bouton, { minHeight: 54, opacity: n ? 1 : 0.45 }]}>
+        <Pressable onPress={() => onValider({ ...f, raideMin: undefined, raideMax: undefined })} disabled={!n} accessibilityRole="button" style={[S.bouton, { minHeight: 54, opacity: n ? 1 : 0.45 }]}>
           <Text style={[S.boutonTexte, { fontSize: 16 }]}>
             {!n ? `Aucune ${mot} avec ces critères`
               : f.nombre && f.nombre < n ? `Voir ${f.nombre === 1 ? `la meilleure` : `les ${f.nombre} meilleures`} (sur ${n})`

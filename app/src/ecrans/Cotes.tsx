@@ -1,11 +1,12 @@
 // Onglet « Côtes » : un point de départ (ma position, une ville, une adresse), un résumé des filtres,
 // puis la carte ou la liste des côtes les plus proches (toute la France, chargée autour du départ).
 
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, type ScrollViewInstance, Text, View } from "react-native";
 
 import {
-  cotesProches, distanceCouverture, enDescente, kmLisibles, meilleures, NOMS_TRAFIC, RAYON_COUVERTURE_M, resumeFiltres, TRIS,
+  cotesProches, distanceCouverture, distanceDe, enDescente, kmLisibles, meilleures, murDe, NOMS_TRAFIC, RAYON_COUVERTURE_M,
+  resumeFiltres, TRIS, TRIS_PROPOSES,
   type Cote, type CoteProche, type Filtres, type Sens,
 } from "../calcul/cotes.ts";
 import { eauPresDesCotes, type PointEau } from "../calcul/eau.ts";
@@ -19,7 +20,7 @@ import { CarteHorsLigne } from "../composants/HorsLigne.tsx";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { pointsEauAutour } from "../pointsEau.ts";
 import { C, S } from "../theme.ts";
-import { ChoixResultats, FILTRES_DEFAUT, RechercheCotes, titreResultats } from "./RechercheCotes.tsx";
+import { FILTRES_DEFAUT, RechercheCotes, titreResultats } from "./RechercheCotes.tsx";
 
 export type { Localisation, PointDepart } from "../composants/BarreDepart.tsx";
 export { FILTRES_DEFAUT } from "./RechercheCotes.tsx";
@@ -34,38 +35,93 @@ export function BadgeTrafic() {
   );
 }
 
-function LigneCote({ c, rang, position, allurePlat, onPress, adresse }: {
-  c: CoteProche; rang: number; position: Position; allurePlat: number; onPress: () => void; adresse?: string | null;
+/** Petite pastille de donnée (« +34 m », « chemin ») : une info par pastille, lisible d'un coup d'œil. */
+function Pastille({ texte, fort }: { texte: string; fort?: boolean }) {
+  return (
+    <Text style={{ fontSize: 13, fontWeight: "700", color: fort ? C.monteeFonce : C.encre, overflow: "hidden",
+                   backgroundColor: fort ? C.monteeClair : C.aire, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}>
+      {texte}
+    </Text>
+  );
+}
+
+function LigneCote({ c, rang, position, allurePlat, onPress, adresse, ici }: {
+  c: CoteProche; rang: number; position: Position; allurePlat: number; onPress: () => void; adresse?: string | null; ici: string;
 }) {
   const t = tempsTrajets(position, { lat: c.lat, lon: c.lon }, allurePlat);
   const voiture = t.find((x) => x.mode === "voiture")!;
   const course = t.find((x) => x.mode === "course")!;
   const descente = c.sens === "descente";
+  const mur = murDe(c);
   return (
     <Pressable onPress={onPress} accessibilityRole="button"
-               accessibilityLabel={`${descente ? "Descente" : "Côte"} ${rang} : ${Math.round(c.longueur_m)} mètres à ${descente ? "moins " : ""}${c.pente_moy_pct} %, à ${kmLisibles(c.distance_m)}${adresse ? `, ${adresse}` : ""}`}
-               style={[S.ligne, { alignItems: "stretch", paddingLeft: 0, overflow: "hidden" }]}>
+               accessibilityLabel={`${descente ? "Descente" : "Côte"} ${rang} : ${Math.round(c.longueur_m)} mètres à ${descente ? "moins " : ""}${c.pente_moy_pct} %, à ${distanceDe(c.distance_m, ici)}${adresse ? `, ${adresse}` : ""}`}
+               style={({ pressed }) => [S.ligne, { alignItems: "stretch", paddingLeft: 0, overflow: "hidden", opacity: pressed ? 0.85 : 1 }]}>
       <View style={{ width: 6, backgroundColor: couleurPente(c.pente_moy_pct) }} />
-      <View style={{ width: 28, alignItems: "center", paddingTop: 2 }}>
-        <Text style={{ fontSize: 15, fontWeight: "800", color: C.gris }}>{rang}</Text>
+      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: C.aire, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{rang}</Text>
       </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Text style={S.fort}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(c.pente_moy_pct, 1)} %</Text>
+      <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+        <Text style={[S.fort, { fontSize: 17 }]}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(c.pente_moy_pct, 1)} %</Text>
+        <Text style={[S.petit, { color: C.encre }]} numberOfLines={1}>{descente ? "Haut : " : ""}{adresse ?? (c.nom || "Adresse en cours…")}</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+          <Pastille texte={`${descente ? "−" : "+"}${nombre(c.dplus_m)} m`} />
+          <Pastille texte={c.type_voie} />
+          {c.revetement ? <Pastille texte={c.revetement.replace(" (supposé)", "")} /> : null}
+          {mur ? <Pastille fort texte={`mur à ${mur} %`} /> : null}
           {c.trafic === "passant" && <BadgeTrafic />}
         </View>
-        <Text style={[S.petit, { color: C.encre, marginTop: 2 }]} numberOfLines={1}>{descente ? "Haut : " : ""}{adresse ?? (c.nom || "Adresse en cours…")}</Text>
-        <Text style={[S.petit, { marginTop: 2 }]} numberOfLines={1}>
-          {descente ? "−" : "+"}{nombre(c.dplus_m)} m · max {nombre(c.pente_max_pct)} % · {c.type_voie}
-          {c.revetement ? ` · ${c.revetement.replace(" (supposé)", "")}` : ""}
-        </Text>
       </View>
-      <View style={{ alignItems: "flex-end", justifyContent: "center", gap: 2 }}>
-        <Text style={S.fort}>{kmLisibles(c.distance_m)}</Text>
-        <Text style={S.petit}>{dureeLisible(voiture.minutes)} 🚗</Text>
-        <Text style={S.petit}>{dureeLisible(course.minutes)} 🏃</Text>
+      <View style={{ alignItems: "flex-end", justifyContent: "center", gap: 4, paddingLeft: 4 }}>
+        <Text style={[S.fort, { fontSize: 17 }]}>{kmLisibles(c.distance_m)}</Text>
+        <Text style={S.petit}>de {ici}</Text>
+        <Text style={S.petit}>🚗 {dureeLisible(voiture.minutes)}</Text>
+        <Text style={S.petit}>🏃 {dureeLisible(course.minutes)}</Text>
       </View>
     </Pressable>
+  );
+}
+
+/**
+ * Tri des résultats, toujours visible et posé juste au-dessus de la liste : on voit ce qu'on touche
+ * changer sous ses yeux, sans panneau à rouvrir.
+ */
+function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; total: number }) {
+  const cle = f.tri ?? "distance";
+  const croissant = f.croissant ?? cle === "distance";
+  const nb = String(f.nombre ?? 0);
+  const puce = (actif: boolean, texte: string, onPress: () => void, label?: string) => (
+    <Pressable key={texte} onPress={onPress} accessibilityRole="tab" aria-selected={actif} accessibilityLabel={label ?? texte}
+               style={{ minHeight: 40, paddingHorizontal: 14, borderRadius: 20, justifyContent: "center",
+                        backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
+      <Text style={{ fontSize: 14, fontWeight: "700", color: actif ? C.fond : C.encre }}>{texte}</Text>
+    </Pressable>
+  );
+  return (
+    <View style={{ marginTop: 22, gap: 10 }}>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Text style={[S.fort, { flex: 1 }]} accessibilityRole="header">Trier par</Text>
+        <Pressable onPress={() => setF({ ...f, tri: cle, croissant: !croissant })} accessibilityRole="button"
+                   accessibilityLabel={`Ordre : ${croissant ? TRIS[cle].croissant : TRIS[cle].decroissant}. Inverser`}
+                   style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 12,
+                            borderRadius: 20, backgroundColor: C.sable }}>
+          <Text style={{ fontSize: 14, fontWeight: "700", color: C.encre }}>
+            {croissant ? TRIS[cle].croissant : TRIS[cle].decroissant} ⇅
+          </Text>
+        </Pressable>
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {TRIS_PROPOSES.map((k) => puce(k === cle, k === "distance" ? "Le plus près" : TRIS[k].nom,
+                                       () => setF({ ...f, tri: k, croissant: k === "distance" })))}
+      </View>
+      {total > 3 && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <Text style={[S.petit, { color: C.encre }]}>Afficher</Text>
+          {([["3", "3"], ["5", "5"], ["10", "10"], ["0", `Toutes (${total})`]] as const).map(([v, nom]) =>
+            puce(nb === v, nom, () => setF({ ...f, nombre: Number(v) || undefined }), v === "0" ? `Afficher toutes, ${total}` : `Afficher ${v}`))}
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -100,7 +156,12 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   resultats: boolean; setResultats: (v: boolean) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
-  const [reglerTri, setReglerTri] = useState(false);
+  // en passant de la recherche aux résultats (et inversement), on repart du haut de la page :
+  // sinon on atterrit au niveau du bouton « Voir », en bas, sans voir la carte ni le tri
+  const defilement = useRef<ScrollViewInstance>(null);
+  useEffect(() => { defilement.current?.scrollTo({ y: 0, animated: false }); }, [resultats]);
+  // « de toi » avec le GPS, sinon le lieu choisi : « 2,3 km de Vannes »
+  const ici = depart.gps ? "toi" : depart.nom.split(",")[0];
 
   // une descente est une côte parcourue depuis le sommet
   const sens = mode;
@@ -122,7 +183,6 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   const affichees = cotes.length ? cotes : auDela;
   const nbFiltres = Number(filtres.penteMin !== FILTRES_DEFAUT.penteMin || filtres.penteMax !== undefined)
     + Number(filtres.rayonM !== FILTRES_DEFAUT.rayonM) + Number(filtres.types.length !== FILTRES_DEFAUT.types.length)
-    + Number(filtres.raideMin !== undefined || filtres.raideMax !== undefined)
     + Number(filtres.longueurMin !== undefined || filtres.longueurMax !== undefined)
     + Number(!!filtres.dplusMin || filtres.dplusMax !== undefined) + Number((filtres.sols ?? ["", ""]).length < 2)
     + Number(!!filtres.eviterPassant);
@@ -151,7 +211,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   }, [cleEau, position.lat, position.lon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const carte = (
-    <Carte hauteur={vue === "carte" ? 380 : 220} centre={position} position={position}
+    <Carte hauteur={300} centre={position} position={position} legende={LEGENDE}
            rayonM={cotes.length ? filtres.rayonM : undefined}
            zoom={zoomAjuste([position, ...affichees.slice(0, 10).map((c) => ({ lat: c.lat, lon: c.lon }))], 360, 380, 11, 16)}
            cle={`${position.lat},${position.lon},${affichees.map((c) => c.id).join("-")}`}
@@ -169,7 +229,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={defilement} style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
         <BarreDepart titre={sens === "descente" ? "Descentes autour de" : "Côtes autour de"} depart={depart} localisation={localisation}
                      onRecherche={onRecherche} onLocaliser={onLocaliser} />
 
@@ -182,7 +242,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
         {horsZone ? (
           <HorsZone depart={depart} distance={couverture} chargement={chargement} />
         ) : !resultats ? (
-          <RechercheCotes filtres={filtres} toutes={base} position={position} mot={mot}
+          <RechercheCotes filtres={filtres} toutes={base} position={position} mot={mot} ici={ici}
                           onValider={(f) => { setFiltres(f); setResultats(true); }} />
         ) : (
           <>
@@ -200,33 +260,10 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
               </Pressable>
             </View>
 
-            <View style={{ marginTop: 12 }}>
-              <Segments options={[["carte", "Carte"], ["liste", "Liste"]]} valeur={vue} onChange={setVue} />
+            <View style={{ marginTop: 16 }}>
+              <Segments options={[["carte", "Carte et liste"], ["liste", "Liste seule"]]} valeur={vue} onChange={setVue} />
             </View>
 
-            {total > 1 && (
-              <View style={{ marginTop: 12, backgroundColor: C.blanc, borderRadius: 14, padding: 12, gap: 10 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <Text style={[S.petit, { flex: 1, color: C.encre }]} numberOfLines={2}>
-                    Tri : {TRIS[filtres.tri ?? "distance"].nom.toLowerCase()}, {(filtres.croissant ?? (filtres.tri ?? "distance") === "distance")
-                      ? TRIS[filtres.tri ?? "distance"].croissant : TRIS[filtres.tri ?? "distance"].decroissant}
-                    {" · "}{filtres.nombre ? `${Math.min(filtres.nombre, total)} affichées` : "toutes affichées"}
-                  </Text>
-                  <Pressable onPress={() => setReglerTri(!reglerTri)} accessibilityRole="button" aria-expanded={reglerTri}
-                             accessibilityLabel={reglerTri ? "Fermer le tri" : "Changer le tri et le nombre affiché"}
-                             style={{ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: "center", backgroundColor: C.sable }}>
-                    <Text style={{ fontSize: 13, fontWeight: "700", color: C.encre }}>{reglerTri ? "Fermer" : "Changer"}</Text>
-                  </Pressable>
-                </View>
-                {reglerTri && <ChoixResultats f={filtres} setF={setFiltres} total={total} mot={mot} />}
-              </View>
-            )}
-
-            {!cotes.length && auDela.length > 0 && (
-              <Text style={[S.petit, { marginTop: 10 }]}>
-                Rien à moins de {filtres.rayonM / 1000} km avec ces filtres : voici les plus proches.
-              </Text>
-            )}
             {!affichees.length ? (
               <View style={[S.carte, { gap: 10, padding: 18 }]}>
                 <Text style={S.h2}>Aucune côte avec ces filtres</Text>
@@ -237,44 +274,35 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                   <Text style={S.boutonTexte}>Réinitialiser les filtres</Text>
                 </Pressable>
               </View>
-            ) : vue === "carte" ? (
+            ) : (
               <>
-                <View style={{ marginTop: 12 }}>{carte}</View>
-                <View style={{ flexDirection: "row", gap: 12, marginTop: 8, alignItems: "center" }}>
-                  {LEGENDE.map(([couleur, texte]) => (
-                    <View key={texte} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                      <View style={{ width: 16, height: 5, borderRadius: 3, backgroundColor: couleur }} />
-                      <Text style={S.petit}>{texte}</Text>
-                    </View>
-                  ))}
-                  <Text style={[S.petit, { flex: 1, textAlign: "right" }]}>Touchez un numéro</Text>
-                </View>
-                {eau.length > 0 && (
-                  <Text style={[S.petit, { marginTop: 4 }]}>
-                    💧 {eau.length} point{eau.length > 1 ? "s" : ""} d'eau potable à moins de 300 m du pied ou du sommet de ces côtes
-                    (© contributeurs OpenStreetMap) : de quoi remplir ta flasque entre deux répétitions. À vérifier sur place.
+                {vue === "carte" && (
+                  <>
+                    <View style={{ marginTop: 14 }}>{carte}</View>
+                    {eau.length > 0 && (
+                      <Text style={[S.petit, { marginTop: 8 }]}>
+                        💧 {eau.length} point{eau.length > 1 ? "s" : ""} d'eau potable à moins de 300 m de ces côtes
+                        (© contributeurs OpenStreetMap), à vérifier sur place.
+                      </Text>
+                    )}
+                  </>
+                )}
+
+                {total > 1 && <BarreTri f={filtres} setF={setFiltres} total={total} />}
+
+                {!cotes.length && auDela.length > 0 && (
+                  <Text style={[S.petit, { marginTop: 14 }]}>
+                    Rien à moins de {filtres.rayonM / 1000} km avec ces filtres : voici les plus proches.
                   </Text>
                 )}
-                <CarteHorsLigne centre={position} nom={depart.nom === "Ma position" ? "ta position" : depart.nom} />
-                <View style={{ gap: 8, marginTop: 14 }}>
-                  {affichees.slice(0, 3).map((c, i) => (
-                    <LigneCote key={c.id} c={c} rang={i + 1} position={position} allurePlat={allurePlat}
+                <View style={{ gap: 12, marginTop: 16 }}>
+                  {affichees.map((c, i) => (
+                    <LigneCote key={c.id} c={c} rang={i + 1} position={position} allurePlat={allurePlat} ici={ici}
                                adresse={c.adresse || adresses[c.id]} onPress={() => onChoisir(c, i + 1)} />
                   ))}
-                  {affichees.length > 3 && (
-                    <Pressable onPress={() => setVue("liste")} accessibilityRole="button" style={S.boutonClair}>
-                      <Text style={S.boutonClairTexte}>Voir les {affichees.length} {mot}s</Text>
-                    </Pressable>
-                  )}
                 </View>
+                {vue === "carte" && <CarteHorsLigne centre={position} nom={depart.nom === "Ma position" ? "ta position" : depart.nom} />}
               </>
-            ) : (
-              <View style={{ gap: 8, marginTop: 12 }}>
-                {affichees.map((c, i) => (
-                  <LigneCote key={c.id} c={c} rang={i + 1} position={position} allurePlat={allurePlat}
-                             adresse={c.adresse || adresses[c.id]} onPress={() => onChoisir(c, i + 1)} />
-                ))}
-              </View>
             )}
           </>
         )}

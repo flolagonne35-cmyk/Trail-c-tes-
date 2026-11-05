@@ -1,12 +1,28 @@
 # Feuille de route — de la maquette à une vraie application
 
-Mise à jour : 20/10/2026. Trois parties : **ce que l'appli fait déjà**, **ce que tu dois faire
+Mise à jour : 05/11/2026. Trois parties : **ce que l'appli fait déjà**, **ce que tu dois faire
 toi-même** (personne ne peut le faire à ta place : comptes, argent, juridique), et **ce qu'il
 reste à construire**, par étapes.
 
 ---
 
 ## 1. Où on en est
+
+### Tes demandes (message du 05/11) : refonte
+
+Tout est détaillé dans **`docs/refonte.md`** : nouvelle organisation en 5 rubriques bien distinctes
+(Aujourd'hui, Explorer, Programme, Courses, Mon monde), réponses sur la nutrition, le monde de points
+et la boutique, l'avatar, la météo, la boussole, les gadgets, et l'ordre de construction.
+
+| Demande | État |
+|---|---|
+| Côtes : plus d'air entre les chiffres | ✅ fiches aérées, données en pastilles, espacements agrandis dans toute l'appli |
+| « Passage le plus raide » fait doublon | ✅ retiré des filtres et du tri ; pastille « mur à 18 % » seulement quand un passage change vraiment la côte |
+| « Distance du point de départ » prête à confusion | ✅ « Jusqu'à combien de km de toi ? » et « 2,3 km de toi » sur chaque côte |
+| Le tri se ferme, la carte est entre le tri et les résultats | ✅ tri toujours ouvert, juste au-dessus des résultats ; la page repart du haut après « Voir les côtes » |
+| Carte peu esthétique | 🟡 légende dans la carte, numéros plus lisibles, fond adouci ; vraie solution : Plan IGN vecteur avec notre style (refonte § 3) |
+| Calendrier mis à jour chaque jour | ✅ workflow quotidien ; prix, places, inscriptions : voir refonte § 5.1 |
+| Programme sur mesure, sorties du jour, monde de points, Ma course jour J, nutrition, avis, avatar, météo | 🔜 proposés dans `docs/refonte.md`, à valider |
 
 ### Tes demandes (message du 20/10)
 

@@ -20,9 +20,10 @@ export type Trace = { id: number; points: Position[]; couleur: string; epaisseur
 export type Marqueur = { id: string; position: Position; texte: string; couleur: string; label: string; onPress?: () => void };
 
 export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial, traces = [], marqueurs = [],
-                        position, rayonM, cle }: {
+                        position, rayonM, cle, legende }: {
   hauteur?: number; centre: Position; zoom: number; traces?: Trace[]; marqueurs?: Marqueur[];
   position?: Position; rayonM?: number; cle: string; // une nouvelle clé recentre la carte
+  legende?: [string, string][]; // [couleur, texte], posée dans la carte plutôt qu'en dessous
 }) {
   // au-delà de zMax + 1, les tuiles agrandies deviennent floues
   zoomInitial = Math.min(zoomInitial, SOURCE.zMax + 1);
@@ -60,8 +61,9 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
   const visibles: { m: Marqueur; x: number; y: number }[] = [];
   for (const m of largeur ? marqueurs : []) {
     const [x, y] = ecran(m.position);
-    if (x < 13 || y < 13 || x > largeur - 13 || y > hauteur - 13 || (x > largeur - 62 && y < 150)) continue;
-    if (visibles.some((v) => Math.hypot(v.x - x, v.y - y) < 24)) continue;
+    if (x < 15 || y < 15 || x > largeur - 15 || y > hauteur - 15 || (x > largeur - 62 && y < 150)) continue;
+    if (legende?.length && x < 240 && y < 50) continue; // sous la légende
+    if (visibles.some((v) => Math.hypot(v.x - x, v.y - y) < 28)) continue;
     visibles.push({ m, x, y });
   }
   const decalage = { transform: [{ translateX: glisse.dx }, { translateY: glisse.dy }] };
@@ -85,6 +87,9 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
           <Image key={t.cle} source={{ uri: tuileLocale(...t.zxy) ?? t.url }} accessibilityIgnoresInvertColors
                  style={{ position: "absolute", left: t.gauche, top: t.haut, width: t.taille, height: t.taille }} />
         ))}
+        {/* voile clair sur le Plan IGN : le fond s'efface, les côtes ressortent (le Plan IGN est très chargé) */}
+        <View pointerEvents="none" style={{ position: "absolute", left: -2000, right: -2000, top: -2000, bottom: -2000,
+                                            backgroundColor: "rgba(244,241,234,0.38)" }} />
         {largeur > 0 && (
           <Svg width={largeur} height={hauteur} style={{ position: "absolute", left: 0, top: 0 }} pointerEvents="none">
             {rayonM && position ? (
@@ -110,10 +115,11 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
         {visibles.map(({ m, x, y }) => (
           <Pressable key={m.id} onPress={m.onPress} accessibilityRole={m.onPress ? "button" : "image"} accessibilityLabel={m.label}
                      hitSlop={8}
-                     style={{ position: "absolute", left: x - 13, top: y - 13, width: 26, height: 26, borderRadius: 13,
-                              backgroundColor: m.couleur, borderWidth: 2, borderColor: C.blanc, alignItems: "center",
-                              justifyContent: "center" }}>
-            <Text style={{ color: C.blanc, fontSize: 12, fontWeight: "700" }}>{m.texte}</Text>
+                     style={{ position: "absolute", left: x - 15, top: y - 15, width: 30, height: 30, borderRadius: 15,
+                              backgroundColor: m.couleur, borderWidth: 2.5, borderColor: C.blanc, alignItems: "center",
+                              justifyContent: "center", shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 4,
+                              shadowOffset: { width: 0, height: 2 }, elevation: 3 }}>
+            <Text style={{ color: C.blanc, fontSize: 13, fontWeight: "800" }}>{m.texte}</Text>
           </Pressable>
         ))}
       </View>
@@ -123,6 +129,18 @@ export function Carte({ hauteur = 300, centre: centreInitial, zoom: zoomInitial,
         {bouton("◎", "Recentrer", () => { setCentre(centreInitial); setZoom(zoomInitial); },
                 centre.lat === centreInitial.lat && centre.lon === centreInitial.lon && zoom === zoomInitial)}
       </View>
+      {legende?.length ? (
+        <View pointerEvents="none"
+              style={{ position: "absolute", left: 8, top: 8, flexDirection: "row", gap: 10, paddingHorizontal: 10, paddingVertical: 6,
+                       borderRadius: 12, backgroundColor: "rgba(255,255,255,0.92)" }}>
+          {legende.map(([couleur, texte]) => (
+            <View key={texte} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+              <View style={{ width: 14, height: 5, borderRadius: 3, backgroundColor: couleur }} />
+              <Text style={{ fontSize: 12, fontWeight: "600", color: C.encre }}>{texte}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
       <Text style={{ position: "absolute", left: 6, bottom: 4, fontSize: 10, color: C.encre, backgroundColor: "rgba(255,255,255,0.75)",
                      paddingHorizontal: 4, borderRadius: 3 }}>Plan IGN © IGN</Text>
     </View>

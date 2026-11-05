@@ -101,9 +101,9 @@ test("couverture : Couëron est hors de la zone calculée autour de Rennes", () 
   assert.ok(distanceCouverture(cotes, { lat: 47.2391, lon: -1.7472 }) > 90000);
   assert.equal(distanceCouverture([], { lat: 0, lon: 0 }), Infinity);
   assert.equal(resumeFiltres({ rayonM: 5000, penteMin: 5, types: ["route", "piste cyclable", "chemin"] }),
-               "≤ 5 km · pente ≥ 5 % · route, chemin");
+               "à 5 km max · pente ≥ 5 % · route, chemin");
   assert.equal(resumeFiltres({ rayonM: 10000, penteMin: 8, types: ["route", "chemin", "sentier"] }),
-               "≤ 10 km · pente ≥ 8 % · toutes voies");
+               "à 10 km max · pente ≥ 8 % · toutes voies");
 });
 
 test("temps de passage : objectif tenu, côte plus lente que la descente", async () => {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
-import { dureeMontee, kmLisibles, NOMS_TRAFIC, type CoteProche } from "../calcul/cotes.ts";
+import { dureeMontee, kmLisibles, murDe, NOMS_TRAFIC, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { adresseDe, itineraire } from "../calcul/geoservices.ts";
 import { ecrireGpx } from "../calcul/gpx.ts";
@@ -110,7 +110,9 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour,
           </Text>
         </View>
       ) : null}
-      <Tuiles valeurs={[[descente ? "D−" : "D+", `${nombre(cote.dplus_m)} m`], ["Pente max", `${signe}${nombre(cote.pente_max_pct)} %`],
+      {/* la pente max ne s'affiche que si c'est un vrai « mur » : sinon elle doublonne la pente moyenne */}
+      <Tuiles valeurs={[[descente ? "D−" : "D+", `${nombre(cote.dplus_m)} m`],
+                        ...(murDe(cote) ? [["Mur sur 50 m", `${signe}${murDe(cote)} %`] as [string, string]] : []),
                         ["Rythme*", `≈ ${nombre(Math.max(1, Math.round(minutes)))} min`]]} />
 
       <View style={{ marginTop: 14 }}>

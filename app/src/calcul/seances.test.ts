@@ -113,5 +113,5 @@ test("filtres en plages (min et max), sol, et tri des résultats", async () => {
   assert.equal(plageLisible(4, 8.5, "%"), "4 à 8,5 %");
   assert.equal(plageLisible(0, 300, "m"), "≤ 300 m");
   assert.equal(resumeFiltres({ ...f, penteMin: 6, longueurMin: 300, dplusMax: 60, sols: ["terre"] }),
-               "≤ 5 km · pente ≥ 6 % · longueur ≥ 300 m · D+ ≤ 60 m · non goudronné · route");
+               "à 5 km max · pente ≥ 6 % · longueur ≥ 300 m · D+ ≤ 60 m · non goudronné · route");
 });

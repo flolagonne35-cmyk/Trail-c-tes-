@@ -30,12 +30,12 @@ export function EnTete({ surtitre, titre, sousTitre, retour }: {
 
 export function Tuiles({ valeurs }: { valeurs: [string, string][] }) {
   return (
-    <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
+    <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
       {valeurs.map(([etiquette, valeur]) => (
-        <View key={etiquette} style={{ flex: 1, backgroundColor: C.sable, borderRadius: 12, paddingVertical: 10,
-                                       paddingHorizontal: 12 }}>
+        <View key={etiquette} style={{ flex: 1, backgroundColor: C.sable, borderRadius: 14, paddingVertical: 14,
+                                       paddingHorizontal: 14 }}>
           <Text style={S.petit}>{etiquette}</Text>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: C.encre, marginTop: 2 }}>{valeur}</Text>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: C.encre, marginTop: 6 }}>{valeur}</Text>
         </View>
       ))}
     </View>

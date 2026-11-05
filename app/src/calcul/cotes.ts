@@ -59,6 +59,24 @@ export const TRIS: Record<CleTri, { nom: string; croissant: string; decroissant:
   longueur: { nom: "Longueur", croissant: "la plus courte d'abord", decroissant: "la plus longue d'abord" },
   dplus: { nom: "Dénivelé", croissant: "le plus faible d'abord", decroissant: "le plus fort d'abord" },
 };
+/**
+ * Tris proposés à l'écran. « Passage le plus raide » n'y est plus : il faisait doublon avec la pente
+ * moyenne (retour de Florian, 05/11). L'info utile qu'il portait, un « mur » au milieu d'une côte
+ * régulière, est signalée par `murDe` sur chaque côte.
+ */
+export const TRIS_PROPOSES: CleTri[] = ["distance", "pente", "longueur", "dplus"];
+
+/**
+ * Pente du mur (50 m les plus raides) quand il change vraiment la façon de courir la côte :
+ * ≥ 15 % (on passe souvent à la marche) et au moins 5 points au-dessus de la moyenne. Sinon null.
+ */
+export function murDe(c: Pick<Cote, "pente_moy_pct" | "pente_max_pct">): number | null {
+  return c.pente_max_pct >= 15 && c.pente_max_pct - c.pente_moy_pct >= 5 ? Math.round(c.pente_max_pct) : null;
+}
+
+/** « 2,3 km de toi », « 800 m de Vannes » : la distance dite par rapport au coureur, pas au « départ ». */
+export const distanceDe = (m: number, ici: string) => `${kmLisibles(m)} de ${ici}`;
+
 const VALEUR_TRI: Record<CleTri, (c: CoteProche) => number> = {
   distance: (c) => c.distance_m, pente: (c) => c.pente_moy_pct, raide: (c) => c.pente_max_pct,
   longueur: (c) => c.longueur_m, dplus: (c) => c.dplus_m,
@@ -157,7 +175,7 @@ export function resumeFiltres(f: Filtres): string {
   const raide = plageLisible(f.raideMin, f.raideMax, "%");
   const longueur = plageLisible(f.longueurMin, f.longueurMax, "m");
   const dplus = plageLisible(f.dplusMin, f.dplusMax, "m");
-  return [`≤ ${fr(f.rayonM / 1000)} km`, `pente ${plageLisible(f.penteMin, f.penteMax, "%", -1)}`,
+  return [`à ${fr(f.rayonM / 1000)} km max`, `pente ${plageLisible(f.penteMin, f.penteMax, "%", -1)}`,
           ...(raide ? [`passage max ${raide}`] : []),
           ...(f.longueur && f.longueur !== "toutes" ? [LONGUEURS[f.longueur].nom.toLowerCase()] : []),
           ...(longueur ? [`longueur ${longueur}`] : []),
