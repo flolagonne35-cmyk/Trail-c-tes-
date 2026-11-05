@@ -21,11 +21,64 @@ export type Questionnaire = {
   volume_km: number; // km par semaine en ce moment
   plus_longue_km: number; // plus longue sortie des 4 dernières semaines
   objectif: ObjectifCourse;
+  // questions facultatives (programme sur mesure) ; absentes = comportement d'avant
+  records?: Partial<Record<CleRecord, number>>; // meilleurs temps récents, en minutes
+  jours?: number[]; // jours où je peux courir (0 = lundi … 6 = dimanche)
+  jourLongue?: number; // jour de la sortie longue
+  blessure?: boolean; // blessure ou longue coupure ces 6 derniers mois : progression plus douce
+  terrain?: Terrain; // relief accessible près de chez moi
+};
+
+export type CleRecord = "5" | "10" | "21" | "42";
+export const RECORDS: [CleRecord, string, number][] = [["5", "5 km", 5], ["10", "10 km", 10], ["21", "Semi", 21.0975], ["42", "Marathon", 42.195]];
+export type Terrain = "plat" | "cotes" | "montagne";
+export const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+/**
+ * VDOT de Jack Daniels (Daniels' Running Formula) : VO2 de la course à la vitesse v (m/min),
+ * divisé par la part de VO2max tenable pendant t minutes. Sert à tirer des allures d'entraînement
+ * d'un record récent.
+ */
+export function vdot(distanceKm: number, minutes: number): number {
+  const v = (distanceKm * 1000) / minutes;
+  const vo2 = -4.6 + 0.182258 * v + 0.000104 * v * v;
+  const part = 0.8 + 0.1894393 * Math.exp(-0.012778 * minutes) + 0.2989558 * Math.exp(-0.1932605 * minutes);
+  return vo2 / part;
+}
+
+/** Meilleur VDOT parmi mes records (null sans record). */
+export function meilleurVdot(records: Questionnaire["records"]): number | null {
+  const v = RECORDS.filter(([k]) => (records?.[k] ?? 0) > 0).map(([k, , d]) => vdot(d, records![k]!));
+  return v.length ? Math.max(...v) : null;
+}
+
+/** Allure (min/km) qui demande `part` du VDOT (inverse de la formule du VO2). */
+function allureA(v: number, part: number): number {
+  const vo2 = v * part;
+  const vitesse = (-0.182258 + Math.sqrt(0.182258 ** 2 + 4 * 0.000104 * (vo2 + 4.6))) / (2 * 0.000104); // m/min
+  return 1000 / vitesse;
+}
+
+export type Allures = { facile: [number, number]; marathon: number; seuil: number; vma: number };
+
+/**
+ * Allures d'entraînement (min/km) selon les zones de Daniels : facile 59–74 % du VDOT, marathon
+ * ≈ 81 %, seuil ≈ 88 %, intervalles (VMA) ≈ 98 %.
+ */
+export function allures(v: number): Allures {
+  return { facile: [allureA(v, 0.74), allureA(v, 0.62)], marathon: allureA(v, 0.815), seuil: allureA(v, 0.88), vma: allureA(v, 0.98) };
+}
+
+export const allureTexte = (min: number) => {
+  const s = Math.round(min * 60);
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 
 export type Phase = "Base" | "Spécifique" | "Affûtage" | "Course";
 
 export type Seance = {
+  /** jour prévu (0 = lundi … 6 = dimanche), si j'ai indiqué mes jours disponibles */
+  jour?: number;
   type: "longue" | "cotes" | "descentes" | "seuil" | "vma" | "footing" | "repos" | "course";
   titre: string;
   detail: string;
@@ -95,7 +148,8 @@ export function genererPlan(course: CourseCible, q: Questionnaire, allureMinKm =
   const construction = n - affutage - 1; // la dernière semaine est celle de la course
   const ratioDplus = course.dplus_m / 100 / kmEffort(course.distance_km, course.dplus_m); // part du D+ dans l'effort
   const pointe = volumePointe(course, q);
-  const depart = Math.max(10, Math.min(q.volume_km * (1 + ratioDplus), pointe));
+  const depart = Math.max(10, Math.min(q.volume_km * (1 + ratioDplus) * (q.blessure ? 0.85 : 1), pointe));
+  const hausse = q.blessure ? 1.05 : 1.1; // après une blessure : + 5 % par semaine au plus
 
   // volume de chaque semaine de construction : +10 % au plus, une semaine allégée sur 4, plafonné à la pointe
   const volumes: { v: number; allegee: boolean }[] = [];
@@ -105,7 +159,7 @@ export function genererPlan(course: CourseCible, q: Questionnaire, allureMinKm =
     if (allegee) volumes.push({ v: Math.round(v * 0.7), allegee });
     else {
       volumes.push({ v: Math.round(v), allegee });
-      v = Math.min(pointe, v * 1.1);
+      v = Math.min(pointe, v * hausse);
     }
   }
   const fin = volumes.length ? Math.max(...volumes.map((x) => x.v)) : depart;
@@ -118,7 +172,7 @@ export function genererPlan(course: CourseCible, q: Questionnaire, allureMinKm =
     const progres = Math.min(1, i / Math.max(1, construction - 1));
     const part = ratioDplus * (0.4 + 0.6 * progres);
     const lundiSemaine = new Date(debut.getTime() + i * 7 * 86400000);
-    const seances = seancesSemaine(phase, ke, ke * part * 100, course, q, allureMinKm, allegee);
+    const seances = placerJours(seancesSemaine(phase, ke, ke * part * 100, course, q, allureMinKm, allegee), q, phase);
     // volume réel de la semaine : la somme des séances (les footings sont plafonnés)
     const keReel = seances.filter((x) => x.type !== "course").reduce((t, x) => t + x.minutes, 0) / allureMinKm;
     const dplus = Math.round(keReel * part * 100);
@@ -181,6 +235,17 @@ function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseC
   } else {
     qualite.push({ type: "seuil", titre: "Rappel d'allure", detail: "Échauffement, 3 × 6 min à l'allure de course, retour au calme", minutes: 50 });
   }
+  // allures personnelles (d'après mes records) et relief accessible
+  const al = (() => { const v = meilleurVdot(q.records); return v ? allures(v) : null; })();
+  for (const x of qualite) {
+    if (al && (x.type === "seuil")) x.detail += x.titre === "Seuil" ? ` (seuil ≈ ${allureTexte(al.seuil)} /km)` : ` (repère seuil ${allureTexte(al.seuil)} /km)`;
+    if (al && x.type === "vma") x.detail += ` (rapide ≈ ${allureTexte(al.vma)} /km)`;
+    if (q.terrain === "plat" && (x.type === "cotes" || x.type === "descentes")) {
+      // pas de côte près de chez moi : escaliers, ponts, parkings, ou tapis incliné
+      x.detail += x.type === "cotes" ? " — sans côte près de chez toi : tapis à 6–8 %, escaliers, rampes de pont ou de parking"
+        : " — sans descente près de chez toi : escaliers en descente, ou renforcement (fentes, squats excentriques)";
+    }
+  }
   res.push(...qualite.slice(0, dures));
   // le reste en footing facile (la règle des 80/20), jamais plus long que la sortie longue
   const restant = Math.max(0, q.seances - res.length);
@@ -188,10 +253,42 @@ function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseC
   const plafondFooting = Math.min({ debutant: 50, intermediaire: 75, confirme: 90 }[q.niveau], longueMin * 0.7);
   for (let i = 0; i < restant; i++) {
     const m = Math.min(Math.round(plafondFooting / 5) * 5, Math.max(30, Math.round(minutesRestantes / Math.max(restant, 1) / 5) * 5));
-    res.push({ type: "footing", titre: `Footing ${heures(m)}`, detail: "Endurance facile : tu peux parler en courant", minutes: m,
+    res.push({ type: "footing", titre: `Footing ${heures(m)}`,
+               detail: `Endurance facile : tu peux parler en courant${al ? ` (≈ ${allureTexte(al.facile[0])} à ${allureTexte(al.facile[1])} /km)` : ""}`, minutes: m,
                sortie: { km: Math.max(4, Math.round(m / allure)), relief: "plat" } });
   }
   return res;
+}
+
+/**
+ * Place les séances sur mes jours disponibles : la sortie longue sur son jour, les séances dures
+ * loin d'elle et entre elles (au moins un jour d'écart si possible), les footings ailleurs.
+ */
+export function placerJours(seances: Seance[], q: Questionnaire, phase: Phase): Seance[] {
+  const jours = q.jours?.length ? [...q.jours].sort() : null;
+  if (!jours || phase === "Course") return seances;
+  const libres = new Set(jours);
+  const ecart = (a: number, b: number) => Math.min(Math.abs(a - b), 7 - Math.abs(a - b));
+  const pris: number[] = [];
+  const prendre = (j: number) => { libres.delete(j); pris.push(j); return j; };
+  const resultat = seances.map((x) => ({ ...x }));
+  const longue = resultat.find((x) => x.type === "longue");
+  if (longue) {
+    const voulu = q.jourLongue !== undefined && libres.has(q.jourLongue) ? q.jourLongue : [...libres].includes(6) ? 6 : [...libres].includes(5) ? 5 : jours.at(-1)!;
+    longue.jour = prendre(voulu);
+  }
+  // séances dures : le jour libre le plus éloigné des jours déjà pris
+  for (const x of resultat.filter((s) => s.type !== "longue" && s.type !== "footing" && s.type !== "repos")) {
+    if (!libres.size) break;
+    const meilleur = [...libres].sort((a, b) => Math.min(...pris.map((p) => ecart(b, p)), 7) - Math.min(...pris.map((p) => ecart(a, p)), 7) || a - b)[0];
+    x.jour = prendre(meilleur);
+  }
+  for (const x of resultat.filter((s) => s.jour === undefined)) {
+    if (!libres.size) break;
+    x.jour = prendre([...libres][0]);
+  }
+  // séances sans jour (plus de séances que de jours) : retirées, mieux vaut moins que trop serré
+  return resultat.filter((x) => x.jour !== undefined).sort((a, b) => a.jour! - b.jour!);
 }
 
 function heures(min: number): string {

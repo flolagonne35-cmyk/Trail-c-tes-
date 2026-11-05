@@ -72,3 +72,44 @@ test("plan : course lointaine → le plan commence 24 semaines avant ; course pr
   const proche = genererPlan({ ...templiers, date: "2026-11-01" }, q, 6, AUJ);
   assert.deepEqual(proche.map((s) => s.phase), ["Affûtage", "Course"]); // dans 12 jours : rien à construire
 });
+
+test("VDOT de Daniels : 20 min au 5 km ≈ 49,8 ; seuil ≈ 4:16 /km", async () => {
+  const { vdot, allures, allureTexte, meilleurVdot } = await import("./plan.ts");
+  assert.ok(Math.abs(vdot(5, 20) - 49.8) < 0.3);
+  assert.ok(Math.abs(vdot(42.195, 180) - 53.5) < 0.5); // marathon en 3 h
+  const a = allures(vdot(5, 20));
+  assert.equal(allureTexte(a.seuil), "4:16");
+  assert.ok(a.facile[0] < a.facile[1] && a.vma < a.seuil && a.seuil < a.marathon);
+  // le meilleur record l'emporte
+  assert.ok(Math.abs(meilleurVdot({ "5": 20, "42": 240 })! - vdot(5, 20)) < 1e-9);
+  assert.equal(meilleurVdot(undefined), null);
+});
+
+test("jours choisis : sortie longue le dimanche, séances dures espacées, séance du jour par jour", async () => {
+  const { genererPlan } = await import("./plan.ts");
+  const { seanceDuJour } = await import("./jour.ts");
+  const q = { niveau: "intermediaire" as const, seances: 4, volume_km: 35, plus_longue_km: 15, objectif: "finir" as const,
+              jours: [1, 3, 5, 6], jourLongue: 6, records: { "10": 45 } };
+  const plan = genererPlan({ nom: "Trail", distance_km: 30, dplus_m: 1200, date: "2027-04-18" }, q, 6, new Date(2026, 10, 5));
+  const s = plan.find((x) => x.phase === "Spécifique")!;
+  assert.equal(s.seances.find((x) => x.type === "longue")!.jour, 6);
+  assert.ok(s.seances.every((x) => [1, 3, 5, 6].includes(x.jour!)));
+  // allures personnelles dans le footing
+  assert.match(s.seances.find((x) => x.type === "footing")!.detail, /\/km/);
+  // jours cochés : mardi, jeudi, samedi, dimanche. Le dimanche : la sortie longue ; le mercredi : repos
+  const lundi = new Date(`${s.debut}T12:00:00`);
+  const dimanche = new Date(lundi); dimanche.setDate(lundi.getDate() + 6);
+  const mercredi = new Date(lundi); mercredi.setDate(lundi.getDate() + 2);
+  const r = seanceDuJour(plan, 0, "Trail", "2027-04-18", dimanche);
+  assert.equal(r.cas === "seance" && r.seance.type, "longue");
+  assert.equal(seanceDuJour(plan, 0, "Trail", "2027-04-18", mercredi).cas, "repos");
+});
+
+test("après une blessure, le volume monte plus doucement", async () => {
+  const { genererPlan } = await import("./plan.ts");
+  const base = { niveau: "intermediaire" as const, seances: 4, volume_km: 30, plus_longue_km: 12, objectif: "finir" as const };
+  const c = { nom: "Semi", distance_km: 21, dplus_m: 0, date: "2027-03-28" };
+  const sain = genererPlan(c, base, 6, new Date(2026, 10, 5));
+  const blesse = genererPlan(c, { ...base, blessure: true }, 6, new Date(2026, 10, 5));
+  assert.ok(blesse[0].km_effort < sain[0].km_effort);
+});

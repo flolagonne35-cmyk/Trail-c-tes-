@@ -22,7 +22,14 @@ et la boutique, l'avatar, la météo, la boussole, les gadgets, et l'ordre de co
 | Le tri se ferme, la carte est entre le tri et les résultats | ✅ tri toujours ouvert, juste au-dessus des résultats ; la page repart du haut après « Voir les côtes » |
 | Carte peu esthétique | 🟡 légende dans la carte, numéros plus lisibles, fond adouci ; vraie solution : Plan IGN vecteur avec notre style (refonte § 3) |
 | Calendrier mis à jour chaque jour | ✅ workflow quotidien ; prix, places, inscriptions : voir refonte § 5.1 |
-| Programme sur mesure, sorties du jour, monde de points, Ma course jour J, nutrition, avis, avatar, météo | 🔜 proposés dans `docs/refonte.md`, à valider |
+| Rubriques bien distinctes | ✅ Aujourd'hui, Explorer, Programme, Courses, Mon monde ; sous-onglets toujours visibles ; plus de menu caché |
+| Accueil | ✅ séance du jour, ma semaine, prochaine course, lumière du jour |
+| Programme sur mesure | ✅ records → allures personnelles, jours disponibles, jour de sortie longue, relief, blessure |
+| Sorties du jour (3, 5 ou 10) | ✅ avec le D+ de la séance ; « Je pars courir » au moment de partir |
+| Calendrier par mois | ✅ rangée de mois jusqu'à fin 2027 |
+| Nutrition personnelle | ✅ test de pesée et profil de sel (restent sur le téléphone) |
+| Gadgets | ✅ minuteur de côtes, convertisseur d'allure, lever/coucher du soleil |
+| Monde de points, avis, avatar 3D, météo, trajets et logements | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
 
 ### Tes demandes (message du 20/10)
 

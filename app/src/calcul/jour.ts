@@ -22,7 +22,8 @@ export type SeanceDuJour =
   | { cas: "avant_plan"; debut: string } // le plan commence plus tard
   | { cas: "fini" } // course passée
   | { cas: "seance"; seance: Seance; rang: number; total: number; semaine: Semaine }
-  | { cas: "semaine_faite"; semaine: Semaine };
+  | { cas: "semaine_faite"; semaine: Semaine }
+  | { cas: "repos"; prochaine: Seance | null; semaine: Semaine }; // jours fixés : rien de prévu aujourd'hui
 
 /**
  * Séance proposée aujourd'hui : la prochaine séance de la semaine du plan qui n'est pas encore
@@ -37,6 +38,13 @@ export function seanceDuJour(plan: Semaine[] | null, faites: number, nomCourse: 
   const semaine = plan.find((s) => s.debut === lundiDe(aujourdHui));
   if (!semaine) return jour < plan[0].debut ? { cas: "avant_plan", debut: plan[0].debut } : { cas: "fini" };
   const aFaire = semaine.seances.filter((s) => s.type !== "repos" && s.type !== "course");
+  // jours fixés dans le questionnaire : la séance de ce jour-là, sinon repos et la prochaine
+  if (aFaire.some((s) => s.jour !== undefined)) {
+    const j = (aujourdHui.getDay() + 6) % 7;
+    const ici = aFaire.findIndex((s) => s.jour === j);
+    if (ici >= 0) return { cas: "seance", seance: aFaire[ici], rang: ici + 1, total: aFaire.length, semaine };
+    return { cas: "repos", prochaine: aFaire.find((s) => s.jour! > j) ?? null, semaine };
+  }
   if (faites >= aFaire.length) return { cas: "semaine_faite", semaine };
   return { cas: "seance", seance: aFaire[faites], rang: faites + 1, total: aFaire.length, semaine };
 }

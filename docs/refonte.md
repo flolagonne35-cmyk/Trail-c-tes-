@@ -378,10 +378,10 @@ d'iPhone, Safari demande une autorisation spéciale pour la boussole : à tester
 | Étape | Contenu | Durée indicative | Prérequis de ton côté |
 |---|---|---|---|
 | ✅ 0 | Corrections Côtes (air, tri, distance « de toi », mur, carte), calendrier quotidien | fait le 05/11 | — |
-| 1 | Nouvelle navigation à 5 onglets, Aujourd'hui, fusion Mes courses / Calendrier, vue par mois | 1 semaine | valider ce document |
-| 2 | Mon programme (questionnaire complet, plan adaptatif) + Sorties (3/5/10 boucles du jour) | 2 semaines | — |
-| 3 | Ma course : feuille du jour J, nutrition personnelle (test de sudation, sac à produits) | 1 à 2 semaines | — |
-| 4 | Météo, lever/coucher du soleil, retour au départ, minuteur de côtes | 1 semaine | clé Météo-France |
+| ✅ 1 | 5 rubriques avec sous-onglets toujours visibles, plus de menu caché ; Aujourd'hui ; Calendrier / Ma saison / Ma course ; rangée de mois jusqu'à fin 2027 | fait le 05/11 | — |
+| ✅ 2 | Mon programme : records → allures (VDOT de Daniels), jours disponibles et jour de sortie longue, relief, blessure ; Sorties : 3, 5 ou 10 parcours avec le D+ de la séance | fait le 05/11 | — |
+| 🟡 3 | Nutrition personnelle (test de pesée, profil de sel) ✅ ; feuille du jour J réunie en une page et sac à produits : à faire | 1 semaine | — |
+| 🟡 4 | Lever / coucher du soleil ✅, minuteur de côtes ✅, convertisseur d'allure ✅ ; météo et retour au départ : à faire | 3 jours | clé Météo-France |
 | 5 | Serveur et comptes, import Garmin / Santé, avis | 2 à 3 semaines | compte Supabase, demande Garmin |
 | 6 | Mon monde : ligues, boutique, défis, animations | 3 à 4 semaines | graphiste pour les objets |
 | 7 | Trajets et logements, courses en partenariat (prix, places, inscriptions) | 2 semaines | clé SNCF, clé DATAtourisme, démarches FFA / njuko |

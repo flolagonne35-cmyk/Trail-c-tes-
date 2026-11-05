@@ -9,8 +9,10 @@ import { coursesAVenir, FILTRES_AGENDA, formatsLisibles } from "../calcul/agenda
 import type { CourseInscrite } from "../calcul/calendrier.ts";
 import { chercherCourses, type CourseCatalogue } from "../calcul/catalogue.ts";
 import {
-  genererPlan, kmEffort, lireFormat, NIVEAUX, semainesAffutage, type CourseCible, type Questionnaire, type Seance,
+  allures, allureTexte, genererPlan, JOURS, kmEffort, lireFormat, meilleurVdot, NIVEAUX, RECORDS, semainesAffutage,
+  type CleRecord, type CourseCible, type Questionnaire, type Seance,
 } from "../calcul/plan.ts";
+import { lireTemps, tempsLisible } from "../calcul/allures.ts";
 import { dateValide, joursAvant } from "../calcul/calendrier.ts";
 import { Ajusteur, Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { C, S } from "../theme.ts";
@@ -97,7 +99,21 @@ export function ChoixCourse({ mesCourses, onChoisir, onImporter, onExemple, etat
   );
 }
 
-/** Mini questionnaire : niveau, séances par semaine, volume actuel, plus longue sortie, objectif. */
+/** Puce à cocher (jours de la semaine). */
+function Puce({ texte, actif, onPress, label }: { texte: string; actif: boolean; onPress: () => void; label?: string }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="checkbox" aria-checked={actif} accessibilityLabel={label ?? texte}
+               style={{ minWidth: 44, minHeight: 44, paddingHorizontal: 10, borderRadius: 22, alignItems: "center", justifyContent: "center",
+                        backgroundColor: actif ? C.encre : C.fond, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
+      <Text style={{ fontSize: 15, fontWeight: "700", color: actif ? C.fond : C.encre }}>{texte}</Text>
+    </Pressable>
+  );
+}
+
+/**
+ * Questionnaire du programme : niveau, séances, volume, plus longue sortie, objectif ; puis, facultatif,
+ * records (allures personnelles), jours disponibles, jour de la sortie longue, relief, blessure.
+ */
 export function FormulaireQuestionnaire({ initial, course, onValider }: {
   initial: Questionnaire | null; course: CourseCible; onValider: (q: Questionnaire, date?: string) => void;
 }) {
@@ -105,6 +121,19 @@ export function FormulaireQuestionnaire({ initial, course, onValider }: {
   const [date, setDate] = useState(course.date ?? "");
   const maj = (p: Partial<Questionnaire>) => setQ({ ...q, ...p });
   const niveau = NIVEAUX.find((n) => n[0] === q.niveau)!;
+  // records saisis en texte (« 45:30 ») ; seuls les temps lisibles vont dans le questionnaire
+  const [textes, setTextes] = useState<Record<CleRecord, string>>(() => Object.fromEntries(RECORDS.map(([k]) => {
+    const m = initial?.records?.[k];
+    return [k, m ? tempsLisible(m) : ""];
+  })) as Record<CleRecord, string>);
+  const majRecord = (k: CleRecord, t: string) => {
+    setTextes({ ...textes, [k]: t });
+    const m = lireTemps(t);
+    const records = { ...q.records };
+    if (Number.isFinite(m) && m > 0) records[k] = m; else delete records[k];
+    maj({ records: Object.keys(records).length ? records : undefined });
+  };
+  const al = useMemo(() => { const v = meilleurVdot(q.records); return v ? allures(v) : null; }, [q.records]);
   return (
     <View style={[S.carte, { gap: 14 }]}>
       <Text style={S.h2}>Pour un plan à ta mesure</Text>
@@ -113,7 +142,7 @@ export function FormulaireQuestionnaire({ initial, course, onValider }: {
         <Segments options={NIVEAUX.map(([v, n]) => [v, n] as [Questionnaire["niveau"], string])} valeur={q.niveau} onChange={(niveau) => maj({ niveau })} />
         <Text style={S.petit}>{niveau[2]}.</Text>
       </View>
-      <Ajusteur etiquette="Séances par semaine" valeur={q.seances} unite="" pas={1} min={3} max={6} onChange={(seances) => maj({ seances })} />
+      <Ajusteur etiquette="Séances par semaine" valeur={q.seances} unite="" pas={1} min={2} max={6} onChange={(seances) => maj({ seances })} />
       <Ajusteur etiquette="Km par semaine aujourd'hui" valeur={q.volume_km} unite="km" pas={5} min={0} max={150} onChange={(volume_km) => maj({ volume_km })} />
       <Ajusteur etiquette="Plus longue sortie récente" valeur={q.plus_longue_km} unite="km" pas={1} min={0} max={80} onChange={(plus_longue_km) => maj({ plus_longue_km })} />
       <View style={{ gap: 6 }}>
@@ -126,6 +155,78 @@ export function FormulaireQuestionnaire({ initial, course, onValider }: {
         <TextInput value={date} onChangeText={setDate} placeholder="AAAA-MM-JJ (sinon plan de 12 semaines)" autoCorrect={false}
                    accessibilityLabel="Date de la course" style={[champ, { backgroundColor: C.fond }]} />
         {date !== "" && !dateValide(date) && <Text style={{ fontSize: 12, color: C.monteeFonce }}>Format : 2027-02-14.</Text>}
+      </View>
+      <View style={{ gap: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.aire }}>
+        <Text style={S.h2}>Pour aller plus loin (facultatif)</Text>
+        <Text style={S.petit}>Chaque réponse rend le programme plus juste. Tu peux les ajouter plus tard.</Text>
+      </View>
+      <View style={{ gap: 8 }}>
+        <Text style={S.fort}>Tes meilleurs temps de l'année</Text>
+        <Text style={S.petit}>
+          Un seul suffit (le plus récent). L'appli en tire tes allures d'entraînement (facile, seuil, fractionné) avec les
+          tables VDOT de Jack Daniels. Format : 22:30 ou 1:45:00.
+        </Text>
+        {RECORDS.map(([k, nom]) => (
+          <View key={k} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Text style={[S.fort, { flex: 1, fontWeight: "600" }]}>{nom}</Text>
+            <TextInput value={textes[k]} onChangeText={(t) => majRecord(k, t)} placeholder="—" autoCorrect={false}
+                       accessibilityLabel={`Mon temps sur ${nom}`}
+                       style={[champ, { width: 120, textAlign: "center", backgroundColor: C.fond, fontWeight: "700" }]} />
+          </View>
+        ))}
+        {al && (
+          <Text style={[S.petit, { fontSize: 14, color: C.encre }]}>
+            Tes allures : facile {allureTexte(al.facile[0])}–{allureTexte(al.facile[1])} · marathon {allureTexte(al.marathon)} ·
+            seuil {allureTexte(al.seuil)} · fractionné {allureTexte(al.vma)} (min/km).
+          </Text>
+        )}
+      </View>
+      <View style={{ gap: 8 }}>
+        <Text style={S.fort}>Tes jours pour courir</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+          {JOURS.map((nom, j) => (
+            <Puce key={nom} texte={nom.slice(0, 3)} label={nom} actif={!!q.jours?.includes(j)}
+                  onPress={() => {
+                    const jours = q.jours?.includes(j) ? q.jours.filter((x) => x !== j) : [...(q.jours ?? []), j].sort();
+                    maj({ jours: jours.length ? jours : undefined, seances: jours.length >= 2 ? Math.min(6, jours.length) : q.seances,
+                          jourLongue: q.jourLongue !== undefined && jours.includes(q.jourLongue) ? q.jourLongue : undefined });
+                  }} />
+          ))}
+        </View>
+        <Text style={S.petit}>
+          {q.jours?.length ? `${q.jours.length} jours : une séance par jour coché, les séances dures espacées. L'accueil te dit chaque jour quoi faire.`
+            : "Sans jours cochés, l'appli propose les séances dans l'ordre, au fil de la semaine."}
+        </Text>
+        {q.jours && q.jours.length >= 2 && (
+          <>
+            <Text style={[S.fort, { fontWeight: "600" }]}>Jour de la sortie longue</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+              {q.jours.map((j) => (
+                <Puce key={j} texte={JOURS[j].slice(0, 3)} label={`Sortie longue le ${JOURS[j].toLowerCase()}`}
+                      actif={(q.jourLongue ?? (q.jours!.includes(6) ? 6 : q.jours!.includes(5) ? 5 : q.jours!.at(-1))) === j}
+                      onPress={() => maj({ jourLongue: j })} />
+              ))}
+            </View>
+          </>
+        )}
+      </View>
+      <View style={{ gap: 6 }}>
+        <Text style={S.fort}>Le relief près de chez toi</Text>
+        <Segments options={[["plat", "Plat"], ["cotes", "Des côtes"], ["montagne", "Montagne"]]} valeur={q.terrain ?? "cotes"}
+                  onChange={(terrain) => maj({ terrain })} />
+        <Text style={S.petit}>
+          {(q.terrain ?? "cotes") === "plat" ? "Sans côte, les séances de côtes passent au tapis incliné, aux escaliers ou aux rampes."
+            : (q.terrain ?? "cotes") === "montagne" ? "Montagne à moins d'une heure : les sorties longues peuvent s'y faire, avec le D+ de la course."
+            : "Les séances de côtes t'ouvrent directement les meilleures côtes autour de toi."}
+        </Text>
+      </View>
+      <View style={{ gap: 6 }}>
+        <Text style={S.fort}>Blessure ou longue coupure ces 6 derniers mois ?</Text>
+        <Segments options={[["non", "Non"], ["oui", "Oui"]]} valeur={q.blessure ? "oui" : "non"} onChange={(v) => maj({ blessure: v === "oui" })} />
+        <Text style={S.petit}>
+          {q.blessure ? "Le programme repart 15 % plus bas et monte de 5 % par semaine au plus. Si une douleur revient, arrête et consulte."
+            : "Le volume monte de 10 % par semaine au plus, avec une semaine allégée sur 4."}
+        </Text>
       </View>
       {q.plus_longue_km < course.distance_km * 0.25 && course.distance_km > 30 && (
         <Text style={{ fontSize: 13, color: C.monteeFonce }}>
@@ -212,7 +313,7 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
               <View style={{ paddingHorizontal: 12, paddingBottom: 12, gap: 8 }}>
                 {s.seances.map((x, k) => (
                   <View key={k} style={{ backgroundColor: C.fond, borderRadius: 12, padding: 10, gap: 4 }}>
-                    <Text style={S.fort}>{x.titre}{x.seance ? ` : ${x.seance}` : ""}</Text>
+                    <Text style={S.fort}>{x.jour !== undefined ? `${JOURS[x.jour]} · ` : ""}{x.titre}{x.seance ? ` : ${x.seance}` : ""}</Text>
                     <Text style={S.petit}>{x.detail} · ≈ {heuresMin(x.minutes)}</Text>
                     {x.seance && (
                       <Pressable onPress={() => onSeance(x.seance!)} accessibilityRole="button" hitSlop={6}>

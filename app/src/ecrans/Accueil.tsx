@@ -9,7 +9,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { joursAvant, type CourseInscrite } from "../calcul/calendrier.ts";
 import type { Position } from "../calcul/geo.ts";
 import { petitMot, seanceDuJour } from "../calcul/jour.ts";
-import { genererPlan, type Seance } from "../calcul/plan.ts";
+import { genererPlan, JOURS, type Seance } from "../calcul/plan.ts";
 import { heureLisible, soleil } from "../calcul/soleil.ts";
 import { nombre, type Destination } from "../composants/communs.tsx";
 import type { MonPlan } from "../monPlan.ts";
@@ -78,6 +78,18 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
       <Carte titre="Séance du jour">
         <Text style={S.fort}>Repos ou footing léger : ta semaine est faite</Text>
         <Text style={S.petit}>Semaine {r.semaine.n} · {r.semaine.phase.toLowerCase()}. La récupération fait partie de l'entraînement.</Text>
+      </Carte>
+    );
+  }
+  if (r.cas === "repos") {
+    return (
+      <Carte titre="Séance du jour">
+        <Text style={[S.h2, { fontSize: 20 }]}>Repos aujourd'hui</Text>
+        <Text style={[S.petit, { fontSize: 14, color: C.encre }]}>
+          {r.prochaine ? `Prochaine séance ${JOURS[r.prochaine.jour!].toLowerCase()} : ${r.prochaine.titre.toLowerCase()}.`
+            : "Plus de séance cette semaine : profites-en pour récupérer."}
+        </Text>
+        <Text style={S.petit}>Le repos fait partie de l'entraînement : c'est là que le corps progresse.</Text>
       </Carte>
     );
   }
