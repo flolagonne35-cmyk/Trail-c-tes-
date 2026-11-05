@@ -17,6 +17,7 @@ import { HorsZone } from "./Cotes.tsx";
 import { JeParsCourir } from "../composants/JeParsCourir.tsx";
 import { Convertisseur } from "../composants/Convertisseur.tsx";
 import { Minuteur } from "../composants/Minuteur.tsx";
+import { RetourDepart } from "../composants/RetourDepart.tsx";
 import type { PresetSortie } from "./Plan.tsx";
 import { VueSeance } from "./Seance.tsx";
 
@@ -133,6 +134,7 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
           <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
                      nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele} />
           <JeParsCourir depart={depart} />
+          <RetourDepart depart={depart.position} nomDepart={depart.nom} />
         </>
       ) : (
         <>

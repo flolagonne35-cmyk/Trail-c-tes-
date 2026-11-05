@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { heuresLisibles } from "../calcul/nutrition.ts";
 import { heureType, PRODUITS, sacCourse } from "../calcul/produits.ts";
 import { chargerChiffres, enregistrerChiffres } from "../mesChiffres.ts";
 import { C, S } from "../theme.ts";
@@ -51,7 +52,7 @@ export function SacProduits({ glucides, sodium, eau, heures }: { glucides: numbe
               {h.cafeine ? `, ${h.cafeine} mg de caféine : plutôt après la première moitié de course` : ""}.
             </Text>
           </View>
-          <Text style={S.fort}>Pour toute la course ({nombre(heures, 1).replace(",0", "")} h)</Text>
+          <Text style={S.fort}>Pour toute la course ({heuresLisibles(heures)})</Text>
           <Text style={[S.petit, { fontSize: 14, color: C.encre }]}>
             {sac.produits.map((x) => `${x.n} × ${x.produit.nom.toLowerCase()}`).join(" · ")} — environ {euros(sac.prix)}
           </Text>
