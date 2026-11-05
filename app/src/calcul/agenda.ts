@@ -18,7 +18,18 @@ export type FiltresAgenda = {
   kmMin?: number; kmMax?: number; // au moins un format dans cette plage
   texte?: string; // nom ou commune
   tri: "date" | "distance" | "longueur";
+  mois?: string; // « 2026-12 » : seulement ce mois-là (la période reste élargie à 1 an pour l'atteindre)
 };
+
+/** Les 14 prochains mois (« 2026-11 », « 2026-12 »…) pour la rangée de mois du calendrier (jusqu'à fin 2027). */
+export function prochainsMois(aujourdHui = new Date(), n = 14): { cle: string; nom: string }[] {
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(aujourdHui.getFullYear(), aujourdHui.getMonth() + i, 15);
+    const nom = d.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "");
+    return { cle: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+             nom: d.getFullYear() !== aujourdHui.getFullYear() ? `${nom} ${String(d.getFullYear()).slice(2)}` : nom };
+  });
+}
 
 export type CourseProche = CourseAVenir & { distance_m: number };
 
@@ -34,11 +45,12 @@ function formatOk(c: CourseAVenir, min?: number, max?: number): boolean {
 export function coursesAVenir(courses: CourseAVenir[], position: Position, f: FiltresAgenda, aujourdHui = new Date()): CourseProche[] {
   const debut = aujourdHui.toISOString().slice(0, 10);
   const limite = new Date(aujourdHui);
-  limite.setMonth(limite.getMonth() + f.moisMax);
+  limite.setMonth(limite.getMonth() + (f.mois ? 15 : f.moisMax));
   const fin = limite.toISOString().slice(0, 10);
   const mots = normaliser(f.texte ?? "").split(" ").filter((m) => m.length >= 2);
   const res = courses
     .filter((c) => c.fin >= debut && c.date <= fin)
+    .filter((c) => !f.mois || c.date.startsWith(f.mois) || (c.date < f.mois && c.fin >= `${f.mois}-01`))
     .filter((c) => f.type === "toutes" || c.type === f.type)
     .filter((c) => formatOk(c, f.kmMin, f.kmMax))
     .filter((c) => !mots.length || mots.every((m) => normaliser(`${c.nom} ${c.commune} ${c.cp}`).includes(m)))

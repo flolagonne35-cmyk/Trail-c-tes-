@@ -53,3 +53,13 @@ test("courses rangées : dans la ville, autour, ailleurs dans la région ; par d
   assert.deepEqual(g({ mode: "departement", code: "35" }), ["Ille-et-Vilaine (35): rennes,bruz", "Ailleurs en Bretagne: brest"]);
   assert.deepEqual(g({ mode: "region", code: "PDL" }), ["Loire-Atlantique (44): nantes"]);
 });
+
+test("un mois en un appui : seulement les courses de ce mois, même au-delà de la période", async () => {
+  const { prochainsMois } = await import("./agenda.ts");
+  const liste = [c("a", "2026-12-06", 48.1, [10]), c("b", "2027-03-14", 48.1, [21]), c("d", "2027-03-28", 48.1, [42])];
+  const f = { ...FILTRES_AGENDA, rayonKm: Infinity, moisMax: 1, mois: "2027-03" };
+  assert.deepEqual(coursesAVenir(liste, { lat: 48.1, lon: -1.68 }, f, new Date("2026-11-05")).map((x) => x.id), ["b", "d"]);
+  const mois = prochainsMois(new Date(2026, 10, 5));
+  assert.equal(mois[0].cle, "2026-11");
+  assert.equal(mois[13].cle, "2027-12"); // jusqu'à fin 2027
+});

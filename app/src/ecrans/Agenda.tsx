@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import {
-  coursesAVenir, departementDe, FILTRES_AGENDA, grouperCourses, nomZone, RAYON_VILLE_KM,
+  coursesAVenir, departementDe, FILTRES_AGENDA, grouperCourses, nomZone, prochainsMois, RAYON_VILLE_KM,
   type CourseAVenir, type CourseProche, type FiltresAgenda, type Zone,
 } from "../calcul/agenda.ts";
 import { departementPres, indexCommunes } from "../calcul/communes.ts";
@@ -183,6 +183,20 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
           )}
         </View>
 
+        {/* un mois en un appui : la façon la plus simple de chercher « une course en mars » */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12, marginHorizontal: -20 }}
+                    contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
+          {[{ cle: "", nom: "Tous les mois" }, ...prochainsMois()].map((m) => {
+            const actif = (f.mois ?? "") === m.cle;
+            return (
+              <Pressable key={m.cle || "tous"} onPress={() => maj({ mois: m.cle || undefined })} accessibilityRole="tab" aria-selected={actif}
+                         style={{ minHeight: 44, paddingHorizontal: 16, borderRadius: 22, justifyContent: "center",
+                                  backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
+                <Text style={{ fontSize: 15, fontWeight: "700", color: actif ? C.fond : C.encre }}>{m.nom}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 18 }}>
           <Text style={[S.h2, { flex: 1 }]} accessibilityRole="header">
             {total ? `${total} course${total > 1 ? "s" : ""} · ${nomZone(zone, depart)}` : `Aucune course · ${nomZone(zone, depart)}`}
@@ -190,7 +204,8 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
         </View>
         {!total && (
           <Text style={[S.petit, { marginTop: 6 }]}>
-            {zone.mode === "autour" ? "Élargis la distance, choisis une région, ou ouvre les filtres (période, format)." : "Choisis une autre zone ou ouvre les filtres (période, format)."}
+            {f.mois ? "Aucune course connue ce mois-ci pour l'instant : beaucoup d'organisateurs publient leur date quelques mois avant. Le calendrier se met à jour chaque jour. "
+              : ""}{zone.mode === "autour" ? "Élargis la distance, choisis une région, ou ouvre les filtres (période, format)." : "Choisis une autre zone ou ouvre les filtres (période, format)."}
           </Text>
         )}
         {total > 0 && (

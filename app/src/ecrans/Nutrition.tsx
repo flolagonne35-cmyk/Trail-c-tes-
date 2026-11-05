@@ -1,4 +1,5 @@
-// Onglet « Nutrition » : glucides, eau et sel. Avec le parcours de ta course : un plan par
+// Courses → Ma course → Nutrition : glucides, eau et sel, et « Mes chiffres à moi » (test de pesée,
+// profil de sel). Avec le parcours de ta course : un plan par
 // ravitaillement ; sans parcours : pour une durée de sortie ou de course.
 
 import { useMemo, useState } from "react";
@@ -11,6 +12,7 @@ import {
 import type { Parcours } from "../calcul/profil.ts";
 import { Ajusteur, Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { partagerTexte } from "../fichiers.ts";
+import { MesChiffres } from "../composants/MesChiffres.tsx";
 import { C, S } from "../theme.ts";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 46, fontSize: 16,
@@ -75,6 +77,8 @@ function VueNutrition({ parcours, heures, ravitos, setRavitos, prefs: brutes, se
         </View>
         <Text style={S.petit}>{brutes.perso ? "Réglages personnalisés." : `Recommandé pour ${heuresLisibles(heures)}, profil « ${NIVEAUX.find((n) => n[0] === prefs.niveau)![1]} », ${prefs.temperature} °C.`}</Text>
       </View>
+
+      <MesChiffres temperature={prefs.temperature} onUtiliser={(eau, sodium) => regler({ eau, sodium })} />
 
       <Section titre="Pendant la course, chaque heure">
         <View style={[S.carte, { marginTop: 0, gap: 8 }]}>

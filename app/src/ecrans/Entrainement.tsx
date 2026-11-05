@@ -15,6 +15,8 @@ import { C, S } from "../theme.ts";
 import { VueBoucle } from "./Boucle.tsx";
 import { HorsZone } from "./Cotes.tsx";
 import { JeParsCourir } from "../composants/JeParsCourir.tsx";
+import { Convertisseur } from "../composants/Convertisseur.tsx";
+import { Minuteur } from "../composants/Minuteur.tsx";
 import type { PresetSortie } from "./Plan.tsx";
 import { VueSeance } from "./Seance.tsx";
 
@@ -121,8 +123,11 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
       {horsZone ? (
         <HorsZone depart={depart} distance={couverture} chargement={chargement} />
       ) : mode === "seance" ? (
-        <VueSeance key={demandeSeance?.n ?? 0} texteInitial={demandeSeance?.texte} toutes={toutes} position={position} filtres={filtres}
-                   allurePlat={allurePlat} onChoisir={onChoisir} />
+        <>
+          <VueSeance key={demandeSeance?.n ?? 0} texteInitial={demandeSeance?.texte} toutes={toutes} position={position} filtres={filtres}
+                     allurePlat={allurePlat} onChoisir={onChoisir} />
+          <Minuteur key={`m${demandeSeance?.n ?? 0}`} repetitionsInitiales={Number(demandeSeance?.texte.match(/^(\d+)/)?.[1]) || 8} />
+        </>
       ) : mode === "boucle" ? (
         <>
           <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
@@ -136,6 +141,7 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
           </Pressable>
           <MesCotes cotes={toutes} activites={activites} position={position} onChoisir={onChoisir} />
           <MonAllure modele={modele} />
+          <Convertisseur />
         </>
       )}
     </ScrollView>
