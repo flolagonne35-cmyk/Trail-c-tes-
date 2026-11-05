@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-03T21:31:15+00:00",
+  "date_utc": "2026-11-05T22:07:43+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -38,7 +38,7 @@
     "Côtes trouvées": 7,
     "Tronçons exclus (privés / interdits aux piétons)": 80,
     "Revêtement": "OSM surface : 7",
-    "OpenStreetMap": "ok (14852 voies)",
+    "OpenStreetMap": "ok (14860 voies)",
     "Fond Plan IGN": "ok",
     "Requêtes WFS / altimétrie": "6 / 7"
   },
@@ -141,15 +141,15 @@
   "osm": {
     "statut": "ok",
     "url": "https://overpass-api.de/api/interpreter",
-    "nb_voies": 14852,
+    "nb_voies": 14860,
     "valeurs_surface": {
-      "asphalt": 6943,
-      "—": 4158,
+      "asphalt": 6950,
+      "—": 4157,
       "paving_stones": 1008,
-      "concrete": 838,
+      "concrete": 839,
       "compacted": 620,
       "sett": 335,
-      "fine_gravel": 213,
+      "fine_gravel": 214,
       "wood": 158,
       "concrete:plates": 122,
       "ground": 91,
@@ -160,7 +160,7 @@
       "paved": 40
     },
     "erreurs": [],
-    "duree_s": 48.7
+    "duree_s": 41.1
   },
   "fond_erreurs": [],
   "wfs": {
@@ -279,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.3
+    "duree_s": 5.9
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -290,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 24.3,
+    "duree_s": 24.5,
     "codes_http": {
       "200": 7
     },
