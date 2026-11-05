@@ -102,6 +102,11 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
       {x.seance ? bouton("Où la faire autour de moi", () => onSeance(x.seance!))
         : x.sortie ? bouton("Voir les parcours autour de moi", () => onSortie(x.sortie!))
         : bouton("Voir mon programme", () => aller({ page: "programme", mode: "programme" }))}
+      {x.type === "longue" && x.minutes >= 75 && (
+        <Pressable onPress={() => onMaCourse("nutrition")} accessibilityRole="button" style={S.boutonClair}>
+          <Text style={S.boutonClairTexte}>Quoi manger et boire pendant cette sortie</Text>
+        </Pressable>
+      )}
     </Carte>
   );
 }

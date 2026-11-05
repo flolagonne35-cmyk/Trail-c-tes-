@@ -202,9 +202,30 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
     ? (parcours ? { ...cible, distance_km: Math.round(parcours.distance_km * 10) / 10, dplus_m: Math.round(parcours.dplus_m) } : cible)
     : parcours ? { nom: parcours.nom, distance_km: Math.round(parcours.distance_km * 10) / 10, dplus_m: Math.round(parcours.dplus_m) } : null;
   const etatImport = <EtatImport etat={etat} erreur={erreur} />;
+  // nutrition sans course : pour une sortie longue ou une course dont on n'a pas le GPX
+  const [sansCourse, setSansCourse] = useState(vueInitiale === "nutrition");
+  if (!course && sansCourse) {
+    return <>{nutrition(
+      <View style={{ gap: 10 }}>
+        <Pressable onPress={() => setSansCourse(false)} accessibilityRole="button" hitSlop={8}>
+          <Text style={{ fontSize: 15, fontWeight: "700", color: C.montee }}>← Choisir une course</Text>
+        </Pressable>
+        <Text style={[S.titre, { fontSize: 24 }]} accessibilityRole="header">Ma nutrition</Text>
+        <Text style={S.sousTitre}>Pour une sortie longue ou une course sans GPX : règle la durée, l'appli dit quoi manger et boire.</Text>
+      </View>, importer)}</>;
+  }
   if (!course) {
     return (
       <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
+        <Pressable onPress={() => setSansCourse(true)} accessibilityRole="button"
+                   style={[S.ligne, { marginTop: 8, backgroundColor: C.monteeClair }]}>
+          <Icone nom="nutrition" couleur={C.monteeFonce} />
+          <View style={{ flex: 1 }}>
+            <Text style={[S.fort, { color: C.monteeFonce }]}>Ma nutrition, sans course</Text>
+            <Text style={S.petit}>Glucides, eau, sel et mon sac à produits pour une sortie longue</Text>
+          </View>
+          <Icone nom="fleche" couleur={C.monteeFonce} taille={18} />
+        </Pressable>
         <ChoixCourse mesCourses={mesCourses} onChoisir={(c) => setCible(c)} onImporter={importer}
                      onExemple={onExemple} etatImport={etatImport} />
       </ScrollView>
