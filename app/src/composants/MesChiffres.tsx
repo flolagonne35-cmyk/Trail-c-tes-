@@ -29,7 +29,11 @@ function Champ({ etiquette, valeur, onChange, unite }: { etiquette: string; vale
 export function MesChiffres({ temperature, onUtiliser }: { temperature: number; onUtiliser: (eau: number, sodium: number) => void }) {
   const [chiffres, setChiffresEtat] = useState<Chiffres>(CHIFFRES_VIDES);
   useEffect(() => { chargerChiffres().then(setChiffresEtat); }, []);
-  const setChiffres = (c: Chiffres) => { setChiffresEtat(c); enregistrerChiffres(c); };
+  // on relit le stockage avant d'écrire : le sac à produits y range aussi ses choix
+  const setChiffres = (c: Chiffres) => {
+    setChiffresEtat(c);
+    chargerChiffres().then((f) => enregistrerChiffres({ ...f, tests: c.tests, sel: c.sel }));
+  };
   const [etape, setEtape] = useState<"resume" | "pesee" | "sel">("resume");
   const [avant, setAvant] = useState("");
   const [apres, setApres] = useState("");

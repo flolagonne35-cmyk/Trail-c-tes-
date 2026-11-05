@@ -13,6 +13,7 @@ import type { Parcours } from "../calcul/profil.ts";
 import { Ajusteur, Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { partagerTexte } from "../fichiers.ts";
 import { MesChiffres } from "../composants/MesChiffres.tsx";
+import { SacProduits } from "../composants/SacProduits.tsx";
 import { C, S } from "../theme.ts";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 46, fontSize: 16,
@@ -79,6 +80,7 @@ function VueNutrition({ parcours, heures, ravitos, setRavitos, prefs: brutes, se
       </View>
 
       <MesChiffres temperature={prefs.temperature} onUtiliser={(eau, sodium) => regler({ eau, sodium })} />
+      <SacProduits glucides={besoins.glucides} sodium={besoins.sodium} eau={besoins.eau} heures={heures} />
 
       <Section titre="Pendant la course, chaque heure">
         <View style={[S.carte, { marginTop: 0, gap: 8 }]}>
