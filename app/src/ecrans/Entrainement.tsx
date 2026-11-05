@@ -1,5 +1,5 @@
-// Onglet « S'entraîner » : la séance du coach, la boucle sur mesure, et mes progrès
-// (chronos sur mes côtes, mon allure selon la pente), depuis un même point de départ.
+// Programme → Sorties (boucle sur mesure) et Séance (« 8 × 400 m à 10 % » : où la faire), et
+// Mon monde → Mes progrès (chronos sur mes côtes, mon allure selon la pente).
 
 import { useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -9,11 +9,12 @@ import { distanceCouverture, RAYON_COUVERTURE_M, type Cote, type CoteProche, typ
 import { distanceM } from "../calcul/geo.ts";
 import { cleCote, mesPassages, vitesseAscensionnelle, type Activite } from "../calcul/points.ts";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
-import { nombre, Section, Segments } from "../composants/communs.tsx";
+import { nombre, Section } from "../composants/communs.tsx";
 import { couleurPente } from "../composants/Carte.tsx";
 import { C, S } from "../theme.ts";
 import { VueBoucle } from "./Boucle.tsx";
 import { HorsZone } from "./Cotes.tsx";
+import { JeParsCourir } from "../composants/JeParsCourir.tsx";
 import type { PresetSortie } from "./Plan.tsx";
 import { VueSeance } from "./Seance.tsx";
 
@@ -67,7 +68,7 @@ function MesCotes({ cotes, activites, position, onChoisir }: {
       {courues.length === 0 ? (
         <View style={[S.carte, { marginTop: 0 }]}>
           <Text style={S.petit}>
-            Importe le GPX de tes sorties (Profil → Ajouter une sortie) : chaque montée d'une côte de l'appli est chronométrée du
+            Importe le GPX de tes sorties (Mon monde → Mon coureur → Ajouter une sortie) : chaque montée d'une côte de l'appli est chronométrée du
             pied au sommet. Tu retrouveras ici tes records et ta progression, côte par côte, sans Strava.
           </Text>
         </View>
@@ -98,9 +99,9 @@ function MesCotes({ cotes, activites, position, onChoisir }: {
   );
 }
 
-export function EcranEntrainement({ mode, setMode, toutes, depart, localisation, onRecherche, onLocaliser, chargement,
+export function EcranEntrainement({ mode, toutes, depart, localisation, onRecherche, onLocaliser, chargement,
                                     filtres, allurePlat, onChoisir, activites, modele, onAjouterSortie, demandeSeance, demandeSortie }: {
-  mode: ModeEntrainement; setMode: (m: ModeEntrainement) => void; toutes: Cote[]; depart: PointDepart;
+  mode: ModeEntrainement; toutes: Cote[]; depart: PointDepart;
   localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; chargement: boolean;
   filtres: Filtres; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void; activites: Activite[];
   modele: Modele | null; onAjouterSortie: () => void;
@@ -111,11 +112,8 @@ export function EcranEntrainement({ mode, setMode, toutes, depart, localisation,
   const horsZone = mode !== "progres" && couverture > RAYON_COUVERTURE_M;
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-      <View style={{ marginTop: 4 }}>
-        <Segments options={[["seance", "Séance"], ["boucle", "Sortie"], ["progres", "Mes progrès"]]} valeur={mode} onChange={setMode} />
-      </View>
       {mode !== "progres" && (
-        <View style={{ marginTop: 10 }}>
+        <View>
           <BarreDepart titre={mode === "boucle" ? "Départ et arrivée" : "Séance autour de"} depart={depart} localisation={localisation}
                        onRecherche={onRecherche} onLocaliser={onLocaliser} />
         </View>
@@ -126,8 +124,11 @@ export function EcranEntrainement({ mode, setMode, toutes, depart, localisation,
         <VueSeance key={demandeSeance?.n ?? 0} texteInitial={demandeSeance?.texte} toutes={toutes} position={position} filtres={filtres}
                    allurePlat={allurePlat} onChoisir={onChoisir} />
       ) : mode === "boucle" ? (
-        <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
-                   nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele} />
+        <>
+          <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
+                     nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele} />
+          <JeParsCourir depart={depart} />
+        </>
       ) : (
         <>
           <Pressable onPress={onAjouterSortie} accessibilityRole="button" style={[S.bouton, { marginTop: 14 }]}>

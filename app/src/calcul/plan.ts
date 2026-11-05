@@ -30,9 +30,9 @@ export type Seance = {
   titre: string;
   detail: string;
   minutes: number;
-  /** séance à chercher autour de soi (S'entraîner → Séance) */
+  /** séance à chercher autour de soi (Programme → Séance) */
   seance?: string;
-  /** sortie à composer (S'entraîner → Sortie) */
+  /** sortie à composer (Programme → Sorties) */
   sortie?: { km: number; relief: "plat" | "vallonne" | "cotes" };
 };
 

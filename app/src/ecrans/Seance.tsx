@@ -1,4 +1,4 @@
-// Côtes → Séance : on écrit la séance du coach (« 8 × 400 m à 10 % ») et l'appli propose les
+// Programme → Séance : on écrit la séance du coach (« 8 × 400 m à 10 % ») et l'appli propose les
 // trois endroits les plus proches qui collent, avec départ, arrivée, durée et export GPX.
 
 import { useMemo, useState } from "react";
@@ -112,7 +112,7 @@ export function VueSeance({ toutes, position, filtres, allurePlat, onChoisir, te
       ))}
       <Text style={S.petit}>
         On cherche dans chaque {sens === "descente" ? "descente" : "côte"} la portion de la bonne longueur dont la pente est la plus
-        proche de la cible (± 1,5 point), puis la plus proche de toi. Les filtres de voie, de sol et de trafic de l'onglet Côtes s'appliquent.
+        proche de la cible (± 1,5 point), puis la plus proche de toi. Les filtres de voie, de sol et de trafic de la recherche d'Explorer s'appliquent.
       </Text>
     </View>
   );

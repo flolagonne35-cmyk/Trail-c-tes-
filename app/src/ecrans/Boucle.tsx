@@ -1,4 +1,4 @@
-// S'entraîner → Sortie : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
+// Programme → Sorties : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
 // « 10 km avec 3 côtes ». La boucle est composée sur le téléphone, sans réseau, puis exportée en GPX.
 
 import { useEffect, useState } from "react";

@@ -235,7 +235,7 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
         <Text style={[S.petit, { marginTop: 18 }]}>
           Courses publiées par les offices de tourisme (DATAtourisme) et les agendas publics (OpenAgenda), en Licence Ouverte 2.0 ;
           liste mise à jour le {MAJ}. Distances et D+ lus dans l'annonce : vérifie toujours le site officiel avant de t'inscrire.
-          Toutes les courses n'y sont pas : ajoute la tienne dans « Mes courses ».
+          Toutes les courses n'y sont pas : ajoute la tienne dans « Ma saison ».
         </Text>
       </ScrollView>
     </View>

@@ -1,6 +1,8 @@
-// Trail-côtes : cinq onglets en bas (Accueil, Côtes, S'entraîner, Course, Nutrition), un menu ☰ qui
-// range toutes les sections par catégorie (dont Mes courses, Profil, Données), un écran de détail par
-// côte, et la création du coureur au premier lancement.
+// Trail-côtes : cinq rubriques en bas, chacune répond à une seule question du coureur
+//   Aujourd'hui (que faire aujourd'hui ?), Explorer (où courir ?), Programme (comment m'entraîner ?),
+//   Courses (quelle course, comment la réussir ?), Mon monde (où j'en suis ?),
+// avec leurs sous-onglets toujours visibles en haut ; un écran de détail par côte, et la création du
+// coureur au premier lancement. Pas de menu caché : tout est dans les rubriques (voir docs/refonte.md).
 
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
@@ -19,15 +21,18 @@ import { PREFERENCES_DEFAUT, type Ravito } from "./src/calcul/nutrition.ts";
 import { mesPassages } from "./src/calcul/points.ts";
 import { fusionner, modeleAllure } from "./src/calcul/allure.ts";
 import type { Parcours } from "./src/calcul/profil.ts";
-import { BarreHaut, Navigation, type Onglet, type Page } from "./src/composants/communs.tsx";
-import { Menu, type Destination } from "./src/composants/Menu.tsx";
+import {
+  BarreHaut, Navigation, SousOnglets, type Destination, type ModeCourses, type ModeMonde, type ModeProgramme, type Onglet, type Page,
+} from "./src/composants/communs.tsx";
+import { score } from "./src/calcul/points.ts";
 import { RechercheLieu } from "./src/composants/RechercheLieu.tsx";
 import { EcranAccueil } from "./src/ecrans/Accueil.tsx";
 import { EcranBienvenue } from "./src/ecrans/Bienvenue.tsx";
 import { EcranCotes, FILTRES_DEFAUT, type Localisation, type PointDepart } from "./src/ecrans/Cotes.tsx";
-import { EcranCourse } from "./src/ecrans/Course.tsx";
+import { EcranCourse, type VueCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
-import { EcranEntrainement, type ModeEntrainement } from "./src/ecrans/Entrainement.tsx";
+import { EcranEntrainement } from "./src/ecrans/Entrainement.tsx";
+import { EcranProgramme } from "./src/ecrans/Programme.tsx";
 import { EcranAgenda } from "./src/ecrans/Agenda.tsx";
 import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
 import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
@@ -45,14 +50,16 @@ import { useEnLigne } from "./src/zoneHorsLigne.ts";
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {
-  accueil: "Trail-côtes", cotes: "Côtes et descentes", entrainement: "S'entraîner", course: "Préparer une course",
-  nutrition: "Nutrition", agenda: "Courses à venir", courses: "Mes courses", profil: "Profil et sorties", sources: "Données et confidentialité",
+  accueil: "Aujourd'hui", cotes: "Explorer", programme: "Programme", courses: "Courses", monde: "Mon monde",
+  sources: "Données",
 };
+const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon programme"], ["sorties", "Sorties"], ["seance", "Séance"]];
+const SOUS_COURSES: [ModeCourses, string][] = [["calendrier", "Calendrier"], ["saison", "Ma saison"], ["course", "Ma course"]];
+const SOUS_MONDE: [ModeMonde, string][] = [["coureur", "Mon coureur"], ["progres", "Mes progrès"]];
 
 function Contenu() {
   const bords = useSafeAreaInsets();
   const [page, setPage] = useState<Page>("accueil");
-  const [menu, setMenu] = useState(false);
   const [recherche, setRecherche] = useState(false);
   const [profil, setProfil] = useState<Profil | null | undefined>(undefined); // undefined : en cours de chargement
   const [accueil, setAccueil] = useState<"bienvenue" | "editeur" | null>(null);
@@ -71,7 +78,10 @@ function Contenu() {
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
   const [modeCotes, setModeCotes] = useState<Sens>("montee");
   const [resultatsCotes, setResultatsCotes] = useState(false); // les côtes n'apparaissent qu'après la recherche
-  const [modeEntrainement, setModeEntrainement] = useState<ModeEntrainement>("seance");
+  const [modeProgramme, setModeProgramme] = useState<ModeProgramme>("programme");
+  const [modeCourses, setModeCourses] = useState<ModeCourses>("calendrier");
+  const [modeMonde, setModeMonde] = useState<ModeMonde>("coureur");
+  const [vueCourse, setVueCourse] = useState<{ vue: VueCourse; n: number } | undefined>(undefined);
   const [courses, setCoursesEtat] = useState<CourseInscrite[]>([]);
   const setCourses = (c: CourseInscrite[]) => { setCoursesEtat(c); enregistrerCourses(c); };
   const [monPlan, setMonPlanEtat] = useState<MonPlan>({ cible: null, questionnaire: null });
@@ -140,11 +150,12 @@ function Contenu() {
   // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
-    if ((page === "cotes" || page === "entrainement" || page === "agenda") && !dejaLocalise.current && depart === DEPART_DEFAUT) {
+    const autour = page === "cotes" || (page === "programme" && modeProgramme !== "programme") || (page === "courses" && modeCourses === "calendrier");
+    if (autour && !dejaLocalise.current && depart === DEPART_DEFAUT) {
       dejaLocalise.current = true;
       localiser();
     }
-  }, [page, depart, localiser]);
+  }, [page, modeProgramme, modeCourses, depart, localiser]);
 
   // confirmation brève à chaque nouveau point de départ (GPS ou lieu choisi)
   const [annonce, setAnnonce] = useState<string | null>(null);
@@ -165,12 +176,16 @@ function Contenu() {
 
   const aller = (d: Destination) => {
     setDetail(null);
-    setMenu(false);
     setRecherche(false);
     if (d.page === "cotes" && d.mode) setModeCotes(d.mode as Sens);
-    if (d.page === "entrainement" && d.mode) setModeEntrainement(d.mode as ModeEntrainement);
+    if (d.page === "programme" && d.mode) setModeProgramme(d.mode as ModeProgramme);
+    if (d.page === "courses" && d.mode) setModeCourses(d.mode as ModeCourses);
+    if (d.page === "monde" && d.mode) setModeMonde(d.mode as ModeMonde);
     setPage(d.page);
   };
+  const versSeance = (texte: string) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "programme", mode: "seance" }); };
+  const versSortie = (p: PresetSortie) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "programme", mode: "sorties" }); };
+  const versMaCourse = (vue: VueCourse) => { setVueCourse({ vue, n: Date.now() }); aller({ page: "courses", mode: "course" }); };
   const ouvrirCote = (cote: CoteProche, rang: number) => setDetail({ cote, rang });
 
   // côtes des départements autour du départ (src/cotesFrance.ts), gardées tant qu'un nouveau
@@ -219,40 +234,44 @@ function Contenu() {
                          nomDepart={depart.nom} retour={() => setDetail(null)}
                          passages={mesPassages(profil.activites, detail.cote)} />;
   } else if (page === "accueil") {
-    ecran = <EcranAccueil profil={profil} aller={aller} monPlan={monPlan} depart={depart} allurePlat={ALLURE_PLAT_MIN_KM}
-                          onSeance={(texte) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "entrainement", mode: "seance" }); }}
-                          onSortie={(p) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "entrainement", mode: "boucle" }); }} />;
+    ecran = <EcranAccueil profil={profil} aller={aller} monPlan={monPlan} allurePlat={ALLURE_PLAT_MIN_KM} mesCourses={courses} position={depart.position}
+                          onSeance={versSeance} onSortie={versSortie} onMaCourse={versMaCourse} />;
   } else if (page === "cotes") {
     ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} mode={modeCotes} setMode={setModeCotes}
                         resultats={resultatsCotes} setResultats={setResultatsCotes} />;
-  } else if (page === "entrainement") {
-    ecran = <EcranEntrainement {...commun} mode={modeEntrainement} setMode={setModeEntrainement} filtres={filtres}
-                               activites={profil.activites} modele={modele} onAjouterSortie={() => aller({ page: "profil" })}
+  } else if (page === "programme" && modeProgramme === "programme") {
+    ecran = <EcranProgramme cible={monPlan.cible} setCible={(cible) => majPlan({ cible })}
+                            questionnaire={monPlan.questionnaire} setQuestionnaire={(questionnaire) => majPlan({ questionnaire })}
+                            parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
+                            mesCourses={courses} modele={modele} allurePlat={ALLURE_PLAT_MIN_KM} onSeance={versSeance} onSortie={versSortie} />;
+  } else if (page === "programme" || (page === "monde" && modeMonde === "progres")) {
+    ecran = <EcranEntrainement {...commun} mode={page === "monde" ? "progres" : modeProgramme === "sorties" ? "boucle" : "seance"}
+                               filtres={filtres} activites={profil.activites} modele={modele}
+                               onAjouterSortie={() => aller({ page: "monde", mode: "coureur" })}
                                demandeSeance={demandeSeance} demandeSortie={demandeSortie} />;
-  } else if (page === "course") {
-    ecran = <EcranCourse parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
-                         objectif={objectif} setObjectif={setObjectif} onNutrition={() => aller({ page: "nutrition" })}
-                         cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
-                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })}
-                         questionnaire={monPlan.questionnaire} setQuestionnaire={(questionnaire) => majPlan({ questionnaire })}
-                         mesCourses={courses} allurePlat={ALLURE_PLAT_MIN_KM}
-                         onSeance={(texte) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "entrainement", mode: "seance" }); }}
-                         onSortie={(p) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "entrainement", mode: "boucle" }); }} />;
-  } else if (page === "nutrition") {
-    ecran = <EcranNutrition parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} setRavitos={setRavitos}
-                            prefs={prefs} setPrefs={setPrefs} onPreparer={() => aller({ page: "course" })} />;
-  } else if (page === "agenda") {
+  } else if (page === "courses" && modeCourses === "calendrier") {
     ecran = <EcranAgenda depart={depart} localisation={localisation} onLocaliser={localiser} onRecherche={() => setRecherche(true)}
                          mesCourses={courses} setMesCourses={setCourses}
-                         onPreparer={(cible) => { if (cible) majPlan({ cible, questionnaire: null }); aller({ page: "course" }); }} />;
-  } else if (page === "courses") {
+                         onPreparer={(cible) => { if (cible) majPlan({ cible, questionnaire: null }); aller({ page: "programme", mode: "programme" }); }} />;
+  } else if (page === "courses" && modeCourses === "saison") {
     ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
       if (c.objectif) setObjectif(c.objectif);
       majPlan({ cible: { nom: c.nom, distance_km: c.distance_km, dplus_m: c.dplus_m, date: c.date, site: c.lien || undefined } });
-      aller({ page: "course" });
+      versMaCourse("parcours");
     }} />;
-  } else if (page === "profil") {
-    ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)} />;
+  } else if (page === "courses") {
+    ecran = <EcranCourse key={vueCourse?.n ?? 0} vueInitiale={vueCourse?.vue}
+                         parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
+                         objectif={objectif} setObjectif={setObjectif}
+                         cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
+                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} mesCourses={courses}
+                         nutrition={(entete, importer) => (
+                           <EcranNutrition entete={entete} parcours={parcours} objectif={objectif} setObjectif={setObjectif}
+                                           ravitos={ravitos} setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} onPreparer={importer} />
+                         )} />;
+  } else if (page === "monde") {
+    ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)}
+                         onDonnees={() => aller({ page: "sources" })} />;
   } else {
     ecran = <EcranSources />;
   }
@@ -261,9 +280,12 @@ function Contenu() {
     <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top }}>
       <StatusBar style="dark" />
       {!detail && (
-        <BarreHaut titre={TITRES[page]} onMenu={() => setMenu(true)} onProfil={() => aller({ page: "profil" })} avatar={avatar}
-                   surProfil={page === "profil"} />
+        <BarreHaut titre={TITRES[page]} onProfil={() => aller({ page: "monde", mode: "coureur" })} avatar={avatar}
+                   surProfil={page === "monde" && modeMonde === "coureur"} points={score(profil.activites).valides} />
       )}
+      {!detail && page === "programme" && <SousOnglets options={SOUS_PROGRAMME} valeur={modeProgramme} onChange={setModeProgramme} />}
+      {!detail && page === "courses" && <SousOnglets options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />}
+      {!detail && page === "monde" && <SousOnglets options={SOUS_MONDE} valeur={modeMonde} onChange={setModeMonde} />}
       {!enLigne && (
         <View style={{ backgroundColor: C.encre, paddingHorizontal: 16, paddingVertical: 6 }} accessibilityRole="alert">
           <Text style={{ color: C.blanc, fontSize: 12 }}>
@@ -272,7 +294,7 @@ function Contenu() {
         </View>
       )}
       <View style={{ flex: 1 }}>{ecran}</View>
-      <Navigation actif={detail ? page : page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />
+      <Navigation actif={page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />
       {annonce && (
         <View pointerEvents="none" accessibilityLiveRegion="polite"
               style={{ position: "absolute", bottom: 96 + bords.bottom, left: 20, right: 20, alignItems: "center" }}>
@@ -284,21 +306,6 @@ function Contenu() {
         <View style={{ position: "absolute", left: 0, right: 0, top: bords.top, bottom: 0 }}>
           <RechercheLieu pres={depart.position} recents={recents} onLieu={choisirLieu} onLocaliser={localiser}
                          onFermer={() => setRecherche(false)} />
-        </View>
-      )}
-      {menu && (
-        <View style={{ position: "absolute", left: 0, right: 0, top: bords.top, bottom: 0 }}>
-          <Menu actuelle={{ page, mode: page === "cotes" ? modeCotes : page === "entrainement" ? modeEntrainement : undefined }}
-                onAller={aller} onFermer={() => setMenu(false)}
-                entete={(
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <View style={{ borderRadius: 24, overflow: "hidden" }}><Avatar a={profil.apparence} taille={48} cadrage="buste" /></View>
-                    <View>
-                      <Text style={{ fontSize: 17, fontWeight: "800", color: C.encre }}>{profil.prenom}</Text>
-                      <Text style={{ fontSize: 12, color: C.gris }}>Trail-côtes</Text>
-                    </View>
-                  </View>
-                )} />
         </View>
       )}
     </View>

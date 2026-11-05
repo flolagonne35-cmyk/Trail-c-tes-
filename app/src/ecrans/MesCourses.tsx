@@ -194,7 +194,7 @@ export function EcranMesCourses({ courses, setCourses, onPreparer }: {
         ))}
 
         <Text style={[S.petit, { marginTop: 18 }]}>
-          Pour trouver une course près de chez toi : menu → Courses à venir (courses publiées par les offices de tourisme et les
+          Pour trouver une course près de chez toi : sous-onglet « Calendrier » (courses publiées par les offices de tourisme et les
           agendas publics). Les dates d'ouverture des inscriptions sont sur le site officiel de chaque course.
         </Text>
       </ScrollView>

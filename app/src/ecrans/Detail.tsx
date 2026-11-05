@@ -34,7 +34,7 @@ function MesPassages({ passages, dplus }: { passages: PassageDate[]; dplus: numb
       <Text style={[S.surtitre, { fontSize: 12 }]}>Mes passages</Text>
       {passages.length === 0 ? (
         <Text style={S.petit}>
-          Importe le GPX d'une sortie où tu montes cette côte (Profil → Ajouter une sortie) : chaque montée est chronométrée
+          Importe le GPX d'une sortie où tu montes cette côte (Mon monde → Mon coureur → Ajouter une sortie) : chaque montée est chronométrée
           du pied au sommet, avec ta fréquence cardiaque si ta montre l'enregistre. Tu pourras comparer tes passages mois après mois.
         </Text>
       ) : (

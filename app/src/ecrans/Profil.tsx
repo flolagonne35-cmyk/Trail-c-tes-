@@ -21,8 +21,8 @@ const STATUT: Record<Activite["statut"], [string, string, string]> = {
   refusee: ["Refusée", C.monteeClair, C.monteeFonce],
 };
 
-export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser }: {
-  profil: Profil; setProfil: (p: Profil) => void; cotes: Cote[]; onPersonnaliser: () => void;
+export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser, onDonnees }: {
+  profil: Profil; setProfil: (p: Profil) => void; cotes: Cote[]; onPersonnaliser: () => void; onDonnees: () => void;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
@@ -152,6 +152,10 @@ export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser }: {
           <Text style={S.petit}>Seules les sorties faites après la création du compte comptent.</Text>
         </View>
       </Section>
+
+      <Pressable onPress={onDonnees} accessibilityRole="button" style={[S.boutonClair, { marginTop: 22 }]}>
+        <Text style={S.boutonClairTexte}>Mes données et confidentialité</Text>
+      </Pressable>
     </ScrollView>
   );
 }

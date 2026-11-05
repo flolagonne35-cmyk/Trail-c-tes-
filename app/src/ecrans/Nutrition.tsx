@@ -198,9 +198,10 @@ function parcoursDuree(heures: number): Parcours {
            profil: { d_km: [0, km], z_m: [0, 0] }, segments: [] } as unknown as Parcours;
 }
 
-export function EcranNutrition({ parcours, objectif, setObjectif, ravitos, setRavitos, prefs, setPrefs, onPreparer }: {
+export function EcranNutrition({ parcours, objectif, setObjectif, ravitos, setRavitos, prefs, setPrefs, onPreparer, entete }: {
   parcours: Parcours | null; objectif: string; setObjectif: (v: string) => void; ravitos: Ravito[];
   setRavitos: (r: Ravito[]) => void; prefs: Preferences; setPrefs: (p: Preferences) => void; onPreparer: () => void;
+  entete?: React.ReactNode; // en-tête de « Ma course » quand la nutrition y est rangée
 }) {
   const [source, setSource] = useState<"course" | "duree">(parcours ? "course" : "duree");
   const [duree, setDuree] = useState(2);
@@ -210,7 +211,8 @@ export function EcranNutrition({ parcours, objectif, setObjectif, ravitos, setRa
   const fictif = useMemo(() => parcoursDuree(duree), [duree]);
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-      <View style={{ marginTop: 4 }}>
+      {entete}
+      <View style={{ marginTop: entete ? 14 : 4 }}>
         <Segments options={[["course", parcours ? "Ma course" : "Ma course (GPX)"], ["duree", "Une durée"]]} valeur={source} onChange={setSource} />
       </View>
       {source === "course" && !parcours ? (
@@ -218,7 +220,7 @@ export function EcranNutrition({ parcours, objectif, setObjectif, ravitos, setRa
           <Icone nom="course" couleur={C.montee} />
           <Text style={S.h2}>Un plan par ravitaillement</Text>
           <Text style={[S.petit, { fontSize: 14, lineHeight: 20 }]}>
-            Importe le GPX de ta course dans « Course » : le temps de chaque tronçon est calculé selon sa pente, puis ce qu'il faut
+            Importe le GPX de ta course (bouton ci-dessous) : le temps de chaque tronçon est calculé selon sa pente, puis ce qu'il faut
             emporter jusqu'au ravito suivant. Pour une simple sortie, choisis « Une durée ».
           </Text>
           <Pressable onPress={onPreparer} accessibilityRole="button" style={S.bouton}>

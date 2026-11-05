@@ -77,16 +77,29 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
   );
 }
 
-/** Onglets de la barre du bas. */
-export type Onglet = "accueil" | "cotes" | "entrainement" | "course" | "nutrition";
-/** Toutes les pages : les onglets, plus celles du menu. */
-export type Page = Onglet | "agenda" | "courses" | "profil" | "sources";
+/**
+ * Les cinq rubriques (barre du bas), chacune répond à une seule question du coureur :
+ * Aujourd'hui (que faire aujourd'hui ?), Explorer (où courir ?), Programme (comment m'entraîner ?),
+ * Courses (quelle course, comment la réussir ?), Mon monde (où j'en suis ?).
+ */
+export type Onglet = "accueil" | "cotes" | "programme" | "courses" | "monde";
+/** Toutes les pages : les rubriques, plus « Données et confidentialité ». */
+export type Page = Onglet | "sources";
+/** Sous-rubriques de chaque rubrique (sous-onglets en haut de l'écran). */
+export type ModeProgramme = "programme" | "sorties" | "seance";
+export type ModeCourses = "calendrier" | "saison" | "course";
+export type ModeMonde = "coureur" | "progres";
+/** Où aller : une rubrique et, au besoin, sa sous-rubrique. */
+export type Destination = { page: Page; mode?: string };
 
 export const ICONES = {
   accueil: <Path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" />,
   cotes: <><Path d="M3 19l6-9 4 5 3-4 5 8z" /><Circle cx={16.5} cy={5.5} r={1.5} /></>,
   course: <><Path d="M5 21V4" /><Path d="M5 4h11l-2 4 2 4H5" /></>,
   profil: <><Circle cx={12} cy={8} r={4} /><Path d="M4 21c1-4 4-6 8-6s7 2 8 6" /></>,
+  programme: <><Path d="M5 5h14v15H5z" /><Path d="M5 10h14M9 3v4M15 3v4M9 15l2 2 4-4" /></>,
+  courses: <><Path d="M5 21V4" /><Path d="M5 4h11l-2 4 2 4H5" /></>,
+  monde: <><Path d="M3 20l6-10 4 6 2-3 6 7z" /><Path d="M12 3l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 9l-2.4 1.2.5-2.6-1.9-1.8 2.6-.4z" /></>,
   entrainement: <><Circle cx={14} cy={4.5} r={1.8} /><Path d="M9 21l2.5-5.5L14 17v4M11.5 15.5L13 9l-3 1.5-1.5 3M13 9l2.5 2.5H19" /></>,
   menu: <Path d="M4 7h16M4 12h16M4 17h16" />,
   calendrier: <><Path d="M5 5h14v15H5z" /><Path d="M5 10h14M9 3v4M15 3v4" /></>,
@@ -112,9 +125,23 @@ export function Icone({ nom, couleur = C.encre, taille = 22 }: { nom: keyof type
   );
 }
 
-const NOMS: Record<Onglet, string> = {
-  accueil: "Accueil", cotes: "Côtes", entrainement: "S'entraîner", course: "Course", nutrition: "Nutrition",
+export const NOMS: Record<Onglet, string> = {
+  accueil: "Aujourd'hui", cotes: "Explorer", programme: "Programme", courses: "Courses", monde: "Mon monde",
 };
+
+/**
+ * Sous-onglets d'une rubrique, posés en haut de l'écran, hors de la zone qui défile : toujours
+ * visibles, on sait où l'on est.
+ */
+export function SousOnglets<T extends string>({ options, valeur, onChange }: {
+  options: [T, string][]; valeur: T; onChange: (v: T) => void;
+}) {
+  return (
+    <View style={{ paddingHorizontal: 20, paddingTop: 2, paddingBottom: 10, backgroundColor: C.fond }}>
+      <Segments options={options} valeur={valeur} onChange={onChange} />
+    </View>
+  );
+}
 
 /** Titre de section, avec une action facultative à droite. */
 export function Section({ titre, action, onAction, children }: {
@@ -166,7 +193,7 @@ export function Navigation({ actif, onChange, basSur }: { actif: Page; onChange:
           <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={o === actif}
                      style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, minHeight: 44 }}>
             <Icone nom={o} couleur={couleur} />
-            <Text style={{ fontSize: 11, color: couleur, fontWeight: o === actif ? "700" : "500" }} numberOfLines={1}>{NOMS[o]}</Text>
+            <Text style={{ fontSize: 12, color: couleur, fontWeight: o === actif ? "800" : "600" }} numberOfLines={1}>{NOMS[o]}</Text>
           </Pressable>
         );
       })}
@@ -178,20 +205,18 @@ export const nombre = (v: number, decimales = 0) =>
   v.toLocaleString("fr-FR", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 
 /** Barre du haut de chaque page : menu (toutes les sections), titre, accès au profil. */
-export function BarreHaut({ titre, onMenu, onProfil, avatar, surProfil }: {
-  titre: string; onMenu: () => void; onProfil: () => void; avatar: ReactNode; surProfil: boolean;
+export function BarreHaut({ titre, onProfil, avatar, surProfil, points }: {
+  titre: string; onProfil: () => void; avatar: ReactNode; surProfil: boolean; points: number;
 }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 6,
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 10,
                    backgroundColor: C.fond }}>
-      <Pressable onPress={onMenu} accessibilityRole="button" accessibilityLabel="Menu : toutes les sections"
-                 style={{ width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: C.blanc }}>
-        <Icone nom="menu" />
-      </Pressable>
-      <Text style={{ flex: 1, fontSize: 18, fontWeight: "800", color: C.encre }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
-      <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button" accessibilityLabel="Mon profil"
-                 style={{ width: 44, height: 44, borderRadius: 22, overflow: "hidden", backgroundColor: C.blanc }}>
-        {avatar}
+      <Text style={{ flex: 1, fontSize: 24, fontWeight: "800", color: C.encre }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
+      <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button"
+                 accessibilityLabel={`Mon monde, ${points} points`}
+                 style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 12, borderRadius: 24, backgroundColor: C.blanc }}>
+        <Text style={{ fontSize: 14, fontWeight: "800", color: C.monteeFonce }}>{nombre(points)} pts</Text>
+        <View style={{ width: 44, height: 44, borderRadius: 22, overflow: "hidden" }}>{avatar}</View>
       </Pressable>
     </View>
   );

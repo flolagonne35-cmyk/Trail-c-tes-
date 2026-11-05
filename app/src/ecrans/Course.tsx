@@ -1,6 +1,6 @@
-// Onglet « Course » : choisir sa course (nom, format ou GPX), puis quatre vues : Plan (entraînement
-// semaine par semaine, d'après un mini questionnaire), Profil (segments), Passages (temps estimés),
-// Prépa (où s'entraîner près de chez soi). La nutrition de la course est dans l'onglet Nutrition.
+// Courses → « Ma course » : choisir sa course (nom, format ou GPX), puis quatre vues pour le jour J :
+// Profil (segments), Passages (temps estimés), Nutrition (par ravitaillement), Prépa (où s'entraîner
+// près de chez soi). Le plan d'entraînement est rangé dans Programme.
 
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
@@ -12,20 +12,20 @@ import { tempsPrevu, type Modele } from "../calcul/allure.ts";
 import { analyserGpx } from "../calcul/parcours.ts";
 import { passagesCles } from "../calcul/seances.ts";
 import type { CourseInscrite } from "../calcul/calendrier.ts";
-import type { CourseCible, Questionnaire } from "../calcul/plan.ts";
-import { ChoixCourse, EnTeteCourse, FormulaireQuestionnaire, VuePlan, type PresetSortie } from "./Plan.tsx";
+import type { CourseCible } from "../calcul/plan.ts";
+import { ChoixCourse, EnTeteCourse } from "./Plan.tsx";
 import type { Parcours } from "../calcul/profil.ts";
 import { Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { ProfilParcours } from "../composants/graphiques.tsx";
 import { choisirGpx } from "../fichiers.ts";
 import { C, COULEUR_TYPE, S } from "../theme.ts";
 
-type Vue = "plan" | "parcours" | "passages" | "prepa";
+export type VueCourse = "parcours" | "passages" | "nutrition" | "prepa";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 46, fontSize: 16,
                 color: C.encre } as const;
 
-function useImport(onParcours: (p: Parcours) => void) {
+export function useImport(onParcours: (p: Parcours) => void) {
   const [etat, setEtat] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   async function importer() {
@@ -47,7 +47,7 @@ function useImport(onParcours: (p: Parcours) => void) {
   return { etat, erreur, importer };
 }
 
-function EtatImport({ etat, erreur }: { etat: string | null; erreur: string | null }) {
+export function EtatImport({ etat, erreur }: { etat: string | null; erreur: string | null }) {
   return (
     <>
       {etat && (
@@ -184,18 +184,17 @@ function SansGpx({ texte, onImporter }: { texte: string; onImporter: () => void 
   );
 }
 
-export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, onNutrition,
-                              cotes, position, nomDepart, onChoisir, modele, cible, setCible, questionnaire, setQuestionnaire,
-                              mesCourses, onSeance, onSortie, allurePlat }: {
+export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, cotes, position, nomDepart, onChoisir,
+                              modele, cible, setCible, mesCourses, vueInitiale, nutrition }: {
   parcours: Parcours | null; onParcours: (p: Parcours | null) => void; onExemple: () => void;
-  objectif: string; setObjectif: (v: string) => void; onNutrition: () => void;
+  objectif: string; setObjectif: (v: string) => void;
   cotes: Cote[]; position: Position; nomDepart: string; onChoisir: (c: CoteProche, rang: number) => void;
-  modele: Modele | null; cible: CourseCible | null; setCible: (c: CourseCible | null) => void;
-  questionnaire: Questionnaire | null; setQuestionnaire: (q: Questionnaire | null) => void; mesCourses: CourseInscrite[];
-  onSeance: (texte: string) => void; onSortie: (p: PresetSortie) => void; allurePlat: number;
+  modele: Modele | null; cible: CourseCible | null; setCible: (c: CourseCible | null) => void; mesCourses: CourseInscrite[];
+  vueInitiale?: VueCourse;
+  /** Écran nutrition de la course (rendu avec l'en-tête de Ma course). */
+  nutrition: (entete: React.ReactNode, onImporter: () => void) => React.ReactNode;
 }) {
-  const [vue, setVue] = useState<Vue>("plan");
-  const [edition, setEdition] = useState(false);
+  const [vue, setVue] = useState<VueCourse>(vueInitiale ?? "parcours");
   const { etat, erreur, importer } = useImport((p) => { onParcours(p); });
   const course: CourseCible | null = cible
     ? (parcours ? { ...cible, distance_km: Math.round(parcours.distance_km * 10) / 10, dplus_m: Math.round(parcours.dplus_m) } : cible)
@@ -204,7 +203,7 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
   if (!course) {
     return (
       <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-        <ChoixCourse mesCourses={mesCourses} onChoisir={(c) => { setCible(c); setVue("plan"); }} onImporter={importer}
+        <ChoixCourse mesCourses={mesCourses} onChoisir={(c) => setCible(c)} onImporter={importer}
                      onExemple={onExemple} etatImport={etatImport} />
       </ScrollView>
     );
@@ -212,41 +211,29 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
 
   const heures = lireObjectif(objectif);
   const objectifOk = Number.isFinite(heures) && heures > 0;
-  const allureMinKm = modele ? (modele.secondesParMetre(0) * 1000) / 60 : allurePlat;
-  const changer = () => { setCible(null); onParcours(null); setQuestionnaire(null); };
-  return (
-    <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
+  const changer = () => { setCible(null); onParcours(null); };
+  const entete = (
+    <>
       <EnTeteCourse course={course} onChanger={changer} />
       {etatImport}
-
       <View style={{ marginTop: 14 }}>
-        <Segments options={[["plan", "Plan"], ["parcours", "Profil"], ["passages", "Passages"], ["prepa", "Prépa"]]}
+        <Segments options={[["parcours", "Profil"], ["passages", "Passages"], ["nutrition", "Nutrition"], ["prepa", "Prépa"]]}
                   valeur={vue} onChange={setVue} />
       </View>
-      <Pressable onPress={onNutrition} accessibilityRole="button" style={[S.ligne, { marginTop: 10 }]}>
-        <Icone nom="nutrition" couleur={C.montee} />
-        <View style={{ flex: 1 }}>
-          <Text style={S.fort}>Nutrition de cette course</Text>
-          <Text style={S.petit}>Glucides, eau et sel entre chaque ravitaillement</Text>
-        </View>
-        <Icone nom="fleche" couleur={C.gris} taille={18} />
-      </Pressable>
+    </>
+  );
+  if (vue === "nutrition") return <>{nutrition(entete, importer)}</>;
+  return (
+    <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
+      {entete}
 
-      {vue === "plan" && (questionnaire && !edition ? (
-        <VuePlan course={course} questionnaire={questionnaire} allureMinKm={allureMinKm} onModifier={() => setEdition(true)}
-                 onSeance={onSeance} onSortie={onSortie} />
-      ) : (
-        <FormulaireQuestionnaire initial={questionnaire} course={course}
-                                 onValider={(q, date) => { setQuestionnaire(q); if (date) setCible({ ...course, date }); setEdition(false); }} />
-      ))}
-
-      {vue !== "plan" && !parcours && (
+      {!parcours && (
         <SansGpx onImporter={importer}
                  texte={vue === "parcours" ? "Le profil découpé (montées, descentes, plats) demande le tracé exact de la course."
                    : vue === "passages" ? "Les temps de passage se calculent sur le tracé exact, pente par pente."
                    : "Les passages-clés et leurs côtes équivalentes près de chez toi viennent du tracé exact."} />
       )}
-      {vue !== "plan" && parcours && (
+      {parcours && (
         <>
           <Text style={[S.petit, { marginTop: 10 }]}>{parcours.source_altitudes.startsWith("IGN") ? "Altitudes IGN" : parcours.source_altitudes}
             {" "}· D− {nombre(parcours.dmoins_m)} m · altitude max {nombre(parcours.alt_max_m)} m</Text>
@@ -278,7 +265,7 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
                 );
               })() : (
                 <Text style={[S.petit, { marginTop: 8 }]}>
-                  Ajoute quelques sorties GPX (Profil) : l'appli apprendra ton allure selon la pente et proposera un objectif à ta mesure.
+                  Ajoute quelques sorties GPX (Mon monde → Mon coureur) : l'appli apprendra ton allure selon la pente et proposera un objectif à ta mesure.
                 </Text>
               )}
               {objectifOk && <VuePassages parcours={parcours} heures={heures} />}
