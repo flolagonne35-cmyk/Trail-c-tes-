@@ -33,6 +33,8 @@ export type Parcours = {
   nb_segments: number;
   segments: Segment[];
   profil: { d_km: number[]; z_m: number[] };
+  /** tracé allégé (≈ un point tous les 100 m) : pour poser les ravitos sur la carte et dans le GPX */
+  trace?: { d_km: number[]; lat: number[]; lon: number[] };
 };
 
 const arrondi = (v: number, n = 0) => Math.round(v * 10 ** n) / 10 ** n;

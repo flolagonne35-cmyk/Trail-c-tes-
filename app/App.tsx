@@ -33,6 +33,7 @@ import { EcranCourse, type VueCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
 import { EcranEntrainement } from "./src/ecrans/Entrainement.tsx";
 import { EcranProgramme } from "./src/ecrans/Programme.tsx";
+import { JOURJ_DEFAUT, type ReglagesJourJ } from "./src/ecrans/JourJ.tsx";
 import { EcranAgenda } from "./src/ecrans/Agenda.tsx";
 import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
 import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
@@ -70,6 +71,7 @@ function Contenu() {
   const [objectif, setObjectif] = useState("2h45");
   const [ravitos, setRavitos] = useState<Ravito[]>([]);
   const [prefs, setPrefs] = useState(PREFERENCES_DEFAUT);
+  const [reglagesJourJ, setReglagesJourJ] = useState<ReglagesJourJ>(JOURJ_DEFAUT);
 
   const [depart, setDepart] = useState<PointDepart>(DEPART_DEFAUT);
   const [localisation, setLocalisation] = useState<Localisation>("inactive");
@@ -172,7 +174,7 @@ function Contenu() {
                          [profil]);
 
 
-  useEffect(() => setRavitos([]), [parcours]);
+  useEffect(() => { setRavitos([]); setReglagesJourJ(JOURJ_DEFAUT); }, [parcours]);
 
   const aller = (d: Destination) => {
     setDetail(null);
@@ -257,7 +259,7 @@ function Contenu() {
     ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
       if (c.objectif) setObjectif(c.objectif);
       majPlan({ cible: { nom: c.nom, distance_km: c.distance_km, dplus_m: c.dplus_m, date: c.date, site: c.lien || undefined } });
-      versMaCourse("parcours");
+      versMaCourse("jourj");
     }} />;
   } else if (page === "courses") {
     ecran = <EcranCourse key={vueCourse?.n ?? 0} vueInitiale={vueCourse?.vue}
@@ -265,6 +267,7 @@ function Contenu() {
                          objectif={objectif} setObjectif={setObjectif}
                          cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
                          cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} mesCourses={courses}
+                         ravitos={ravitos} prefs={prefs} reglagesJourJ={reglagesJourJ} setReglagesJourJ={setReglagesJourJ}
                          nutrition={(entete, importer) => (
                            <EcranNutrition entete={entete} parcours={parcours} objectif={objectif} setObjectif={setObjectif}
                                            ravitos={ravitos} setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} onPreparer={importer} />

@@ -5,7 +5,8 @@
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { heuresLisibles, lireObjectif, tempsDePassage } from "../calcul/nutrition.ts";
+import { heuresLisibles, lireObjectif, tempsDePassage, type Preferences, type Ravito } from "../calcul/nutrition.ts";
+import { VueJourJ, type ReglagesJourJ } from "./JourJ.tsx";
 import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { tempsPrevu, type Modele } from "../calcul/allure.ts";
@@ -20,7 +21,7 @@ import { ProfilParcours } from "../composants/graphiques.tsx";
 import { choisirGpx } from "../fichiers.ts";
 import { C, COULEUR_TYPE, S } from "../theme.ts";
 
-export type VueCourse = "parcours" | "passages" | "nutrition" | "prepa";
+export type VueCourse = "jourj" | "parcours" | "passages" | "nutrition" | "prepa";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 46, fontSize: 16,
                 color: C.encre } as const;
@@ -185,16 +186,17 @@ function SansGpx({ texte, onImporter }: { texte: string; onImporter: () => void 
 }
 
 export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, cotes, position, nomDepart, onChoisir,
-                              modele, cible, setCible, mesCourses, vueInitiale, nutrition }: {
+                              modele, cible, setCible, mesCourses, vueInitiale, nutrition, ravitos, prefs, reglagesJourJ, setReglagesJourJ }: {
   parcours: Parcours | null; onParcours: (p: Parcours | null) => void; onExemple: () => void;
   objectif: string; setObjectif: (v: string) => void;
   cotes: Cote[]; position: Position; nomDepart: string; onChoisir: (c: CoteProche, rang: number) => void;
   modele: Modele | null; cible: CourseCible | null; setCible: (c: CourseCible | null) => void; mesCourses: CourseInscrite[];
-  vueInitiale?: VueCourse;
+  vueInitiale?: VueCourse; ravitos: Ravito[]; prefs: Preferences;
+  reglagesJourJ: ReglagesJourJ; setReglagesJourJ: (r: ReglagesJourJ) => void;
   /** Écran nutrition de la course (rendu avec l'en-tête de Ma course). */
   nutrition: (entete: React.ReactNode, onImporter: () => void) => React.ReactNode;
 }) {
-  const [vue, setVue] = useState<VueCourse>(vueInitiale ?? "parcours");
+  const [vue, setVue] = useState<VueCourse>(vueInitiale ?? "jourj");
   const { etat, erreur, importer } = useImport((p) => { onParcours(p); });
   const course: CourseCible | null = cible
     ? (parcours ? { ...cible, distance_km: Math.round(parcours.distance_km * 10) / 10, dplus_m: Math.round(parcours.dplus_m) } : cible)
@@ -217,7 +219,7 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
       <EnTeteCourse course={course} onChanger={changer} />
       {etatImport}
       <View style={{ marginTop: 14 }}>
-        <Segments options={[["parcours", "Profil"], ["passages", "Passages"], ["nutrition", "Nutrition"], ["prepa", "Prépa"]]}
+        <Segments options={[["jourj", "Jour J"], ["parcours", "Profil"], ["passages", "Temps"], ["nutrition", "Nutrition"], ["prepa", "Prépa"]]}
                   valeur={vue} onChange={setVue} />
       </View>
     </>
@@ -229,7 +231,8 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
 
       {!parcours && (
         <SansGpx onImporter={importer}
-                 texte={vue === "parcours" ? "Le profil découpé (montées, descentes, plats) demande le tracé exact de la course."
+                 texte={vue === "jourj" ? "La feuille de course (sections, heures de passage, ravitos, barrières horaires) se calcule sur le tracé exact."
+                   : vue === "parcours" ? "Le profil découpé (montées, descentes, plats) demande le tracé exact de la course."
                    : vue === "passages" ? "Les temps de passage se calculent sur le tracé exact, pente par pente."
                    : "Les passages-clés et leurs côtes équivalentes près de chez toi viennent du tracé exact."} />
       )}
@@ -272,6 +275,9 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
             </>
           )}
           {vue === "parcours" && <VueParcours parcours={parcours} />}
+          {vue === "jourj" && <VueJourJ parcours={parcours} objectif={objectif} setObjectif={setObjectif} ravitos={ravitos} prefs={prefs}
+                                        dateCourse={cible?.date} reglages={reglagesJourJ} setReglages={setReglagesJourJ}
+                                        onNutrition={() => setVue("nutrition")} />}
           {vue === "prepa" && <VuePrepa parcours={parcours} cotes={cotes} position={position} nomDepart={nomDepart} onChoisir={onChoisir} />}
         </>
       )}

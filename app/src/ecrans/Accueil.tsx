@@ -61,7 +61,7 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
       <Carte titre="Séance du jour">
         <Text style={[S.h2, { fontSize: 20 }]}>C'est le jour J : {r.nom} !</Text>
         <Text style={S.petit}>Échauffe-toi 10 à 15 min, pars prudemment et suis ton plan de nutrition.</Text>
-        {bouton("Ma feuille de course", () => onMaCourse("passages"))}
+        {bouton("Ma feuille de course", () => onMaCourse("jourj"))}
       </Carte>
     );
   }
@@ -157,7 +157,7 @@ function ProchaineCourse({ monPlan, mesCourses, aller, onMaCourse }: {
           <Text style={S.petit}>{jourCourt(c.date)}</Text>
         </View>
       </View>
-      <Pressable onPress={() => onMaCourse("parcours")} accessibilityRole="button" style={S.boutonClair}>
+      <Pressable onPress={() => onMaCourse("jourj")} accessibilityRole="button" style={S.boutonClair}>
         <Text style={S.boutonClairTexte}>Préparer ma course</Text>
       </Pressable>
     </Carte>

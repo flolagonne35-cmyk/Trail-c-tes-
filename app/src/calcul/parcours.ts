@@ -51,5 +51,12 @@ export async function analyserGpx(texte: string, options: { altitudes?: Altitude
   }
   const z = boucher(r.d, zBrut);
   if (!z) throw new Error("Aucune altitude : le GPX n'en contient pas et le service IGN ne répond pas.");
-  return analyserProfil(trace.nom, r.d, lisser(z, LISSAGE_M / PAS_M), source);
+  const parcours = analyserProfil(trace.nom, r.d, lisser(z, LISSAGE_M / PAS_M), source);
+  // tracé allégé : un point tous les 100 m environ (10 points rééchantillonnés sur 10 m)
+  const pas = Math.max(1, Math.round(100 / PAS_M));
+  const garde = r.d.map((_, i) => i).filter((i) => i % pas === 0 || i === r.d.length - 1);
+  const pts = garde.map((i) => proj.latlon(r.x[i], r.y[i]));
+  parcours.trace = { d_km: garde.map((i) => Math.round(r.d[i]) / 1000), lat: pts.map((p) => Math.round(p.lat * 1e6) / 1e6),
+                     lon: pts.map((p) => Math.round(p.lon * 1e6) / 1e6) };
+  return parcours;
 }
