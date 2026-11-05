@@ -380,9 +380,9 @@ d'iPhone, Safari demande une autorisation spéciale pour la boussole : à tester
 | ✅ 0 | Corrections Côtes (air, tri, distance « de toi », mur, carte), calendrier quotidien | fait le 05/11 | — |
 | ✅ 1 | 5 rubriques avec sous-onglets toujours visibles, plus de menu caché ; Aujourd'hui ; Calendrier / Ma saison / Ma course ; rangée de mois jusqu'à fin 2027 | fait le 05/11 | — |
 | ✅ 2 | Mon programme : records → allures (VDOT de Daniels), jours disponibles et jour de sortie longue, relief, blessure ; Sorties : 3, 5 ou 10 parcours avec le D+ de la séance | fait le 05/11 | — |
-| 🟡 3 | Nutrition personnelle (test de pesée, profil de sel) ✅ ; feuille du jour J réunie en une page et sac à produits : à faire | 1 semaine | — |
-| 🟡 4 | Lever / coucher du soleil ✅, minuteur de côtes ✅, convertisseur d'allure ✅ ; météo et retour au départ : à faire | 3 jours | clé Météo-France |
+| ✅ 3 | Ma course → Jour J (sections, heures de passage, conseils, ravitos, barrières horaires, sac, GPX avec ravitos) ; nutrition personnelle (test de pesée, sel) et sac à produits | fait le 05/11 | — |
+| 🟡 4 | Lever / coucher du soleil ✅, minuteur de côtes ✅, convertisseur d'allure ✅, retour au départ ✅ ; météo : à faire | 1 jour | clé Météo-France |
 | 5 | Serveur et comptes, import Garmin / Santé, avis | 2 à 3 semaines | compte Supabase, demande Garmin |
-| 6 | Mon monde : ligues, boutique, défis, animations | 3 à 4 semaines | graphiste pour les objets |
+| 🟡 6 | Mon monde → Mon aventure ✅ (chemin animé à 10 paliers, défis semaine et mois, 11 badges de commun à légendaire, boutique de décors avec les points) ; ligues entre coureurs et équipement de marque : avec le serveur | 2 à 3 semaines | serveur, graphiste, marques |
 | 7 | Trajets et logements, courses en partenariat (prix, places, inscriptions) | 2 semaines | clé SNCF, clé DATAtourisme, démarches FFA / njuko |
 | 8 | Avatar 3D stylisé | 3 semaines et plus | artiste 3D |

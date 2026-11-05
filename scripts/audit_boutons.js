@@ -51,9 +51,11 @@ const ECRANS = {
   },
   "Courses · Passages": async (p) => { await ECRANS["Courses · Profil"](p); await p.getByRole("tab", { name: "Passages" }).click(); },
   "Courses · Nutrition": async (p) => { await ECRANS["Courses · Profil"](p); await p.getByRole("tab", { name: "Nutrition" }).click(); },
+  "Courses · Jour J": async (p) => { await ECRANS["Courses · Ma course (vide)"](p); await p.getByRole("button", { name: /exemple/ }).click(); },
   "Courses · Prépa": async (p) => { await ECRANS["Courses · Profil"](p); await p.getByRole("tab", { name: "Prépa" }).click(); },
-  "Mon monde · Mon coureur": async (p) => { await p.getByRole("tab", { name: "Mon monde" }).click(); },
-  "Mon monde · Mes progrès": async (p) => { await ECRANS["Mon monde · Mon coureur"](p); await p.getByRole("tab", { name: "Mes progrès" }).click(); },
+  "Mon monde · Mon aventure": async (p) => { await p.getByRole("tab", { name: "Mon monde" }).click(); await attendre(p, 1600); },
+  "Mon monde · Mon coureur": async (p) => { await ECRANS["Mon monde · Mon aventure"](p); await p.getByRole("tab", { name: "Mon coureur" }).click(); },
+  "Mon monde · Mes progrès": async (p) => { await ECRANS["Mon monde · Mon aventure"](p); await p.getByRole("tab", { name: "Mes progrès" }).click(); },
   "Données": async (p) => { await ECRANS["Mon monde · Mon coureur"](p); await p.getByRole("button", { name: "Mes données et confidentialité" }).click(); },
 };
 

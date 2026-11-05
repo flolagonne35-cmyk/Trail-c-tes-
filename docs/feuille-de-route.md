@@ -28,8 +28,11 @@ et la boutique, l'avatar, la météo, la boussole, les gadgets, et l'ordre de co
 | Sorties du jour (3, 5 ou 10) | ✅ avec le D+ de la séance ; « Je pars courir » au moment de partir |
 | Calendrier par mois | ✅ rangée de mois jusqu'à fin 2027 |
 | Nutrition personnelle | ✅ test de pesée et profil de sel (restent sur le téléphone) |
-| Gadgets | ✅ minuteur de côtes, convertisseur d'allure, lever/coucher du soleil |
-| Monde de points, avis, avatar 3D, météo, trajets et logements | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
+| Gadgets | ✅ minuteur de côtes, convertisseur d'allure, lever/coucher du soleil, retour au départ (flèche, sans réseau) |
+| Feuille du jour J | ✅ Ma course → Jour J : sections, heures de passage, conseils, ravitos, barrières horaires, sac, GPX avec ravitos |
+| Sac à produits | ✅ gels, boisson, compotes, sel… par heure et pour la course, avec le coût |
+| Monde de points | ✅ Mon aventure : chemin animé, défis, badges, boutique de décors ; 🔜 ligues et équipement avec le serveur |
+| Avis, avatar 3D, météo, trajets et logements | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
 
 ### Tes demandes (message du 20/10)
 

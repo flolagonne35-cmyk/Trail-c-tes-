@@ -33,6 +33,7 @@ import { EcranCourse, type VueCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
 import { EcranEntrainement } from "./src/ecrans/Entrainement.tsx";
 import { EcranProgramme } from "./src/ecrans/Programme.tsx";
+import { EcranAventure } from "./src/ecrans/Aventure.tsx";
 import { JOURJ_DEFAUT, type ReglagesJourJ } from "./src/ecrans/JourJ.tsx";
 import { EcranAgenda } from "./src/ecrans/Agenda.tsx";
 import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
@@ -56,7 +57,7 @@ const TITRES: Record<Page, string> = {
 };
 const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon programme"], ["sorties", "Sorties"], ["seance", "Séance"]];
 const SOUS_COURSES: [ModeCourses, string][] = [["calendrier", "Calendrier"], ["saison", "Ma saison"], ["course", "Ma course"]];
-const SOUS_MONDE: [ModeMonde, string][] = [["coureur", "Mon coureur"], ["progres", "Mes progrès"]];
+const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Mon aventure"], ["coureur", "Mon coureur"], ["progres", "Mes progrès"]];
 
 function Contenu() {
   const bords = useSafeAreaInsets();
@@ -82,7 +83,7 @@ function Contenu() {
   const [resultatsCotes, setResultatsCotes] = useState(false); // les côtes n'apparaissent qu'après la recherche
   const [modeProgramme, setModeProgramme] = useState<ModeProgramme>("programme");
   const [modeCourses, setModeCourses] = useState<ModeCourses>("calendrier");
-  const [modeMonde, setModeMonde] = useState<ModeMonde>("coureur");
+  const [modeMonde, setModeMonde] = useState<ModeMonde>("aventure");
   const [vueCourse, setVueCourse] = useState<{ vue: VueCourse; n: number } | undefined>(undefined);
   const [courses, setCoursesEtat] = useState<CourseInscrite[]>([]);
   const setCourses = (c: CourseInscrite[]) => { setCoursesEtat(c); enregistrerCourses(c); };
@@ -272,6 +273,8 @@ function Contenu() {
                            <EcranNutrition entete={entete} parcours={parcours} objectif={objectif} setObjectif={setObjectif}
                                            ravitos={ravitos} setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} onPreparer={importer} />
                          )} />;
+  } else if (page === "monde" && modeMonde === "aventure") {
+    ecran = <EcranAventure profil={profil} setProfil={changerProfil} onAjouterSortie={() => aller({ page: "monde", mode: "coureur" })} />;
   } else if (page === "monde") {
     ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)}
                          onDonnees={() => aller({ page: "sources" })} />;
@@ -283,8 +286,8 @@ function Contenu() {
     <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top }}>
       <StatusBar style="dark" />
       {!detail && (
-        <BarreHaut titre={TITRES[page]} onProfil={() => aller({ page: "monde", mode: "coureur" })} avatar={avatar}
-                   surProfil={page === "monde" && modeMonde === "coureur"} points={score(profil.activites).valides} />
+        <BarreHaut titre={TITRES[page]} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
+                   surProfil={page === "monde" && modeMonde === "aventure"} points={score(profil.activites).valides} />
       )}
       {!detail && page === "programme" && <SousOnglets options={SOUS_PROGRAMME} valeur={modeProgramme} onChange={setModeProgramme} />}
       {!detail && page === "courses" && <SousOnglets options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />}

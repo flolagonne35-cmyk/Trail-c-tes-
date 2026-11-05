@@ -88,7 +88,7 @@ export type Page = Onglet | "sources";
 /** Sous-rubriques de chaque rubrique (sous-onglets en haut de l'écran). */
 export type ModeProgramme = "programme" | "sorties" | "seance";
 export type ModeCourses = "calendrier" | "saison" | "course";
-export type ModeMonde = "coureur" | "progres";
+export type ModeMonde = "aventure" | "coureur" | "progres";
 /** Où aller : une rubrique et, au besoin, sa sous-rubrique. */
 export type Destination = { page: Page; mode?: string };
 

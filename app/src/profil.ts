@@ -6,7 +6,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { migrerApparence, type Apparence } from "./avatar/modele.ts";
 import type { Activite } from "./calcul/points.ts";
 
-export type Profil = { prenom: string; apparence: Apparence; creeLe: string; activites: Activite[] };
+export type Profil = {
+  prenom: string; apparence: Apparence; creeLe: string; activites: Activite[];
+  achats?: string[]; // décors achetés avec les points (Mon monde → Mon aventure)
+  decor?: string; // décor choisi pour le portrait
+};
 
 const CLE = "trailcotes.profil.v1";
 
