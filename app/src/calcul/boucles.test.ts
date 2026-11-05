@@ -105,3 +105,12 @@ test("départ près d'un petit morceau de voie isolé : accroché au réseau pri
   const n = noeudLePlusProche(g, { lat: 48.1005, lon: -1.67900 });
   assert.equal(n.noeud, 100); // sur la rue, pas sur le bout isolé (pourtant plus près)
 });
+
+test("sans côte, on peut demander 5 parcours différents", () => {
+  const r = composerBoucles(g, [], pos(5, 5), { distanceKm: 4, nbCotes: 0, dplusVise: 0, eviterRoutes: false, eviterPassant: false }, 5);
+  assert.ok(Array.isArray(r));
+  const liste = r as Exclude<typeof r, string>;
+  assert.ok(liste.length > 3 && liste.length <= 5, `${liste.length} parcours`);
+  const traces = new Set(liste.map((b) => pointsBoucle(b).map((p) => `${p.lat.toFixed(4)},${p.lon.toFixed(4)}`).join(" ")));
+  assert.equal(traces.size, liste.length);
+});

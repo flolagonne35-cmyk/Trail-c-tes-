@@ -20,7 +20,8 @@ import { pointsEauAutour } from "../pointsEau.ts";
 import { grapheAutour } from "../reseauZones.ts";
 import { C, S } from "../theme.ts";
 
-const DPLUS: [string, string][] = [["0", "Libre"], ["100", "100 m"], ["200", "200 m"], ["300", "300 m"]];
+/** Combien de parcours proposer : 3 pour choisir vite, 10 pour varier ses sorties. */
+const NOMBRES: [string, string][] = [["3", "3"], ["5", "5"], ["10", "10"]];
 type Relief = "plat" | "vallonne" | "cotes";
 const RELIEFS: [Relief, string][] = [["plat", "Plat"], ["vallonne", "Vallonné"], ["cotes", "Avec des côtes"]];
 // D+ visé par km : plat le moins possible ; vallonné ≈ 15 m/km (un parcours « roulant-vallonné »)
@@ -46,7 +47,7 @@ function exporter(b: Boucle, i: number, eau: EauSurParcours[]) {
 
 export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, modele, preset }: {
   toutes: Cote[]; position: Position; nomDepart: string; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void;
-  modele: Modele | null; preset?: { km: number; relief: "plat" | "vallonne" | "cotes" };
+  modele: Modele | null; preset?: { km: number; relief: "plat" | "vallonne" | "cotes"; dplus_m?: number };
 }) {
   // une sortie du plan d'entraînement arrive avec sa distance et son relief
   const [objectif, setObjectif] = useState<"duree" | "distance">(preset ? "distance" : "duree");
@@ -58,14 +59,16 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
   const kmDeDuree = Math.max(3, Math.round((heures * 60) / (allureMinKm * (relief === "plat" ? 1 : 1.08)) * 2) / 2);
   const km = objectif === "duree" ? kmDeDuree : kmSaisis;
   const [nbCotes, setNbCotes] = useState(3);
-  const [dplus, setDplus] = useState("0");
+  // D+ visé (0 = libre) : rempli par la séance du programme (« 12 km avec 300 m de D+ »)
+  const [dplus, setDplus] = useState(preset?.dplus_m ?? 0);
+  const [nombreParcours, setNombreParcours] = useState("3");
   const [eviterRoutes, setEviterRoutes] = useState(false);
   const [eviterPassant, setEviterPassant] = useState(true);
   const [enCours, setEnCours] = useState(false);
   const [resultat, setResultat] = useState<Boucle[] | string | null>(null);
   const [choix, setChoix] = useState(0);
   // réglages de la dernière boucle composée : inutile de relancer le même calcul
-  const reglages = JSON.stringify([position.lat, position.lon, km, relief, nbCotes, dplus, eviterRoutes, eviterPassant]);
+  const reglages = JSON.stringify([position.lat, position.lon, km, relief, nbCotes, dplus, eviterRoutes, eviterPassant, nombreParcours]);
   const [dernier, setDernier] = useState<string | null>(null);
   const aJour = dernier === reglages && resultat !== null;
 
@@ -82,9 +85,9 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
           return;
         }
         const demande = relief === "cotes"
-          ? { nbCotes, dplusVise: Number(dplus) || null }
-          : { nbCotes: 0, dplusVise: DPLUS_PAR_KM[relief] * km };
-        setResultat(composerBoucles(g, toutes, position, { distanceKm: km, ...demande, eviterRoutes, eviterPassant }));
+          ? { nbCotes, dplusVise: dplus || null }
+          : { nbCotes: 0, dplusVise: relief === "vallonne" && dplus ? dplus : DPLUS_PAR_KM[relief] * km };
+        setResultat(composerBoucles(g, toutes, position, { distanceKm: km, ...demande, eviterRoutes, eviterPassant }, Number(nombreParcours)));
         setChoix(0);
         setDernier(reglages);
       } catch (e) {
@@ -132,17 +135,27 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
           <Segments options={RELIEFS} valeur={relief} onChange={setRelief} />
           <Text style={S.petit}>
             {relief === "plat" ? "Le moins de dénivelé possible : sortie d'endurance, allure régulière."
-              : relief === "vallonne" ? "Environ 15 m de D+ par km, sans chercher les côtes."
+              : relief === "vallonne" ? "Ça monte et ça descend, sans chercher les côtes (environ 15 m de D+ par km si tu ne fixes rien)."
               : "Enchaîne des côtes mesurées de l'appli."}
           </Text>
         </View>
-        {relief === "cotes" && <>
+        {relief === "cotes" && (
           <Ajusteur etiquette="Côtes à enchaîner" valeur={nbCotes} unite="" pas={1} min={1} max={5} onChange={setNbCotes} />
+        )}
+        {relief !== "plat" && (
           <View style={{ gap: 6 }}>
-            <Text style={[S.fort, { fontWeight: "600" }]}>Dénivelé visé</Text>
-            <Segments options={DPLUS} valeur={dplus} onChange={setDplus} />
+            <Ajusteur etiquette="Dénivelé visé (D+)" valeur={dplus} unite="m" pas={50} min={0} max={2000} onChange={setDplus} />
+            <Text style={S.petit}>
+              {dplus ? `Les parcours visent ${dplus} m de D+ (± 15 %). En Bretagne, au-delà de 20 m par km, il faut répéter des côtes.`
+                : "0 = libre : l'appli prend le relief qui vient."}
+            </Text>
           </View>
-        </>}
+        )}
+        <View style={{ gap: 6 }}>
+          <Text style={[S.fort, { fontWeight: "600" }]}>Combien de parcours me proposer ?</Text>
+          <Segments options={NOMBRES} valeur={nombreParcours} onChange={setNombreParcours} />
+          <Text style={S.petit}>3 pour choisir vite ; 10 pour varier tes sorties de la semaine. Plus il y en a, plus le calcul est long.</Text>
+        </View>
         <Interrupteur nom="Le moins de route possible" detail="Préfère chemins, sentiers et voies vertes" valeur={eviterRoutes} onChange={setEviterRoutes} />
         <Interrupteur nom="Éviter les routes passantes" detail="Grands axes et routes rapides" valeur={eviterPassant} onChange={setEviterPassant} />
         <Pressable onPress={composer} disabled={enCours || aJour} accessibilityRole="button"
@@ -157,8 +170,32 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
         <Text style={{ color: C.monteeFonce, fontWeight: "600" }}>Aucune boucle trouvée : essaie une autre distance.</Text>
       )}
       {Array.isArray(resultat) && resultat.length > 1 && (
-        <Segments options={resultat.map((_, i) => [String(i), `Boucle ${i + 1}`] as [string, string])} valeur={String(choix)}
-                  onChange={(v) => setChoix(Number(v))} />
+        <View style={{ gap: 8 }} accessibilityRole="radiogroup">
+          <Text style={S.fort}>{resultat.length} parcours autour de {nomDepart} : touche-en un</Text>
+          {resultat.map((x, i) => {
+            const actif = i === choix;
+            const min = (x.distance_m / 1000 + x.dplus_m / 100) * allureMinKm;
+            return (
+              <Pressable key={i} onPress={() => setChoix(i)} accessibilityRole="radio" aria-checked={actif}
+                         accessibilityLabel={`Parcours ${i + 1} : ${nombre(x.distance_m / 1000, 1)} kilomètres, ${x.dplus_m} mètres de D+`}
+                         style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 2,
+                                  borderColor: actif ? C.montee : C.blanc, backgroundColor: C.blanc }}>
+                <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+                               backgroundColor: actif ? C.montee : C.aire }}>
+                  <Text style={{ fontWeight: "800", fontSize: 15, color: actif ? C.blanc : C.encre }}>{i + 1}</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                  <Text style={S.fort}>{nombre(x.distance_m / 1000, 1)} km · +{nombre(x.dplus_m)} m</Text>
+                  <Text style={S.petit}>
+                    ≈ {dureeLisible(min)} · {Math.round((1 - x.partRoute) * 100)} % chemins{x.cotes.length ? ` · ${x.cotes.length} côte${x.cotes.length > 1 ? "s" : ""}` : ""}
+                    {x.partPassant > 0.02 ? " · ⚠ route passante" : ""}
+                  </Text>
+                </View>
+                {actif && <Text style={{ fontWeight: "800", color: C.montee }}>Choisi</Text>}
+              </Pressable>
+            );
+          })}
+        </View>
       )}
       {b && (
         <View style={{ gap: 10 }}>
@@ -183,7 +220,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
           )}
           {b.repetitions && (
             <View style={[S.carte, { marginTop: 0, backgroundColor: C.monteeClair, gap: 4 }]}>
-              <Text style={[S.fort, { color: C.monteeFonce }]}>Pour atteindre {dplus} m de D+</Text>
+              <Text style={[S.fort, { color: C.monteeFonce }]}>Pour atteindre {nombre(dplus)} m de D+</Text>
               <Text style={[S.petit, { color: C.encre }]}>
                 Monte {b.repetitions.n} fois de plus la côte de {nombre(b.repetitions.cote.longueur_m)} m (+{nombre(b.repetitions.cote.dplus_m)} m
                 chacune) : {kmLisibles(b.repetitions.distanceEnPlus_m)} en plus. Le relief autour de {nomDepart} ne permet pas mieux sans répéter.

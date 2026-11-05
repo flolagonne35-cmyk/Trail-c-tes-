@@ -33,7 +33,7 @@ export type Seance = {
   /** séance à chercher autour de soi (Programme → Séance) */
   seance?: string;
   /** sortie à composer (Programme → Sorties) */
-  sortie?: { km: number; relief: "plat" | "vallonne" | "cotes" };
+  sortie?: { km: number; relief: "plat" | "vallonne" | "cotes"; dplus_m?: number };
 };
 
 export type Semaine = {
@@ -159,7 +159,9 @@ function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseC
                ? `Sur un terrain proche de la course : ≈ ${Math.round((longueMin / allure))} km, ≈ ${Math.round(dplus * 0.45)} m D+ ; teste ta nutrition`
                : `Allure facile, en aisance respiratoire${phase === "Affûtage" ? " ; raccourcie pour arriver frais" : ""}`,
              minutes: longueMin,
-             sortie: { km: Math.max(5, Math.round(longueMin / allure)), relief: course.dplus_m > 300 && phase !== "Base" ? "cotes" : course.dplus_m > 300 ? "vallonne" : "plat" } });
+             sortie: { km: Math.max(5, Math.round(longueMin / allure)), relief: course.dplus_m > 300 && phase !== "Base" ? "cotes" : course.dplus_m > 300 ? "vallonne" : "plat",
+                       // le D+ annoncé dans le détail de la séance : les parcours proposés le visent
+                       ...(phase === "Spécifique" && course.dplus_m > 300 ? { dplus_m: Math.round(dplus * 0.45) } : {}) } });
   // séances dures : 1 en base et en semaine allégée, 2 en spécifique si au moins 4 séances
   const dures = allegee || phase === "Base" || q.seances < 4 || q.niveau === "debutant" ? 1 : 2;
   const qualite: Seance[] = [];
