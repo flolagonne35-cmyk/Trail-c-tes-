@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-10T13:27:19+00:00",
+  "date_utc": "2026-11-11T12:42:15+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 67302,
@@ -381,7 +381,6 @@
         "Derby de Luz Ardiden | 65120#Luz-Saint-Sauveur | 2027-02-27<->2027-02-27 | Course de glisse chronométrée en départ groupé ou individuel. Un derby convivial ouvert aux skieurs et snowboardeurs vou",
         "Randonnée pédestre | 16700#Nanteuil-en-Vallée | 2026-11-24<->2026-11-24 | Randonnée de 7 à 8 km.",
         "Randonnée pédestre | 16140#Tusson | 2026-12-08<->2026-12-08 | Randonnée de 7 à 8 km.",
-        "Randonnée pédestre | 16560#Tourriers | 2026-11-10<->2026-11-10 | Randonnée de 7 à 8 km.",
         "Nocturne en raquettes à neige | 65150#Nistos | 2027-03-06<->2027-03-06 | Cette balade accompagnée avec Bruno, accompagnateur en montagne, est l'occasion de découvrir la montagne\nau coucher du s",
         "Nocturne en raquettes à neige | 65150#Nistos | 2027-02-27<->2027-02-27 | Cette balade accompagnée avec Bruno, accompagnateur en montagne, est l'occasion de découvrir la montagne\nau coucher du s",
         "Nocturne en raquettes à neige | 65150#Nistos | 2027-02-13<->2027-02-13 | Cette balade accompagnée avec Bruno, accompagnateur en montagne, est l'occasion de découvrir la montagne\nau coucher du s",
@@ -435,7 +434,6 @@
         "Les randonnées automnales 2026 | 14330#Le Molay-Littry | 2026-11-21<->2026-11-21 | Boucles de randonnée de 9 à 15 km au Molay-Littry.",
         "RANDONNÉE ET CONCOURS DE SOUPES | 31160#Encausse-les-Thermes | 2026-11-14<->2026-11-14 | 14h : randonnée familiale \n19h : concours de soupes : préparez, ou venez déguster la meilleure soupe (inscription avant ",
         "CONCOURS DE BELOTE | 40430#Callen | 2026-11-13<->2026-11-13 | LE COMITE DES FETES DE CALLEN ORGANISE SON PREMIER CONCOURS DE BELOTE.\nVENEZ TENTER VOTRE CHANCE ET PARTAGER UN MOMENT C",
-        "Concours de pétanque nocturne | 03220#Jaligny-sur-Besbre | 2026-11-10<->2026-11-10 | Concours de pétanque nocturne - en doublette - organisé par le Jaligny Vaumas Foot\r\nsous le marché couvert. Inscriptions",
         "Randonnée pédestre | 16700#Saint-Gourson | 2026-12-01<->2026-12-01 | Randonnée de 7 à 8 km.",
         "Randonnée pédestre | 16230#Val-de-Bonnieure | 2026-12-15<->2026-12-15 | Randonnée de 7 à 8 km.",
         "[Saison Culturelle] Random | 60800#Lévignen | 2027-02-12<->2027-02-12 | 🎭 Cie Grand Brasier\n\nUn spectacle singulier et immersif qui incite à muscler notre esprit critique, à déconstruire les d",
@@ -504,35 +502,36 @@
         "Téléthon - Marche, VTT et pétanque | 47420#Houeillès | 2026-11-29<->2026-11-29 | Départ 9h - marche de 8 ou 12 km. parcours VTT de 30 ou 50 km. Inscriptions à partir de 8h15.\nPétanque à la mélée - 4 pa",
         "Concours de belote | 03230#Chézy | 2026-11-14<->2026-11-14 | Tournoi convivial en équipes, avec un lot pour chaque participant et buvette sur place.",
         "TÉLÉTHON | 48250#La Bastide-Puylaurent | 2026-12-05<->2026-12-05 | La Boule Bastidoise compte sur vous pour faire grimper le compteur \n\n9H ET 14H RANDONNÉES QUAD & MOTO 10€ P/P\n14H RANDON",
-        "Les Belles Échappées - Marché de Noël et découverte d'Aix-en-Provence | 83580#Gassin | 2026-12-05<->2026-12-05 | Partez de Gassin pour une escapade à Aix-en-Provence ! Profitez d’une visite guidée de la ville avec Serge Vota, puis fl"
+        "Les Belles Échappées - Marché de Noël et découverte d'Aix-en-Provence | 83580#Gassin | 2026-12-05<->2026-12-05 | Partez de Gassin pour une escapade à Aix-en-Provence ! Profitez d’une visite guidée de la ville avec Serge Vota, puis fl",
+        "Couronne de l'avent en sapin frais et fleurs séchées | 53000#Laval | 2026-12-11<->2026-12-11 | Plongez dans la magie de Noël le temps d’un atelier floral et réalisez votre couronne de l’Avent en sapin frais et fleur",
+        "Concours de belote | 39150#Fort-du-Plasne | 2027-02-14<->2027-02-14 | "
       ]
     },
     "OpenAgenda": {
-      "evenements": 980,
-      "courses": 28,
+      "evenements": 965,
+      "courses": 27,
       "exemple_brut": {
-        "uid": "71046853",
-        "title_fr": "Centre \"La Presqu'île\" (Giffaumont) - Ligue de l'Enseignement de la Meuse",
-        "firstdate_begin": "2032-01-01T01:00:00+00:00",
-        "lastdate_end": "2032-01-01T03:00:00+00:00",
+        "uid": "70468665",
+        "title_fr": "Marche active",
+        "firstdate_begin": "2026-12-13T09:00:00+00:00",
+        "lastdate_end": "2026-12-13T10:30:00+00:00",
         "location_coordinates": {
-          "lon": 4.776986,
-          "lat": 48.552972
+          "lon": 2.588227,
+          "lat": 48.716073
         },
-        "location_city": "Giffaumont-Champaubert",
-        "location_postalcode": "51290",
-        "canonicalurl": "https://openagenda.com/catalogue-departemental-des-structures-daccueil-et-dhebergement-marne/events/centre-la-presquile-giffaumont-ligue-de-lenseignement-de-la-meuse",
-        "description_fr": "RH",
-        "longdescription_fr": "<h3><a href=\"https://www.youtube.com/watch?v=E1F3oq5J8vo&amp;ab_channel=FOL55FOL55\"><em>Présentation vidéo du centre</em></a></h3>\n<p></p>\n<h2>Histoire : le Lac du Der, un site exceptionnel :</h2>\n<p></p>\n<p>Créé en 1974 pour régulariser le cours de la rivière Marne, il est avec ses 4 800 ha un des plus grands lacs artificiels d'Europe. Il est devenu, au fil des années, le pôle régional majeur du tourisme bleu et vert, et offre en toutes saisons de multiples activités sportives et de loisirs.<br />Classé en Réserve Nationale de Chasse et de Faune Sauvage et géré par l'ONCFS, le Lac du Der a très vite été adopté par une faune riche et diversifiée propice à l’étude de la nature et de l’environnement. Le Lac est devenu un site d’observation ornithologique incontournable, de renommée internationale.</p>\n<p></p>\n<h2>Le centre accueille votre projet de classe de découverte !</h2>\n<p></p>\n<p>Vous souhaitez organiser sur le lac du Der un séjour avec vos élèves autour de l’éducation au développement durable ou axé sur la découverte et la pratiques d’activités sportives et nautiques, notre centre a su exploiter tous les atouts qu’offre le lac. Sa situation permet un accès direct à toutes les installations sportives et aménagements pédagogiques du lac (sentiers et postes d’observation …). Le centre est doté de sa propre école de voile, facilitant la mise en œuvre des activités nautiques mais permettant également de vous faire découvrir de manière plus insolite la biodiversité des berges du lac. Il propose un cadre idéal d’hébergement, de restauration et de salles d’activités, en bordure de lac, propice à la réalisation de votre projet de classe de découverte. Notre équipe a su y développer des animations pédagogiques s’inscrivant pleinement dans une démarche éco-citoyenne puisqu’elle place les élèves au cœur du milieu naturel qui les entoure, les sensibilise et encourage les comportements responsables nécessaires à la préservation de ce milieu.</p>",
-        "originagenda_title": "Catalogue départemental des structures d’accueil et d’hébergement - Marne",
-        "updatedat": "2024-02-23T10:25:19+00:00"
+        "location_city": "Servon",
+        "location_postalcode": "77170",
+        "canonicalurl": "https://openagenda.com/le-millepattes-servonnais/events/marche-active-4264358",
+        "description_fr": "Servon, Santeny, Servon",
+        "longdescription_fr": "<p><strong>Stationnement : départ de la mairie de servon</strong><br><strong>Distance : 8 km - Dénivelé : 85 m - rando R26</strong><br><strong>Responsable : Marc 06 42 19 52 85</strong></p>\n<h3><a href=\"https://www.sitytrail.com/fr/trails/3017789-servon--r-26--8x3-km-x--si-pluie-x-servonx-santenyx-servon-/\"><strong>Découvrir le parcours sur SityTrail</strong></a></h3>",
+        "originagenda_title": "Le millepattes",
+        "updatedat": "2026-10-09T12:53:33+00:00"
       }
     }
   },
-  "courses": 356,
+  "courses": 355,
   "statut": "ok",
   "apercu": [
-    "2026-11-10 NoBadDays Family Run 2 (Lattes) [] D+None route",
     "2026-11-10 Semi-marathon de Plouguin (Plouguin) [21.1] D+None route",
     "2026-11-11 50ème édition des Boucles Saint Quentinoises (Saint-Quentin) [] D+None route",
     "2026-11-11 Course : la 10 Gouzon (Gouzon) [] D+None route",
@@ -591,7 +590,8 @@
     "2026-11-15 Trail Val de Charente (Ruffec) [] D+None trail",
     "2026-11-15 Trail de Lacave au profit du Téléthon (Lacave) [4.7, 12.0, 32.0] D+None trail",
     "2026-11-15 Trail des truffières (Saint-Paul-Trois-Châteaux) [] D+None trail",
-    "2026-11-15 Trail du Lac d'Eguzon (Éguzon-Chantôme) [] D+None trail"
+    "2026-11-15 Trail du Lac d'Eguzon (Éguzon-Chantôme) [] D+None trail",
+    "2026-11-17 Journée marathon - Les élus à la rencontre des industriels (Caluire-et-Cuire) [42.2] D+None route"
   ],
   "taille_ko": 131
 }
