@@ -20,18 +20,17 @@
 "CROSS OUEST-FRANCE PAYS DE LA LOIRE": null,
 "Championnats de France de cross-country": null,
 "Christmas Run": {
+"france": false,
 "qid": "Q49881714",
 "wikipedia": 1
 },
 "Cloture de la course virtuelle": null,
 "Color'Run": {
+"france": false,
 "qid": "Q13584731",
 "wikipedia": 6
 },
-"Corrida": {
-"qid": "Q2640883",
-"wikipedia": 24
-},
+"Corrida": null,
 "Corrida \"La Hayboise\"": null,
 "Corrida Mersoise": null,
 "Corrida de Brioude": null,
@@ -47,6 +46,7 @@
 "Corrida pédestre de Lourdes": null,
 "Corrida pédestre du vieux Boussac": null,
 "Coupe de France de Cyclo-cross": {
+"france": true,
 "qid": "Q21008258",
 "wikipedia": 2
 },
@@ -63,6 +63,7 @@
 "Course au large": null,
 "Course cycliste: Tour de la côte de Granit Rose": null,
 "Course de l'Escalade": {
+"france": false,
 "qid": "Q1137736",
 "wikipedia": 2
 },
@@ -92,6 +93,7 @@
 "Cross du Sud-Ouest": null,
 "Cyclo Cross de Château-Chinon": null,
 "Cyclo cross": {
+"france": true,
 "qid": "Q115242905",
 "wikipedia": 1
 },
@@ -103,6 +105,7 @@
 "Explor’Run Saint-Trojan-Les-bains": null,
 "FOULÉES DE L’EOLIENNE": null,
 "Festival du Cross": {
+"france": true,
 "qid": "Q131353994",
 "wikipedia": 1
 },
@@ -125,6 +128,7 @@
 "LA NUIT DES FADARELLES": null,
 "LA RONDE DES FLEURS": null,
 "LES FOULÉES DU GOIS": {
+"france": true,
 "qid": "Q3232753",
 "wikipedia": 3
 },
@@ -184,15 +188,18 @@
 "MARS BLEU : MARCHE ET COURSE SOLIDAIRES": null,
 "MY ROSE : COURSE/MARCHE CONTRE LE CANCER DU SEIN": null,
 "Marathon International du Beaujolais": {
+"france": true,
 "qid": "Q3287504",
 "wikipedia": 1
 },
 "Marathon Loudéac Pontivy": null,
 "Marathon Poitiers Futuroscope": {
+"france": true,
 "qid": "Q3287470",
 "wikipedia": 1
 },
 "Marathon de Cheverny": {
+"france": true,
 "qid": "Q3287474",
 "wikipedia": 1
 },
@@ -201,6 +208,7 @@
 "Marathon des Vins de la Côte Chalonnaise": null,
 "Marathon du Printemps d'Arcachon": null,
 "Marathon du vignoble d'Alsace": {
+"france": true,
 "qid": "Q3287503",
 "wikipedia": 1
 },
@@ -208,6 +216,7 @@
 "Miauletou Trail": null,
 "Movember": null,
 "Mud run": {
+"france": false,
 "qid": "Q17145633",
 "wikipedia": 2
 },
@@ -220,6 +229,7 @@
 "Orrygeoise Night": null,
 "PARLER POINTU": null,
 "PONY PONY RUN RUN": {
+"france": false,
 "qid": "Q99199583",
 "wikipedia": 0
 },
@@ -232,10 +242,7 @@
 "Quiz sur les animaux : Médiathèque La Ronde des mots": null,
 "RAID AVENTURE TERRES D'HÉRAULT": null,
 "RONDE DE L'ESTABEL": null,
-"RUN": {
-"qid": "Q63565252",
-"wikipedia": 76
-},
+"RUN": null,
 "Rando et trail pour le Téléthon": null,
 "Rando trail de Noël": null,
 "Rando-Trail Sympa de la Pleine Lune": null,
@@ -246,6 +253,7 @@
 "Ronde du Salbert": null,
 "Royan Beach Trail": null,
 "Run & Bike": {
+"france": false,
 "qid": "Q3453205",
 "wikipedia": 1
 },
