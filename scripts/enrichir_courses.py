@@ -24,8 +24,9 @@ from typing import Callable
 WIKIDATA = "https://www.wikidata.org/w/api.php"
 CARBURANTS = ("https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/"
               "prix-des-carburants-en-france-flux-instantane-v2/records")
-# repli si le service des carburants ne répond pas (moyennes nationales de 2026, à titre indicatif)
-CARBURANTS_REPLI = {"gazole": 1.65, "e10": 1.72, "sp95": 1.78, "source": "valeurs de repli"}
+# repli si le service des carburants ne répond pas (moyennes nationales relevées mi-novembre 2026)
+CARBURANTS_REPLI = {"gazole": 2.16, "e10": 2.0, "sp95": 2.07, "source": "valeurs de repli (novembre 2026)"}
+FRANCE = "Q142"
 
 COURSE = re.compile(r"cours|marath|trail|semi|ultra|race|running|foulee|corrida|cross|run\b|ekiden|skyrace|kilometre vertical",
                     re.I)
@@ -51,9 +52,10 @@ def mots(t: str) -> set[str]:
 
 def choisir_entite(resultats: list[dict], nom: str) -> str | None:
     """Premier élément Wikidata dont la description parle de course à pied et dont le libellé
-    reprend l'essentiel du nom (au moins 60 % des mots significatifs)."""
+    reprend l'essentiel du nom (au moins 60 % des mots significatifs). Un nom d'un seul mot
+    (« Run », « Corrida », « Cross ») désigne un type de course, pas une course : refusé."""
     voulus = mots(nom)
-    if not voulus:
+    if len(voulus) < 2:
         return None
     for r in resultats:
         libelle = r.get("label") or ""
@@ -81,18 +83,27 @@ def notoriete(courses: list[dict], cache: dict, recuperer: Recuperer, max_nouvel
         if q:
             trouves[n] = q
         time.sleep(pause_s)
-    # nombre d'articles Wikipédia, par lots de 50
+    # éléments trouvés autrefois sans contrôle du pays : on les revérifie
+    for n, e in cache.items():
+        if e and "france" not in e:
+            trouves.setdefault(n, e["qid"])
+    # nombre d'articles Wikipédia et pays (P17), par lots de 50 : seule une course située en France
+    # compte (un concept comme « mud run » n'a pas de pays)
     ids = sorted(set(trouves.values()))
     liens: dict[str, int] = {}
+    en_france: set[str] = set()
     for i in range(0, len(ids), 50):
-        j = recuperer(WIKIDATA, {"action": "wbgetentities", "ids": "|".join(ids[i:i + 50]), "props": "sitelinks", "format": "json"})
+        j = recuperer(WIKIDATA, {"action": "wbgetentities", "ids": "|".join(ids[i:i + 50]), "props": "sitelinks|claims", "format": "json"})
         for q, e in ((j or {}).get("entities") or {}).items():
             liens[q] = sum(1 for k in (e.get("sitelinks") or {}) if k.endswith("wiki") and k not in {"commonswiki", "specieswiki"})
+            pays = [c.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for c in (e.get("claims") or {}).get("P17", [])]
+            if FRANCE in pays:
+                en_france.add(q)
     for n, q in trouves.items():
-        cache[n] = {"qid": q, "wikipedia": liens.get(q, 0)}
+        cache[n] = {"qid": q, "wikipedia": liens.get(q, 0), "france": q in en_france} if len(mots(n)) >= 2 else None
     for c in courses:
         e = cache.get(nom_recherche(c["nom"]))
-        if e and e.get("wikipedia", 0) >= 1:
+        if e and e.get("france") and e.get("wikipedia", 0) >= 1:
             c["connue"] = e["wikipedia"]
             c["wikidata"] = e["qid"]
     return cache

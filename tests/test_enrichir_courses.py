@@ -31,7 +31,8 @@ def test_notoriete_et_cache(tmp_path):
             if "Paris" in params["search"]:
                 return {"search": [{"id": "Q1061517", "label": "Marathon de Paris", "description": "marathon annuel à Paris"}]}
             return {"search": []}
-        return {"entities": {"Q1061517": {"sitelinks": {"frwiki": {}, "enwiki": {}, "dewiki": {}, "commonswiki": {}}}}}
+        return {"entities": {"Q1061517": {"sitelinks": {"frwiki": {}, "enwiki": {}, "dewiki": {}, "commonswiki": {}},
+                                          "claims": {"P17": [{"mainsnak": {"datavalue": {"value": {"id": "Q142"}}}}]}}}}
 
     courses = [{"nom": "Marathon de Paris 2027"}, {"nom": "Foulées du bourg"}]
     cache = en.notoriete(courses, {}, faux, pause_s=0)
@@ -47,7 +48,7 @@ def test_notoriete_et_cache(tmp_path):
 def test_prix_carburants_et_repli():
     ok = en.prix_carburants(lambda u, p: {"results": [{"gazole": 1.6123, "e10": 1.7, "sp95": 1.75}]})
     assert ok["gazole"] == 1.612 and "moyenne" in ok["source"]
-    assert en.prix_carburants(lambda u, p: None)["source"] == "valeurs de repli"
+    assert en.prix_carburants(lambda u, p: None)["source"].startswith("valeurs de repli")
 
 
 def test_enrichir_ecrit_cache_et_carburants(tmp_path):
@@ -57,3 +58,20 @@ def test_enrichir_ecrit_cache_et_carburants(tmp_path):
     assert r["connues"] == 0
     assert json.loads((tmp_path / "carburants.json").read_text())["gazole"] == 1.6
     assert (tmp_path / "wikidata_cache.json").exists()
+
+
+def test_noms_generiques_et_hors_de_france_refuses():
+    # « RUN » : un seul mot, c'est un type de course
+    assert en.choisir_entite([{"id": "Q1", "label": "Run", "description": "course à pied"}], "RUN") is None
+
+    def faux(url, params):
+        if params["action"] == "wbsearchentities":
+            return {"search": [{"id": "Q9", "label": "Mud Run", "description": "type de course d'obstacles"}]}
+        return {"entities": {"Q9": {"sitelinks": {"frwiki": {}, "enwiki": {}}, "claims": {}}}}  # pas de pays
+    courses = [{"nom": "Mud Run de Rennes"}]
+    cache = en.notoriete(courses, {}, faux, pause_s=0)
+    assert "connue" not in courses[0]
+    # une ancienne entrée du cache sans contrôle du pays est revérifiée
+    cache = {"Color Run": {"qid": "Q9", "wikipedia": 6}}
+    en.notoriete([{"nom": "Color Run"}], cache, faux, pause_s=0)
+    assert cache["Color Run"]["france"] is False
