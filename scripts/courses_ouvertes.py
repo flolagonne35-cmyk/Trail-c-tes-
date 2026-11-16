@@ -251,6 +251,12 @@ def main(argv=None) -> int:
         rapport["sources"]["OpenAgenda"] = {"erreur": "téléchargement impossible"}
 
     courses = dedoublonner(courses)
+    # notoriété (Wikidata) et prix des carburants du jour : un échec n'empêche pas le calendrier
+    try:
+        from enrichir_courses import enrichir
+        rapport["enrichissement"] = enrichir(courses, Path(args.rapport).parent, Path(args.sortie).parent / "carburants.json")
+    except Exception as e:  # noqa: BLE001
+        rapport["enrichissement"] = {"erreur": str(e)}
     rapport["courses"] = len(courses)
     rapport["statut"] = "ok" if courses else "echec"
     rapport["apercu"] = [f'{c["date"]} {c["nom"]} ({c["commune"]}) {c["distances_km"]} D+{c["dplus_m"]} {c["type"]}' for c in courses[:60]]

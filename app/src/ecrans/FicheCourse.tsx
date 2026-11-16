@@ -14,8 +14,9 @@ import { C, S } from "../theme.ts";
 export const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 48, fontSize: 16, color: C.encre } as const;
 export const jour = (d: string) => new Date(`${d}T12:00:00`);
 
-export function LigneCourse({ c, numero, deja, onAjouter, onPreparer }: {
+export function LigneCourse({ c, numero, deja, onAjouter, onPreparer, onVoyage }: {
   c: CourseProche; numero?: number; deja: boolean; onAjouter: () => void; onPreparer: (km: number | null) => void;
+  onVoyage: () => void;
 }) {
   const d = jour(c.date);
   const plusieurs = c.date !== c.fin;
@@ -29,6 +30,13 @@ export function LigneCourse({ c, numero, deja, onAjouter, onPreparer }: {
         </View>
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
           <Text style={S.fort} numberOfLines={2}>{numero ? `${numero}. ` : ""}{c.nom}</Text>
+          {!!c.connue && (
+            <Text style={{ alignSelf: "flex-start", fontSize: 12, fontWeight: "800", color: "#8A6A00", backgroundColor: "#FBF0C9",
+                           borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, overflow: "hidden" }}
+                  accessibilityLabel={`Course connue : article Wikipédia en ${c.connue} langue${c.connue > 1 ? "s" : ""}`}>
+              ★ {c.connue >= 10 ? "Course de renommée internationale" : "Course connue"}
+            </Text>
+          )}
           <Text style={S.petit} numberOfLines={1}>
             {c.commune}{c.cp ? ` (${c.cp.slice(0, 2)})` : ""} · à {kmLisibles(c.distance_m)}{plusieurs ? ` · jusqu'au ${jour(c.fin).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}` : ""}
           </Text>
@@ -62,6 +70,10 @@ export function LigneCourse({ c, numero, deja, onAjouter, onPreparer }: {
           <Text style={[S.boutonClairTexte, { fontSize: 14 }]}>{deja ? "Dans mes courses ✓" : "Ajouter à mes courses"}</Text>
         </Pressable>
       </View>
+      <Pressable onPress={onVoyage} accessibilityRole="button" accessibilityLabel={`Y aller et dormir : ${c.nom}`}
+                 style={[S.boutonClair, { minHeight: 44 }]}>
+        <Text style={[S.boutonClairTexte, { fontSize: 14 }]}>🚗 Y aller et dormir</Text>
+      </Pressable>
       {!c.distances_km.length && (
         <Pressable onPress={() => onPreparer(null)} accessibilityRole="button" accessibilityLabel={`Préparer ${c.nom}`} hitSlop={6}>
           <Text style={{ fontSize: 13, fontWeight: "700", color: C.montee }}>Préparer cette course (je saisis le format)</Text>

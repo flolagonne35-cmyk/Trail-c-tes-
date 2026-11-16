@@ -152,7 +152,7 @@ dossard, places restantes, notoriété, dates d'inscription, mise à jour chaque
 | Prix du dossard | 🟡 | champ « tarifs » de DATAtourisme avec la **clé API gratuite** (à demander par toi sur datatourisme.fr). Pour l'année précédente, le prix connu reste affiché avec la mention « tarif 2026, à confirmer » |
 | Places restantes | ❌ sans partenariat | seule la plateforme d'inscription le sait, en direct. Possible uniquement avec njuko & co |
 | Dates d'ouverture des inscriptions | 🟡 | partenariat, ou saisie par les organisateurs et les coureurs. Sans date : « inscriptions l'an dernier : à partir du 15 janvier » (calculé sur l'édition précédente) et un bouton « Me prévenir » |
-| Notoriété | ✅ faisable | **Wikidata** (licence CC0, libre) recense les courses connues (UTMB, Templiers, Marathon de Paris…) ; on y ajoute le nombre de partants de l'édition précédente quand il est connu, et le nombre de coureurs de l'appli qui l'ont mise en favori |
+| Notoriété | ✅ fait le 16/11 | **Wikidata** (licence CC0, libre) recense les courses connues (UTMB, Templiers, Marathon de Paris…) ; on y ajoute le nombre de partants de l'édition précédente quand il est connu, et le nombre de coureurs de l'appli qui l'ont mise en favori |
 | Formulaire organisateur | ✅ avec le serveur | un organisateur déclare sa course (dates, prix, lien d'inscription), vérifiée avant publication |
 
 ### 5.2 « Comment y aller » et où dormir

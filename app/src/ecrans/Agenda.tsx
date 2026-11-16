@@ -22,6 +22,7 @@ import { indiceDe, Plage } from "../composants/Plage.tsx";
 import { C, S } from "../theme.ts";
 import agendaBrut from "../../assets/data/courses.json";
 import { champ, ChoixDepartement, jour, LigneCourse } from "./FicheCourse.tsx";
+import { VueVoyage } from "./Voyage.tsx";
 
 export const AGENDA = (agendaBrut as { courses: CourseAVenir[]; date_utc: string }).courses;
 const MAJ = new Date((agendaBrut as { date_utc: string }).date_utc).toLocaleDateString("fr-FR");
@@ -55,6 +56,7 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
   const [filtresOuverts, setFiltresOuverts] = useState(false);
   const [pages, setPages] = useState<Record<string, number>>({});
   const [choisie, setChoisie] = useState<string | null>(null);
+  const [voyage, setVoyage] = useState<CourseProche | null>(null);
   const maj = (g: Partial<FiltresAgenda>) => { setF({ ...f, ...g }); setPages({}); setChoisie(null); };
   const changerZone = (z: Zone) => { setZone(z); setPages({}); setChoisie(null); };
 
@@ -94,7 +96,8 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
                  deja={mesCourses.some((m) => m.id === `agenda-${c.id}` || (m.nom === c.nom && m.date === c.date))}
                  onAjouter={() => ajouter(c)}
                  onPreparer={(k) => onPreparer(k ? { nom: c.distances_km.length > 1 ? `${c.nom} (${String(k).replace(".", ",")} km)` : c.nom,
-                                                    distance_km: k, dplus_m: c.dplus_m ?? 0, date: c.date, site: c.site || undefined } : null, c.nom)} />
+                                                    distance_km: k, dplus_m: c.dplus_m ?? 0, date: c.date, site: c.site || undefined } : null, c.nom)}
+                 onVoyage={() => setVoyage(c)} />
   );
 
   const surCarte = groupes.flatMap((g) => g.courses).slice(0, CARTE_MAX);
@@ -102,6 +105,7 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
   const centreCarte = zone.mode === "autour" || !pointsCarte.length ? depart.position : centreDe(pointsCarte);
   const selection = surCarte.find((c) => c.id === choisie);
 
+  if (voyage) return <VueVoyage course={voyage} depart={depart} onRetour={() => setVoyage(null)} />;
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">

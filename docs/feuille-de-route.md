@@ -32,7 +32,10 @@ et la boutique, l'avatar, la météo, la boussole, les gadgets, et l'ordre de co
 | Feuille du jour J | ✅ Ma course → Jour J : sections, heures de passage, conseils, ravitos, barrières horaires, sac, GPX avec ravitos |
 | Sac à produits | ✅ gels, boisson, compotes, sel… par heure et pour la course, avec le coût |
 | Monde de points | ✅ Mon aventure : chemin animé, défis, badges, boutique de décors ; 🔜 ligues et équipement avec le serveur |
-| Avis, avatar 3D, météo, trajets et logements | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
+| Y aller et dormir | ✅ sur chaque course du calendrier : voiture (itinéraire IGN, coût du carburant du jour, partage à plusieurs), covoiturage (BlaBlaCar pré-rempli), gare la plus proche, logements à 8 km (OpenStreetMap), liens Booking / Airbnb pour la veille |
+| Course connue | ✅ badge « Course connue » / « renommée internationale » d'après Wikipédia (Wikidata, CC0), mis à jour chaque jour |
+| Prix, places, dates d'inscription, toutes les courses | 🔜 clé DATAtourisme et partenariats FFA / plateformes d'inscription (à faire par toi) |
+| Avis, avatar 3D, météo | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
 
 ### Tes demandes (message du 20/10)
 

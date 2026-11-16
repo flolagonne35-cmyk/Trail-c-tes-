@@ -9,6 +9,8 @@ export type CourseAVenir = {
   id: string; nom: string; date: string; fin: string; lat: number; lon: number; commune: string; cp: string;
   distances_km: number[]; dplus_m: number | null; type: "trail" | "route";
   site: string; source: string; auteur: string; maj: string;
+  connue?: number; // nombre d'articles Wikipédia (Wikidata) : course connue du grand public
+  wikidata?: string;
 };
 
 export type FiltresAgenda = {
