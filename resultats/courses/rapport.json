@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-11-16T14:23:01+00:00",
+  "date_utc": "2026-11-16T14:39:41+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 66902,
       "sportifs": 10119,
-      "courses": 321,
+      "courses": 313,
       "exemple_brut": {
         "Nom_du_POI": "Marché traditionnel",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|https://www.datatourisme.fr/ontology/core#SaleEvent|https://www.datatourisme.fr/ontology/core#Market|http://schema.org/Event|http://schema.org/SaleEvent",
@@ -354,6 +354,7 @@
         "Marche sous les étoiles | 88460#Docelles | 2026-11-27<->2026-11-27 | La marche sous les étoiles est un événement organisé par l'association Odile en bonne santé, basée à Docelles. Cette mar",
         "Concours de Belote | 26220#Vesc | 2026-11-21<->2026-11-21 | Concours de Belote à Vesc",
         "La Golénoise Pédestre | 43600#Sainte-Sigolène | 2026-11-29<->2026-11-29 | 40ème randonnée pédestre organisée par le Randonneur Cyclotouriste Golénois. 5 parcours de marches de différentes distan",
+        "Coupe de France de Cyclo-cross | 63500#Issoire | 2026-11-21<->2026-11-22 | Issoire accueille les 3ème et 4ème manches de la coupe de France de cyclo-cross. 1100 coureurs attendus venant de toute ",
         "Atelier - Églomisé sur verre | 60800#Crépy-en-Valois | 2027-07-17<->2027-07-17 | Dorure, transparence et création lumineuse \n\nPlongez dans l'univers raffiné de l'églomisé, une technique précieuse de do",
         "CONCOURS DES BOUTIQUES CSO | 72530#Yvré-l'Évêque | 2026-11-20<->2026-11-22 | BJ33 – CONCOURS DES BOUTIQUES au Pôle Européen du Cheval",
         "BALADE – A LA DÉCOUVERTE DES CHAMPIGNONS | 31120#Lacroix-Falgarde | 2026-11-18<->2026-11-18 | Nous vous proposons de venir en apprendre un peu plus au cours d’une balades sur la Réserve naturelle accompagnée de Mar",
@@ -503,39 +504,36 @@
         "Randonnée au profit du Téléthon | 37220#Avon-les-Roches | 2026-12-06<->2026-12-06 | Dimanche 6 décembre 2026, l'association Avon Patrimoine organise une randonnée de solidarité au profit du Téléthon.\nQuat",
         "Randonn'Haies | 36270#Éguzon-Chantôme | 2026-11-19<->2026-11-19 | Indre Nature propose une balade commentée (boucle de 5 km) sur le bocage local.",
         "Courses hippiques à Pont-Château | 44160#Pontchâteau | 2026-12-20<->2026-12-20 | ",
-        "Concours de belote | 64360#Monein | 2026-11-21<->2026-11-21 | ",
-        "Soupe au fromage et concours de belote | 12500#Espalion | 2026-11-27<->2026-11-27 | Au profit de l'APEL du collège-lycée Immaculée Conception"
+        "Concours de belote | 64360#Monein | 2026-11-21<->2026-11-21 | "
       ]
     },
     "OpenAgenda": {
-      "evenements": 951,
+      "evenements": 952,
       "courses": 25,
       "exemple_brut": {
-        "uid": "71046853",
-        "title_fr": "Centre \"La Presqu'île\" (Giffaumont) - Ligue de l'Enseignement de la Meuse",
-        "firstdate_begin": "2032-01-01T01:00:00+00:00",
-        "lastdate_end": "2032-01-01T03:00:00+00:00",
+        "uid": "70468665",
+        "title_fr": "Marche active",
+        "firstdate_begin": "2026-12-13T09:00:00+00:00",
+        "lastdate_end": "2026-12-13T10:30:00+00:00",
         "location_coordinates": {
-          "lon": 4.776986,
-          "lat": 48.552972
+          "lon": 2.588227,
+          "lat": 48.716073
         },
-        "location_city": "Giffaumont-Champaubert",
-        "location_postalcode": "51290",
-        "canonicalurl": "https://openagenda.com/catalogue-departemental-des-structures-daccueil-et-dhebergement-marne/events/centre-la-presquile-giffaumont-ligue-de-lenseignement-de-la-meuse",
-        "description_fr": "RH",
-        "longdescription_fr": "<h3><a href=\"https://www.youtube.com/watch?v=E1F3oq5J8vo&amp;ab_channel=FOL55FOL55\"><em>Présentation vidéo du centre</em></a></h3>\n<p></p>\n<h2>Histoire : le Lac du Der, un site exceptionnel :</h2>\n<p></p>\n<p>Créé en 1974 pour régulariser le cours de la rivière Marne, il est avec ses 4 800 ha un des plus grands lacs artificiels d'Europe. Il est devenu, au fil des années, le pôle régional majeur du tourisme bleu et vert, et offre en toutes saisons de multiples activités sportives et de loisirs.<br />Classé en Réserve Nationale de Chasse et de Faune Sauvage et géré par l'ONCFS, le Lac du Der a très vite été adopté par une faune riche et diversifiée propice à l’étude de la nature et de l’environnement. Le Lac est devenu un site d’observation ornithologique incontournable, de renommée internationale.</p>\n<p></p>\n<h2>Le centre accueille votre projet de classe de découverte !</h2>\n<p></p>\n<p>Vous souhaitez organiser sur le lac du Der un séjour avec vos élèves autour de l’éducation au développement durable ou axé sur la découverte et la pratiques d’activités sportives et nautiques, notre centre a su exploiter tous les atouts qu’offre le lac. Sa situation permet un accès direct à toutes les installations sportives et aménagements pédagogiques du lac (sentiers et postes d’observation …). Le centre est doté de sa propre école de voile, facilitant la mise en œuvre des activités nautiques mais permettant également de vous faire découvrir de manière plus insolite la biodiversité des berges du lac. Il propose un cadre idéal d’hébergement, de restauration et de salles d’activités, en bordure de lac, propice à la réalisation de votre projet de classe de découverte. Notre équipe a su y développer des animations pédagogiques s’inscrivant pleinement dans une démarche éco-citoyenne puisqu’elle place les élèves au cœur du milieu naturel qui les entoure, les sensibilise et encourage les comportements responsables nécessaires à la préservation de ce milieu.</p>",
-        "originagenda_title": "Catalogue départemental des structures d’accueil et d’hébergement - Marne",
-        "updatedat": "2024-02-23T10:25:19+00:00"
+        "location_city": "Servon",
+        "location_postalcode": "77170",
+        "canonicalurl": "https://openagenda.com/le-millepattes-servonnais/events/marche-active-4264358",
+        "description_fr": "Servon, Santeny, Servon",
+        "longdescription_fr": "<p><strong>Stationnement : départ de la mairie de servon</strong><br><strong>Distance : 8 km - Dénivelé : 85 m - rando R26</strong><br><strong>Responsable : Marc 06 42 19 52 85</strong></p>\n<h3><a href=\"https://www.sitytrail.com/fr/trails/3017789-servon--r-26--8x3-km-x--si-pluie-x-servonx-santenyx-servon-/\"><strong>Découvrir le parcours sur SityTrail</strong></a></h3>",
+        "originagenda_title": "Le millepattes",
+        "updatedat": "2026-10-09T12:53:33+00:00"
       }
     }
   },
   "enrichissement": {
-    "connues": 8,
+    "connues": 6,
     "exemples_connues": [
-      "Coupe de France de Cyclo-cross (2 Wikipédia)",
       "Festival du Cross (1 Wikipédia)",
       "Marathon International du Beaujolais (1 Wikipédia)",
-      "Cyclo cross (1 Wikipédia)",
       "Marathon de Cheverny (1 Wikipédia)",
       "Marathon Poitiers Futuroscope (1 Wikipédia)",
       "Marathon du vignoble d'Alsace (1 Wikipédia)",
@@ -550,14 +548,13 @@
       "date": "2026-11-16"
     }
   },
-  "courses": 341,
+  "courses": 333,
   "statut": "ok",
   "apercu": [
     "2026-11-17 Journée marathon - Les élus à la rencontre des industriels (Caluire-et-Cuire) [42.2] D+None route",
     "2026-11-18 Reco Corrida avec le Café Breton & Run Aventure (Perros-Guirec) [] D+None route",
     "2026-11-21 35ème Foulée eslettoise (Eslettes) [] D+None route",
     "2026-11-21 6ème Rando-Trail Sympa de la Pleine Lune (Jumilhac-le-Grand) [9.0, 13.0] D+None trail",
-    "2026-11-21 Coupe de France de Cyclo-cross (Issoire) [] D+None trail",
     "2026-11-21 Course Les lumières du souvenir (Houssen) [5.2] D+None route",
     "2026-11-21 FOULÉES DE L’EOLIENNE 2026 (Clapiers) [] D+None route",
     "2026-11-21 Festival du Cross (Carhaix-Plouguer) [] D+None trail",
@@ -579,8 +576,6 @@
     "2026-11-22 BLR Trail #3 (Beaumont-le-Roger) [] D+None trail",
     "2026-11-22 Course de la Petite Camargue Alsacienne (Saint-Louis) [] D+None route",
     "2026-11-22 Cross Corpo 53 (Sainte-Suzanne-et-Chammes) [] D+None trail",
-    "2026-11-22 Cyclo Cross de Château-Chinon (Château-Chinon (Ville)) [] D+None trail",
-    "2026-11-22 Cyclo-Cross à Gourdon (Gourdon) [] D+None trail",
     "2026-11-22 La Lissacoise, course et randonnée pédestre (Lissac-et-Mouret) [7.0, 12.0, 22.0] D+None route",
     "2026-11-22 Le Téléthon du Phénix - randonnée ou course (Châteaudun) [] D+None route",
     "2026-11-22 Les Foulées Touquaises (Touques) [7.5, 15.0] D+None route",
@@ -612,7 +607,10 @@
     "2026-11-28 Trail de Senlis 2026 (Senlis) [] D+None trail",
     "2026-11-28 Trail de la Croix Labbé (Hussigny-Godbrange) [11.0, 24.0] D+None trail",
     "2026-11-28 Trail du Chemin des Dames à Chamouille (Chamouille) [12.0, 27.0] D+None trail",
-    "2026-11-28 Trail nocturne de l'Oppidum 2026 à Vermand (Vermand) [8.0, 16.0] D+None trail"
+    "2026-11-28 Trail nocturne de l'Oppidum 2026 à Vermand (Vermand) [8.0, 16.0] D+None trail",
+    "2026-11-28 Urban Trail Saint Saturnin (Argelès-Gazost) [] D+None trail",
+    "2026-11-29 27ème édition du Cross de Morcourt (Morcourt) [] D+None trail",
+    "2026-11-29 43eme Semi-Marathon Lourdes-Tarbes (Lourdes) [12.0, 21.1] D+None route"
   ],
-  "taille_ko": 126
+  "taille_ko": 123
 }
