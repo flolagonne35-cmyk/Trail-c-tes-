@@ -47,7 +47,7 @@ COURSE = re.compile(r"\b(courses?|courir|trail|trails|marathon|semi[- ]marathon|
                     r"obstacles?|\d+ ?km)\b")
 # jamais une course à pied, quel que soit le nom (« Ronde d'échecs », « Course d'orientation »…)
 EXCLU_NOM = re.compile(r"\b(visites?|programme|animations?|station de trail|stages?|initiation|ateliers?|expositions?|"
-                       r"conferences?|projections?|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
+                       r"conferences?|projections?|cyclo.?cross|course d.orientation|course camarguaise|course landaise|courses? hippiques?|"
                        r"course de cote|caisses? a savon|chasse|oeufs|squat|bmx|karting|ecriture|lecture|interim|emploi|danse|"
                        r"tricot|chant|jeux|dessin|photo|hackathon|code|contes?|echecs|belote|coinche|tarot|scrabble|bridge|"
                        r"loto|quine|concours|cours de|yoga|chiens? de traineau|traineaux?|attelage|veilleur|ronde de nuit|"

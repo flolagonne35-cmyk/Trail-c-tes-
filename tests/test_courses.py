@@ -90,3 +90,10 @@ def test_cas_reels_du_rapport():
                ("Table ronde autour du sport féminin", ""), ("La Ronde des Histoires - Manteau blanc", "")]
     assert [n for n, d in gardes if not co.est_course(n, d)] == []
     assert [n for n, d in ecartes if co.est_course(n, d)] == []
+
+
+def test_cyclo_cross_n_est_pas_une_course_a_pied():
+    # le mot « cross » ne suffit pas : le cyclo-cross se court à vélo
+    assert not co.est_course("Coupe de France de Cyclo-cross")
+    assert not co.est_course("Cyclo cross")
+    assert co.est_course("Festival du Cross")
