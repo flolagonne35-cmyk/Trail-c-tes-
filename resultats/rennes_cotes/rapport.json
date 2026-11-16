@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-05T22:18:19+00:00",
+  "date_utc": "2026-11-16T13:56:19+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -38,7 +38,7 @@
     "Côtes trouvées": 7,
     "Tronçons exclus (privés / interdits aux piétons)": 80,
     "Revêtement": "OSM surface : 7",
-    "OpenStreetMap": "ok (14860 voies)",
+    "OpenStreetMap": "ok (14886 voies)",
     "Fond Plan IGN": "ok",
     "Requêtes WFS / altimétrie": "6 / 7"
   },
@@ -134,22 +134,22 @@
       "dplus_m": 11.8,
       "type_voie": "route",
       "revetement": "goudronné",
-      "technicite": "roulant",
+      "technicite": "",
       "nom": "Rue Michelet"
     }
   ],
   "osm": {
     "statut": "ok",
     "url": "https://overpass-api.de/api/interpreter",
-    "nb_voies": 14860,
+    "nb_voies": 14886,
     "valeurs_surface": {
-      "asphalt": 6950,
-      "—": 4157,
-      "paving_stones": 1008,
-      "concrete": 839,
+      "asphalt": 6995,
+      "—": 4117,
+      "paving_stones": 1018,
+      "concrete": 849,
       "compacted": 620,
-      "sett": 335,
-      "fine_gravel": 214,
+      "sett": 336,
+      "fine_gravel": 215,
       "wood": 158,
       "concrete:plates": 122,
       "ground": 91,
@@ -157,10 +157,12 @@
       "dirt": 56,
       "metal": 53,
       "gravel": 51,
-      "paved": 40
+      "paved": 38
     },
-    "erreurs": [],
-    "duree_s": 33.4
+    "erreurs": [
+      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a"
+    ],
+    "duree_s": 43.0
   },
   "fond_erreurs": [],
   "wfs": {
@@ -279,7 +281,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.5
+    "duree_s": 5.3
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -290,7 +292,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 26.7,
+    "duree_s": 36.8,
     "codes_http": {
       "200": 7
     },
