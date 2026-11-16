@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-16T13:37:12+00:00",
+  "date_utc": "2026-11-16T13:54:37+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 66902,
@@ -527,6 +527,35 @@
         "originagenda_title": "Catalogue départemental des structures d’accueil et d’hébergement - Marne",
         "updatedat": "2024-02-23T10:25:19+00:00"
       }
+    }
+  },
+  "enrichissement": {
+    "connues": 16,
+    "exemples_connues": [
+      "Coupe de France de Cyclo-cross (2 Wikipédia)",
+      "Festival du Cross (1 Wikipédia)",
+      "Marathon International du Beaujolais (1 Wikipédia)",
+      "RUN (76 Wikipédia)",
+      "48e Course de l'Escalade (2 Wikipédia)",
+      "Cyclo cross (1 Wikipédia)",
+      "38 ème Corrida (24 Wikipédia)",
+      "Christmas Run (1 Wikipédia)",
+      "Corrida 2027 - 5 ème édition (24 Wikipédia)",
+      "Run & Bike (1 Wikipédia)",
+      "Marathon de Cheverny (1 Wikipédia)",
+      "Marathon Poitiers Futuroscope (1 Wikipédia)",
+      "Mud run (2 Wikipédia)",
+      "Marathon du vignoble d'Alsace (1 Wikipédia)",
+      "LES FOULÉES DU GOIS (3 Wikipédia)",
+      "Color'Run (6 Wikipédia)"
+    ],
+    "cache_wikidata": 331,
+    "carburants": {
+      "gazole": 2.161,
+      "e10": 2.0,
+      "sp95": 2.07,
+      "source": "prix-carburants.gouv.fr (moyenne nationale)",
+      "date": "2026-11-16"
     }
   },
   "courses": 341,
