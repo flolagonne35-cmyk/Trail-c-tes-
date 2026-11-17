@@ -9,7 +9,7 @@ import { coursesAVenir, FILTRES_AGENDA, formatsLisibles } from "../calcul/agenda
 import type { CourseInscrite } from "../calcul/calendrier.ts";
 import { chercherCourses, type CourseCatalogue } from "../calcul/catalogue.ts";
 import {
-  allures, allureTexte, genererPlan, JOURS, kmEffort, lireFormat, meilleurVdot, NIVEAUX, RECORDS, semainesAffutage,
+  allures, allureTexte, faisabilite, genererPlan, JOURS, kmEffort, lireFormat, meilleurVdot, NIVEAUX, RECORDS, semainesAffutage,
   type CleRecord, type CourseCible, type Questionnaire, type Seance,
 } from "../calcul/plan.ts";
 import { lireTemps, tempsLisible } from "../calcul/allures.ts";
@@ -258,6 +258,7 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
   const [ouverte, setOuverte] = useState(enCours);
   const commencePlusTard = plan[0].debut > aujourdhui;
   const pointe = Math.max(...plan.map((s) => s.km_effort));
+  const alerte = useMemo(() => faisabilite(course, questionnaire, plan, allureMinKm), [course, questionnaire, plan, allureMinKm]);
   const longue = Math.max(...plan.flatMap((s) => s.seances.filter((x) => x.type === "longue").map((x) => x.minutes)));
   return (
     <View style={{ marginTop: 12, gap: 10 }}>
@@ -269,6 +270,7 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
             d'ici là, garde ton rythme habituel.
           </Text>
         )}
+        {alerte && <Text style={[S.fort, { color: C.monteeFonce }]} accessibilityRole="alert">⚠ {alerte}</Text>}
         {plan.length < 4 && (
           <Text style={[S.fort, { color: C.montee }]}>Course très proche : plus le temps de construire, on arrive frais.</Text>
         )}
@@ -277,7 +279,7 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
           Pointe à {pointe} km-effort par semaine, sortie la plus longue {heuresMin(longue)}.
         </Text>
         <Text style={S.petit}>
-          Repères : + 10 % par semaine au plus, une semaine allégée sur 4, 80 % du temps en endurance facile, affûtage en réduisant le
+          Repères : + 10 % par semaine au plus (volume et sortie longue), une semaine allégée sur 4, 80 % du temps en endurance facile, affûtage en réduisant le
           volume de 40 à 60 %. km-effort = km + D+/100. Ce plan ne remplace ni un coach ni un avis médical.
         </Text>
         <Pressable onPress={onModifier} accessibilityRole="button" hitSlop={8}>
@@ -327,6 +329,7 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
                     )}
                   </View>
                 ))}
+                <Text style={[S.petit, { color: C.encre }]}>💪 {s.complement}</Text>
               </View>
             )}
           </View>

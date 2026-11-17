@@ -8,7 +8,7 @@ import type { Seance, Semaine } from "./plan.ts";
 
 const s = (titre: string, type: Seance["type"] = "footing"): Seance => ({ type, titre, detail: "", minutes: 45 });
 const semaine = (debut: string, seances: Seance[]): Semaine =>
-  ({ n: 1, debut, phase: "Base", km_effort: 30, km: 28, dplus_m: 200, allegee: false, seances });
+  ({ n: 1, debut, phase: "Base", km_effort: 30, km: 28, dplus_m: 200, allegee: false, complement: "", seances });
 const mercredi = new Date(2026, 9, 21, 9, 0); // mercredi 21 octobre 2026
 const plan = [semaine("2026-10-19", [s("Côtes", "cotes"), s("Longue", "longue"), s("Footing"), s("Repos", "repos")]),
               semaine("2026-10-26", [s("Course", "course")])];

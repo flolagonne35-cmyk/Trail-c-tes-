@@ -113,3 +113,41 @@ test("après une blessure, le volume monte plus doucement", async () => {
   const blesse = genererPlan(c, { ...base, blessure: true }, 6, new Date(2026, 10, 5));
   assert.ok(blesse[0].km_effort < sain[0].km_effort);
 });
+
+test("sortie longue : part de ma plus longue sortie récente et monte de 10 % par semaine au plus", async () => {
+  const { genererPlan, faisabilite } = await import("./plan.ts");
+  const base = { niveau: "intermediaire" as const, seances: 4, volume_km: 60, plus_longue_km: 10, objectif: "finir" as const };
+  const course = { nom: "Trail 50", distance_km: 50, dplus_m: 2500, date: "2027-05-30" };
+  const plan = genererPlan(course, base, 6, new Date(2026, 10, 16));
+  const longues = plan.filter((s) => s.phase === "Base" || s.phase === "Spécifique")
+    .map((s) => ({ m: s.seances.find((x) => x.type === "longue")!.minutes, allegee: s.allegee }));
+  // 10 km à 6 min/km = 60 min : la première sortie longue ne dépasse pas 60 × 1,1 (arrondi à 5 min)
+  assert.ok(longues[0].m <= 70, `première sortie longue ${longues[0].m} min`);
+  let max = longues[0].m;
+  for (const l of longues.slice(1)) {
+    assert.ok(l.m <= Math.ceil(max * 1.1 / 5) * 5 + 5, `${max} → ${l.m}`);
+    max = Math.max(max, l.m);
+  }
+  assert.ok(max >= 180, `la sortie longue finit par monter (${max} min)`);
+  assert.equal(faisabilite(course, base, plan, 6), null);
+  assert.match(plan[0].complement, /Renforcement 2 × 20 min/);
+  // même course dans 5 semaines : préparation trop courte, on le dit
+  const court = genererPlan({ ...course, date: "2026-12-20" }, base, 6, new Date(2026, 10, 16));
+  assert.match(faisabilite({ ...course, date: "2026-12-20" }, base, court, 6)!, /Préparation courte/);
+});
+
+test("une séance clé manquée se rattrape un jour libre, pas un footing", async () => {
+  const { seanceDuJour } = await import("./jour.ts");
+  const semaine = { n: 1, debut: "2026-11-16", phase: "Base" as const, km_effort: 30, km: 28, dplus_m: 200, allegee: false, complement: "",
+                    seances: [{ type: "cotes" as const, titre: "Côtes", detail: "", minutes: 60, jour: 1 },
+                              { type: "footing" as const, titre: "Footing", detail: "", minutes: 40, jour: 3 },
+                              { type: "longue" as const, titre: "Longue", detail: "", minutes: 90, jour: 6 }] };
+  const mercredi = new Date(2026, 10, 18, 9);
+  const r = seanceDuJour([semaine], 0, "Trail", "2027-04-18", mercredi);
+  assert.equal(r.cas, "rattrapage");
+  assert.equal(r.cas === "rattrapage" && r.seance.titre, "Côtes");
+  // déjà faite : simple repos
+  assert.equal(seanceDuJour([semaine], 1, "Trail", "2027-04-18", mercredi).cas, "repos");
+  // samedi, veille de la sortie longue : on ne rattrape pas
+  assert.equal(seanceDuJour([semaine], 0, "Trail", "2027-04-18", new Date(2026, 10, 21, 9)).cas, "repos");
+});

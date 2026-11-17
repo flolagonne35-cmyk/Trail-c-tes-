@@ -23,7 +23,8 @@ export type SeanceDuJour =
   | { cas: "fini" } // course passée
   | { cas: "seance"; seance: Seance; rang: number; total: number; semaine: Semaine }
   | { cas: "semaine_faite"; semaine: Semaine }
-  | { cas: "repos"; prochaine: Seance | null; semaine: Semaine }; // jours fixés : rien de prévu aujourd'hui
+  | { cas: "repos"; prochaine: Seance | null; semaine: Semaine } // jours fixés : rien de prévu aujourd'hui
+  | { cas: "rattrapage"; seance: Seance; jourPrevu: number; semaine: Semaine }; // séance clé manquée, faisable aujourd'hui
 
 /**
  * Séance proposée aujourd'hui : la prochaine séance de la semaine du plan qui n'est pas encore
@@ -43,6 +44,13 @@ export function seanceDuJour(plan: Semaine[] | null, faites: number, nomCourse: 
     const j = (aujourdHui.getDay() + 6) % 7;
     const ici = aFaire.findIndex((s) => s.jour === j);
     if (ici >= 0) return { cas: "seance", seance: aFaire[ici], rang: ici + 1, total: aFaire.length, semaine };
+    // le plan s'adapte : une séance clé manquée (sortie longue, séance dure) se rattrape un jour libre,
+    // si demain n'est pas déjà une séance clé. Un footing manqué ne se rattrape pas.
+    const cle = (s: Seance) => s.type !== "footing";
+    const passees = aFaire.filter((s) => s.jour! < j);
+    const demainCle = aFaire.some((s) => s.jour === j + 1 && cle(s));
+    const manquee = faites < passees.length ? passees.filter(cle).at(-1) : undefined;
+    if (manquee && !demainCle) return { cas: "rattrapage", seance: manquee, jourPrevu: manquee.jour!, semaine };
     return { cas: "repos", prochaine: aFaire.find((s) => s.jour! > j) ?? null, semaine };
   }
   if (faites >= aFaire.length) return { cas: "semaine_faite", semaine };

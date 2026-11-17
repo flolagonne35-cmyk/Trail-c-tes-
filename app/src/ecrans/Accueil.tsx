@@ -95,7 +95,13 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
   }
   const x = r.seance;
   return (
-    <Carte titre={`Séance du jour · ${r.rang}/${r.total} de la semaine`}>
+    <Carte titre={r.cas === "rattrapage" ? "Séance à rattraper" : `Séance du jour · ${r.rang}/${r.total} de la semaine`}>
+      {r.cas === "rattrapage" && (
+        <Text style={[S.petit, { fontSize: 14, color: C.monteeFonce }]}>
+          Prévue {JOURS[r.jourPrevu].toLowerCase()} et pas encore faite : tu peux la faire aujourd'hui. Si tu es fatigué, laisse-la :
+          une séance manquée ne se paie pas, une séance forcée si.
+        </Text>
+      )}
       <Text style={[S.h2, { fontSize: 20 }]}>{x.titre}</Text>
       <Text style={[S.petit, { color: C.encre, fontSize: 14 }]}>{x.detail}</Text>
       <Text style={S.petit}>≈ {x.minutes} min · semaine {r.semaine.n} · {r.semaine.phase.toLowerCase()} · objectif {cible?.nom}</Text>

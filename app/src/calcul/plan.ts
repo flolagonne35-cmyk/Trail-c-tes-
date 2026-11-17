@@ -8,7 +8,12 @@
 // - environ 80 % du temps en endurance facile, 20 % en séances dures (Seiler 2010) ;
 // - affûtage : volume réduit de 40 à 60 % sur 1 à 3 semaines, intensité et fréquence gardées
 //   (Bosquet et al. 2007 ; Wang et al. 2023, méta-analyses) ;
-// - spécificité : la part de dénivelé de l'entraînement rejoint peu à peu celle de la course.
+// - spécificité : la part de dénivelé de l'entraînement rejoint peu à peu celle de la course ;
+// - sortie longue : jamais plus de 10 % au-dessus de la plus longue sortie des 30 derniers jours.
+//   Une séance qui dépasse ce seuil augmente nettement le risque de blessure (Schuster Frandsen,
+//   Nielsen et al. 2025, Br J Sports Med, 5 200 coureurs) ;
+// - renforcement : deux courtes séances par semaine ; le renforcement musculaire réduit les
+//   blessures de surcharge de près de moitié (Lauersen et al. 2014, Br J Sports Med, méta-analyse).
 
 export type Niveau = "debutant" | "intermediaire" | "confirme";
 export type ObjectifCourse = "finir" | "performance";
@@ -98,6 +103,8 @@ export type Semaine = {
   dplus_m: number;
   allegee: boolean;
   seances: Seance[];
+  /** complément hors course à pied (renforcement), à caser les jours sans séance dure */
+  complement: string;
 };
 
 export const NIVEAUX: [Niveau, string, string][] = [
@@ -165,6 +172,9 @@ export function genererPlan(course: CourseCible, q: Questionnaire, allureMinKm =
   const fin = volumes.length ? Math.max(...volumes.map((x) => x.v)) : depart;
   const base = Math.ceil(construction * 0.45);
   const semaines: Semaine[] = [];
+  // plafond de la sortie longue (minutes) : part de ma plus longue sortie récente (au moins 45 min),
+  // + 10 % par semaine pleine (+ 5 % après une blessure), sans hausse en semaine allégée
+  let plafondLongue = Math.max(45, q.plus_longue_km * allureMinKm) * hausse;
   // le plan finit la semaine de la course : il commence plus tard si la course est loin
   const debut = new Date(lundi(aujourdHui).getTime() + Math.max(0, semainesAvant(course.date, aujourdHui) - n) * 7 * 86400000);
   const ajouter = (phase: Phase, ke: number, allegee: boolean, i: number) => {
@@ -172,12 +182,15 @@ export function genererPlan(course: CourseCible, q: Questionnaire, allureMinKm =
     const progres = Math.min(1, i / Math.max(1, construction - 1));
     const part = ratioDplus * (0.4 + 0.6 * progres);
     const lundiSemaine = new Date(debut.getTime() + i * 7 * 86400000);
-    const seances = placerJours(seancesSemaine(phase, ke, ke * part * 100, course, q, allureMinKm, allegee), q, phase);
+    const seances = placerJours(seancesSemaine(phase, ke, ke * part * 100, course, q, allureMinKm, allegee, plafondLongue, i % 2 === 1), q, phase);
+    const longue = seances.find((x) => x.type === "longue");
+    // la semaine suivante part de ce qui a vraiment été couru cette semaine
+    if (longue && !allegee && phase !== "Affûtage") plafondLongue = Math.max(plafondLongue, longue.minutes) * (longue.minutes >= plafondLongue - 5 ? hausse : 1);
     // volume réel de la semaine : la somme des séances (les footings sont plafonnés)
     const keReel = seances.filter((x) => x.type !== "course").reduce((t, x) => t + x.minutes, 0) / allureMinKm;
     const dplus = Math.round(keReel * part * 100);
     semaines.push({ n: i + 1, debut: iso(lundiSemaine), phase, km_effort: Math.round(keReel), km: Math.round(keReel - dplus / 100),
-                    dplus_m: dplus, allegee, seances });
+                    dplus_m: dplus, allegee, seances, complement: complementDe(phase, course) });
   };
   volumes.forEach((x, i) => ajouter(i < base ? "Base" : "Spécifique", x.v, x.allegee, i));
   for (let k = 0; k < affutage; k++) {
@@ -191,8 +204,17 @@ export function genererPlan(course: CourseCible, q: Questionnaire, allureMinKm =
 
 const minutesDe = (kmE: number, allure: number) => Math.round((kmE * allure) / 5) * 5;
 
+/** Renforcement de la semaine, selon la phase et le relief de la course. */
+function complementDe(phase: Phase, course: CourseCible): string {
+  if (phase === "Course") return "Pas de renforcement cette semaine : repos, sommeil, hydratation.";
+  if (phase === "Affûtage") return "Renforcement léger 1 × 15 min (gainage, mobilité) : on entretient sans fatiguer.";
+  const descente = course.dplus_m / Math.max(course.distance_km, 1) >= 25;
+  return `Renforcement 2 × 20 min, les jours sans séance dure : gainage, fentes, montées sur pointes (mollets)${descente
+    ? ", et squats lents à la descente (excentrique) pour protéger les quadriceps en descente" : ""}.`;
+}
+
 function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseCible, q: Questionnaire,
-                        allure: number, allegee: boolean): Seance[] {
+                        allure: number, allegee: boolean, plafondRecent = Infinity, alterner = false): Seance[] {
   const eCourse = kmEffort(course.distance_km, course.dplus_m);
   const raide = course.dplus_m / Math.max(course.distance_km, 1) >= 25; // ≥ 25 m de D+ par km : course montagneuse
   const res: Seance[] = [];
@@ -207,7 +229,8 @@ function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseC
   const plafondLongue = eCourse > 60 ? 300 : eCourse > 30 ? 210 : Math.max(70, eCourse * allure * 1.1);
   // en ultra, la sortie longue pèse plus lourd (habituer le corps aux longues heures)
   const longueKe = ke * (phase === "Affûtage" ? 0.25 : phase === "Spécifique" && eCourse > 60 ? 0.4 : 0.32);
-  const longueMin = Math.min(plafondLongue, minutesDe(longueKe, allure));
+  // … et jamais plus de 10 % au-dessus de ma plus longue sortie récente (plafondRecent)
+  const longueMin = Math.max(30, Math.round(Math.min(plafondLongue, minutesDe(longueKe, allure), plafondRecent) / 5) * 5);
   res.push({ type: "longue", titre: `Sortie longue ${heures(longueMin)}`,
              detail: phase === "Spécifique" && course.dplus_m > 300
                ? `Sur un terrain proche de la course : ≈ ${Math.round((longueMin / allure))} km, ≈ ${Math.round(dplus * 0.45)} m D+ ; teste ta nutrition`
@@ -216,8 +239,10 @@ function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseC
              sortie: { km: Math.max(5, Math.round(longueMin / allure)), relief: course.dplus_m > 300 && phase !== "Base" ? "cotes" : course.dplus_m > 300 ? "vallonne" : "plat",
                        // le D+ annoncé dans le détail de la séance : les parcours proposés le visent
                        ...(phase === "Spécifique" && course.dplus_m > 300 ? { dplus_m: Math.round(dplus * 0.45) } : {}) } });
-  // séances dures : 1 en base et en semaine allégée, 2 en spécifique si au moins 4 séances
-  const dures = allegee || phase === "Base" || q.seances < 4 || q.niveau === "debutant" ? 1 : 2;
+  // séances dures : 1 en base et en semaine allégée ; 2 en spécifique seulement avec 5 séances ou plus
+  // (ou 4 pour un coureur confirmé) : au-delà d'une séance dure sur trois, on sort de la règle des 80/20
+  const assez = q.seances >= 5 || (q.seances === 4 && q.niveau === "confirme");
+  const dures = allegee || phase === "Base" || !assez || q.niveau === "debutant" ? 1 : 2;
   const qualite: Seance[] = [];
   if (phase === "Base") {
     qualite.push(course.dplus_m > 150
@@ -246,6 +271,9 @@ function seancesSemaine(phase: Phase, ke: number, dplus: number, course: CourseC
         : " — sans descente près de chez toi : escaliers en descente, ou renforcement (fentes, squats excentriques)";
     }
   }
+  // une seule séance dure par semaine : on alterne les deux d'une semaine sur l'autre (côtes puis
+  // descentes, seuil puis allure course), pour que chaque qualité soit travaillée
+  if (dures === 1 && alterner && qualite.length > 1) qualite.reverse();
   res.push(...qualite.slice(0, dures));
   // le reste en footing facile (la règle des 80/20), jamais plus long que la sortie longue
   const restant = Math.max(0, q.seances - res.length);
@@ -289,6 +317,26 @@ export function placerJours(seances: Seance[], q: Questionnaire, phase: Phase): 
   }
   // séances sans jour (plus de séances que de jours) : retirées, mieux vaut moins que trop serré
   return resultat.filter((x) => x.jour !== undefined).sort((a, b) => a.jour! - b.jour!);
+}
+
+/**
+ * Le plan suffit-il pour la course ? Renvoie un avertissement quand il manque trop de semaines :
+ * volume de pointe atteint à moins de 75 % du volume conseillé, ou sortie la plus longue trop
+ * courte par rapport à la durée de la course (moins d'un tiers en ultra, de la moitié sinon).
+ */
+export function faisabilite(course: CourseCible, q: Questionnaire, plan: Semaine[], allureMinKm = 6): string | null {
+  const pointe = volumePointe(course, q);
+  const atteint = Math.max(...plan.map((s) => s.km_effort));
+  const longue = Math.max(0, ...plan.flatMap((s) => s.seances.filter((x) => x.type === "longue").map((x) => x.minutes)));
+  const dureeCourse = kmEffort(course.distance_km, course.dplus_m) * allureMinKm;
+  const partVoulue = dureeCourse > 360 ? 1 / 3 : 0.5;
+  // au-delà de 3 h 30 de sortie longue, on ne demande pas plus, quelle que soit la course
+  const longueCourte = longue < Math.min(dureeCourse * partVoulue, 210) - 10;
+  if (atteint >= pointe * 0.75 && !longueCourte) return null;
+  const manque = longueCourte ? `ta plus longue sortie sera de ${heures(longue)} pour une course d'environ ${heures(Math.round(dureeCourse / 5) * 5)}`
+    : `tu atteindras ${atteint} km-effort par semaine sur les ${pointe} conseillés`;
+  return `Préparation courte pour cette course : ${manque}. On ne rattrape pas le temps en forçant : `
+    + "vise de finir sans chrono, choisis un format plus court, ou une course plus tardive.";
 }
 
 function heures(min: number): string {
