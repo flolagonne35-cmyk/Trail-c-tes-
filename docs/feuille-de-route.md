@@ -1,6 +1,6 @@
 # Feuille de route — de la maquette à une vraie application
 
-Mise à jour : 05/11/2026. Trois parties : **ce que l'appli fait déjà**, **ce que tu dois faire
+Mise à jour : 17/11/2026. Trois parties : **ce que l'appli fait déjà**, **ce que tu dois faire
 toi-même** (personne ne peut le faire à ta place : comptes, argent, juridique), et **ce qu'il
 reste à construire**, par étapes.
 
@@ -36,6 +36,43 @@ et la boutique, l'avatar, la météo, la boussole, les gadgets, et l'ordre de co
 | Course connue | ✅ badge « Course connue » / « renommée internationale » d'après Wikipédia (Wikidata, CC0), mis à jour chaque jour |
 | Prix, places, dates d'inscription, toutes les courses | 🔜 clé DATAtourisme et partenariats FFA / plateformes d'inscription (à faire par toi) |
 | Avis, avatar 3D, météo | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
+
+### Coach IA (17/11) — à activer par toi
+
+Le coach est construit : **Programme → Coach**. Il connaît la course visée, le programme de la
+semaine et les records, et répond en quelques phrases. Tant que la clé n'est pas posée, il affiche
+« Le coach n'est pas encore activé ». Pour l'activer :
+
+1. **Compte développeur Anthropic** : console.anthropic.com → créer le compte, ajouter un moyen de
+   paiement, puis *API keys* → créer une clé.
+2. **Plafond de dépense, tout de suite** : dans la console Anthropic, *Limits* → fixer une limite
+   mensuelle (par exemple 20 €). C'est le seul vrai garde-fou tant qu'il n'y a pas de comptes
+   utilisateurs : n'importe qui peut écrire au coach.
+3. **Poser la clé sur Cloudflare** : dash.cloudflare.com → Workers & Pages → projet `trail-cotes`
+   → Settings → Variables and Secrets → *Add* → type **Secret**, nom `ANTHROPIC_API_KEY`, la clé en
+   valeur (environnement Production). Puis relancer le workflow « Appli web en ligne ».
+4. **Conseillé** : limiter à 40 messages par jour et par adresse. Cloudflare → Storage & Databases
+   → KV → créer un espace `trail-cotes-limites`, puis dans le projet Pages → Settings → Bindings →
+   *Add* → KV namespace, nom de variable `LIMITES`.
+5. **Facultatif, pour diviser le coût par deux** : variable `COACH_MODELE` = `claude-opus-5-5`
+   (par défaut `claude-fable-5-2`, le plus capable).
+
+Coût indicatif avec Fable 5.2 : 3 à 5 centimes de dollar par question (8 $ par million de jetons
+en entrée, 40 $ en sortie). 100 coureurs qui posent 5 questions par semaine ≈ 60 à 100 $ par mois ;
+moitié moins avec Opus 5.5.
+
+Juridique : la politique de confidentialité (`docs/confidentialite.md`) décrit le coach (envoi à
+Anthropic, États-Unis, accord préalable). À faire relire avec le reste avant les stores.
+
+### Programme relu (17/11)
+
+| Défaut trouvé | Correction |
+|---|---|
+| La « plus longue sortie récente » du questionnaire n'était pas utilisée | la sortie longue en part et monte de 10 % par semaine au plus (5 % après une blessure) |
+| Aucune alerte quand la course est trop proche | avertissement « Préparation courte » avec ce qu'il manque |
+| Une séance manquée était perdue | une séance clé manquée est proposée un jour libre (jamais la veille d'une autre séance clé) |
+| Deux séances dures sur quatre | deux séances dures seulement à partir de 5 séances par semaine (4 pour un confirmé) ; sinon côtes et descentes en alternance |
+| Pas de renforcement | renforcement de la semaine indiqué sous les séances |
 
 ### Tes demandes (message du 20/10)
 

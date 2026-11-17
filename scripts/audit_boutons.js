@@ -41,6 +41,8 @@ const ECRANS = {
     await p.getByRole("button", { name: "Préparer ma sortie" }).click(); await attendre(p, 3000);
   },
   "Programme · Séance": async (p) => { await ECRANS["Programme (vide)"](p); await p.getByRole("tab", { name: "Séance" }).click(); await attendre(p, 1200); },
+  "Programme · Coach (accord)": async (p) => { await ECRANS["Programme (vide)"](p); await p.getByRole("tab", { name: "Coach" }).click(); },
+  "Programme · Coach": async (p) => { await ECRANS["Programme · Coach (accord)"](p); await p.getByRole("button", { name: "J'ai compris, parler au coach" }).click(); },
   "Courses · Calendrier": async (p) => { await p.getByRole("tab", { name: "Courses" }).click(); await p.waitForTimeout(800); },
   "Courses · Ma saison": async (p) => { await ECRANS["Courses · Calendrier"](p); await p.getByRole("tab", { name: "Ma saison" }).click(); },
   "Courses · Ma saison · Formulaire": async (p) => { await ECRANS["Courses · Ma saison"](p); await p.getByRole("button", { name: "Ajouter une course" }).click(); },

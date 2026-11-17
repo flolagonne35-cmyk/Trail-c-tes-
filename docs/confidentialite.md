@@ -26,9 +26,30 @@ compte ni identifiant :
 | Tu importes le GPX d'une course | les points du parcours | obtenir les altitudes IGN |
 
 La recherche de **villes** et le calcul des **boucles**, des **séances** et de la **nutrition** se
-font sur le téléphone, sans rien envoyer. Les **sorties** que tu importes ne sont jamais envoyées.
+font sur le téléphone, sans rien envoyer (hors coach, voir plus bas). Les **sorties** que tu importes ne sont jamais envoyées.
 
 Conditions de l'IGN : cartes.gouv.fr (mentions légales et données personnelles de la Géoplateforme).
+
+## Le coach (intelligence artificielle)
+
+Le coach est facultatif. Rien n'est envoyé tant que tu n'as pas donné ton accord sur son écran.
+Quand tu lui écris, l'application envoie à **Anthropic** (société américaine, modèle Claude), par
+l'intermédiaire de notre serveur (Cloudflare) :
+
+- tes messages et les réponses précédentes de la conversation ;
+- un résumé de ton entraînement : course visée, niveau déclaré, records, jours et programme de la
+  semaine, nombre de sorties depuis lundi. Tu peux lire ce résumé mot pour mot sur l'écran du coach.
+
+Ne sont **jamais** envoyés : ton prénom, ta position, tes traces GPS, ta fréquence cardiaque.
+
+Anthropic traite ces données aux **États-Unis** (transfert hors Union européenne, encadré par les
+clauses contractuelles types de ses conditions commerciales), les conserve en principe 30 jours et
+ne les utilise pas pour entraîner ses modèles. Notre serveur ne garde pas les conversations ; avec
+la limite d'usage, il garde un jour ou deux un compteur de messages par adresse IP. La conversation
+est gardée sur ton téléphone : « Effacer la conversation » ou « Retirer mon accord » la supprime.
+
+N'écris pas d'informations médicales précises au coach. Ses réponses peuvent être fausses et ne
+remplacent pas un médecin.
 
 ## Localisation
 

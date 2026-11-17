@@ -34,6 +34,7 @@ import { EcranDetail } from "./src/ecrans/Detail.tsx";
 import { EcranEntrainement } from "./src/ecrans/Entrainement.tsx";
 import { EcranProgramme } from "./src/ecrans/Programme.tsx";
 import { EcranAventure } from "./src/ecrans/Aventure.tsx";
+import { EcranCoach } from "./src/ecrans/Coach.tsx";
 import { JOURJ_DEFAUT, type ReglagesJourJ } from "./src/ecrans/JourJ.tsx";
 import { EcranAgenda } from "./src/ecrans/Agenda.tsx";
 import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
@@ -55,7 +56,7 @@ const TITRES: Record<Page, string> = {
   accueil: "Aujourd'hui", cotes: "Explorer", programme: "Programme", courses: "Courses", monde: "Mon monde",
   sources: "Données",
 };
-const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon programme"], ["sorties", "Sorties"], ["seance", "Séance"]];
+const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon plan"], ["sorties", "Sorties"], ["seance", "Séance"], ["coach", "Coach"]];
 const SOUS_COURSES: [ModeCourses, string][] = [["calendrier", "Calendrier"], ["saison", "Ma saison"], ["course", "Ma course"]];
 const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Mon aventure"], ["coureur", "Mon coureur"], ["progres", "Mes progrès"]];
 
@@ -153,7 +154,7 @@ function Contenu() {
   // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
-    const autour = page === "cotes" || (page === "programme" && modeProgramme !== "programme") || (page === "courses" && modeCourses === "calendrier");
+    const autour = page === "cotes" || (page === "programme" && (modeProgramme === "sorties" || modeProgramme === "seance")) || (page === "courses" && modeCourses === "calendrier");
     if (autour && !dejaLocalise.current && depart === DEPART_DEFAUT) {
       dejaLocalise.current = true;
       localiser();
@@ -247,6 +248,8 @@ function Contenu() {
                             questionnaire={monPlan.questionnaire} setQuestionnaire={(questionnaire) => majPlan({ questionnaire })}
                             parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                             mesCourses={courses} modele={modele} allurePlat={ALLURE_PLAT_MIN_KM} onSeance={versSeance} onSortie={versSortie} />;
+  } else if (page === "programme" && modeProgramme === "coach") {
+    ecran = <EcranCoach profil={profil} monPlan={monPlan} allurePlat={ALLURE_PLAT_MIN_KM} />;
   } else if (page === "programme" || (page === "monde" && modeMonde === "progres")) {
     ecran = <EcranEntrainement {...commun} mode={page === "monde" ? "progres" : modeProgramme === "sorties" ? "boucle" : "seance"}
                                filtres={filtres} activites={profil.activites} modele={modele}
