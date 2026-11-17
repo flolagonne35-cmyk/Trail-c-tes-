@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createServer } from "node:http";
 import test from "node:test";
 
 import { contexteCoureur, LIMITES, messagesPourModele, validerDemande } from "./coach.ts";
@@ -39,50 +38,43 @@ test("résumé du coureur : programme et allures, sans prénom ni position", () 
   assert.match(m[0].content, /^<resume_du_coureur>[\s\S]+<\/resume_du_coureur>\n\nMa séance \?$/);
 });
 
-// Fonction serveur de bout en bout, face à un faux serveur Anthropic local (aucun appel réel).
-test("fonction /api/coach : sans clé 503, demande invalide 400, réponse du modèle relayée", async () => {
-  const { onRequestPost } = await import("../../functions/api/coach.ts");
+// Fonction serveur de bout en bout, avec un faux Workers AI (aucun appel réel).
+test("fonction /api/coach : sans IA 503 avec repli, demande invalide 400, réponse relayée, modèle de secours", async () => {
+  const { onRequestPost, texteDe, MODELES } = await import("../../functions/api/coach.ts");
   const demande = (corps: unknown) => new Request("https://exemple.test/api/coach", { method: "POST", body: JSON.stringify(corps) });
   const bonne = { contexte: "Course visée : test.", messages: [{ role: "user", content: "Ma séance ?" }] };
-  assert.equal((await onRequestPost({ request: demande(bonne), env: {} })).status, 503);
-  assert.equal((await onRequestPost({ request: demande({ messages: [] }), env: { ANTHROPIC_API_KEY: "cle-de-test" } })).status, 400);
 
-  let recu: { url?: string; beta?: string; corps?: Record<string, unknown> } = {};
-  const sse = (type: string, data: object) => `event: ${type}\ndata: ${JSON.stringify({ type, ...data })}\n\n`;
-  const serveur = createServer((req, res) => {
-    let brut = "";
-    req.on("data", (c) => { brut += c; });
-    req.on("end", () => {
-      recu = { url: req.url, beta: String(req.headers["anthropic-beta"]), corps: JSON.parse(brut) };
-      res.writeHead(200, { "Content-Type": "text/event-stream" });
-      res.end(sse("message_start", { message: { id: "msg_1", type: "message", role: "assistant", model: "claude-fable-5-2", content: [],
-                                                 stop_reason: null, stop_sequence: null, usage: { input_tokens: 10, output_tokens: 0 } } })
-        + sse("content_block_start", { index: 0, content_block: { type: "text", text: "" } })
-        + sse("content_block_delta", { index: 0, delta: { type: "text_delta", text: "Footing de 40 min, tranquille." } })
-        + sse("content_block_stop", { index: 0 })
-        + sse("message_delta", { delta: { stop_reason: "end_turn", stop_sequence: null }, usage: { output_tokens: 9 } })
-        + sse("message_stop", {}));
-    });
+  const sans = await onRequestPost({ request: demande(bonne), env: {} });
+  assert.equal(sans.status, 503);
+  assert.equal(((await sans.json()) as { repli: boolean }).repli, true);
+
+  const appels: { modele: string; entree: Record<string, unknown> }[] = [];
+  const ia = (reponses: Record<string, unknown>) => ({
+    run: async (modele: string, entree: Record<string, unknown>) => {
+      appels.push({ modele, entree });
+      const r = reponses[modele];
+      if (r instanceof Error) throw r;
+      return r;
+    },
   });
-  await new Promise<void>((ok) => serveur.listen(0, "127.0.0.1", ok));
-  const port = (serveur.address() as { port: number }).port;
-  const avant = process.env.ANTHROPIC_BASE_URL;
-  process.env.ANTHROPIC_BASE_URL = `http://127.0.0.1:${port}`;
-  try {
-    const r = await onRequestPost({ request: demande(bonne), env: { ANTHROPIC_API_KEY: "cle-de-test" } });
-    assert.equal(r.status, 200);
-    assert.deepEqual(await r.json(), { texte: "Footing de 40 min, tranquille.", coupe: false });
-    // ce qui est parti vers l'API : modèle, repli en cas de refus, effort, consignes, résumé devant la question
-    assert.match(recu.url!, /\/v1\/messages/);
-    assert.match(recu.beta!, /server-side-fallback-2026-07-01/);
-    assert.equal(recu.corps!.model, "claude-fable-5-2");
-    assert.equal(recu.corps!.fallbacks, "default");
-    assert.deepEqual(recu.corps!.output_config, { effort: "low" });
-    assert.equal(recu.corps!.thinking, undefined); // réflexion toujours active sur Fable : paramètre omis
-    assert.match(String(recu.corps!.system), /coach de l'application Trail-côtes/);
-    assert.match(JSON.stringify(recu.corps!.messages), /resume_du_coureur/);
-  } finally {
-    if (avant === undefined) delete process.env.ANTHROPIC_BASE_URL; else process.env.ANTHROPIC_BASE_URL = avant;
-    serveur.close();
-  }
+  assert.equal((await onRequestPost({ request: demande({ messages: [] }), env: { AI: ia({}) } })).status, 400);
+
+  // premier modèle : réponse au format historique { response }
+  const r = await onRequestPost({ request: demande(bonne), env: { AI: ia({ [MODELES[0]]: { response: " Footing de 40 min. " } }) } });
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), { texte: "Footing de 40 min.", modele: MODELES[0] });
+  const messages = appels.at(-1)!.entree.messages as { role: string; content: string }[];
+  assert.equal(messages[0].role, "system");
+  assert.match(messages[0].content, /coach de l'application Trail-côtes/);
+  assert.match(messages[1].content, /resume_du_coureur/);
+
+  // premier modèle en panne (quota, saturation) : le second répond, au format { choices }
+  const s = await onRequestPost({ request: demande(bonne), env: { AI: ia({
+    [MODELES[0]]: new Error("3040: out of capacity"), [MODELES[1]]: { choices: [{ message: { content: "Repos aujourd'hui." } }] } }) } });
+  assert.deepEqual(await s.json(), { texte: "Repos aujourd'hui.", modele: MODELES[1] });
+
+  // tout en panne (quota gratuit du jour épuisé) : 503 avec repli, l'appli répond avec son coach intégré
+  const t = await onRequestPost({ request: demande(bonne), env: { AI: ia({ [MODELES[0]]: new Error("quota"), [MODELES[1]]: new Error("quota") }) } });
+  assert.equal(t.status, 503);
+  assert.equal(texteDe({ response: 12 }), "");
 });

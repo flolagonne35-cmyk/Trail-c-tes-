@@ -1,0 +1,9 @@
+# Configuration Cloudflare Pages du site de l'appli (lue par « wrangler pages deploy »).
+# Elle branche Workers AI (modèles ouverts hébergés par Cloudflare, 10 000 « neurones » gratuits
+# par jour, sans clé ni carte bancaire) sur la fonction du coach : functions/api/coach.ts.
+name = "trail-cotes"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
+
+[ai]
+binding = "AI"

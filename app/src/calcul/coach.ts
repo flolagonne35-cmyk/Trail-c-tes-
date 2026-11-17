@@ -1,4 +1,4 @@
-// Coach IA : ce qui est partagé entre l'appli et la fonction serveur (functions/api/coach.ts).
+// Coach en ligne (IA) : ce qui est partagé entre l'appli et la fonction serveur (functions/api/coach.ts).
 // - le résumé du coureur envoyé au coach (jamais le prénom, jamais de trace GPS) ;
 // - les consignes du coach ;
 // - le contrôle de la demande côté serveur (tailles, rôles), pour borner le coût.
@@ -9,7 +9,7 @@ import { allures, allureTexte, JOURS, meilleurVdot, NIVEAUX, RECORDS } from "./p
 export type MessageCoach = { role: "user" | "assistant"; content: string };
 export type DemandeCoach = { messages: MessageCoach[]; contexte: string };
 
-/** Bornes d'une demande : assez pour une vraie conversation, pas pour vider le compte. */
+/** Bornes d'une demande : assez pour une vraie conversation, sans épuiser le quota gratuit partagé. */
 export const LIMITES = { messages: 16, caracteresMessage: 2000, caracteresContexte: 4000, parJourEtParAdresse: 40 };
 
 /**

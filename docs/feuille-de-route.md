@@ -37,32 +37,27 @@ et la boutique, l'avatar, la météo, la boussole, les gadgets, et l'ordre de co
 | Prix, places, dates d'inscription, toutes les courses | 🔜 clé DATAtourisme et partenariats FFA / plateformes d'inscription (à faire par toi) |
 | Avis, avatar 3D, météo | 🔜 voir `docs/refonte.md` § 11 (serveur, clés et partenaires à fournir par toi) |
 
-### Coach IA (17/11) — à activer par toi
+### Coach (17/11) — sans clé, sans abonnement
 
-Le coach est construit : **Programme → Coach**. Il connaît la course visée, le programme de la
-semaine et les records, et répond en quelques phrases. Tant que la clé n'est pas posée, il affiche
-« Le coach n'est pas encore activé ». Pour l'activer :
+**Programme → Coach**, trois niveaux, tous gratuits :
 
-1. **Compte développeur Anthropic** : console.anthropic.com → créer le compte, ajouter un moyen de
-   paiement, puis *API keys* → créer une clé.
-2. **Plafond de dépense, tout de suite** : dans la console Anthropic, *Limits* → fixer une limite
-   mensuelle (par exemple 20 €). C'est le seul vrai garde-fou tant qu'il n'y a pas de comptes
-   utilisateurs : n'importe qui peut écrire au coach.
-3. **Poser la clé sur Cloudflare** : dash.cloudflare.com → Workers & Pages → projet `trail-cotes`
-   → Settings → Variables and Secrets → *Add* → type **Secret**, nom `ANTHROPIC_API_KEY`, la clé en
-   valeur (environnement Production). Puis relancer le workflow « Appli web en ligne ».
-4. **Conseillé** : limiter à 40 messages par jour et par adresse. Cloudflare → Storage & Databases
-   → KV → créer un espace `trail-cotes-limites`, puis dans le projet Pages → Settings → Bindings →
-   *Add* → KV namespace, nom de variable `LIMITES`.
-5. **Facultatif, pour diviser le coût par deux** : variable `COACH_MODELE` = `claude-opus-5-5`
-   (par défaut `claude-fable-5-2`, le plus capable).
+1. **Coach intégré** : répond tout de suite, sur le téléphone, sans réseau ni IA, à partir du
+   programme (séance du jour, fatigue, douleur, séance manquée, nutrition, allures, objectif,
+   météo, veille de course, renforcement, matériel). Rien n'est envoyé.
+2. **Coach en ligne** (interrupteur, avec accord) : IA ouverte (Gemma, Llama) hébergée par
+   Cloudflare, **Workers AI**, sur le même compte que le site. Quota gratuit de 10 000 « neurones »
+   par jour (de l'ordre de quelques centaines de réponses), sans clé ni carte : quand il est épuisé,
+   le coach intégré répond à sa place, et rien n'est jamais facturé sur l'offre gratuite. Branché
+   par `app/wrangler.toml`, donc **rien à faire de ton côté** une fois le site publié (secrets
+   Cloudflare déjà demandés plus haut).
+3. **« Demander à mon IA »** : ouvre ChatGPT, Claude ou Le Chat avec la question et le résumé de
+   l'entraînement déjà écrits ; le coureur envoie avec son propre compte.
 
-Coût indicatif avec Fable 5.2 : 3 à 5 centimes de dollar par question (8 $ par million de jetons
-en entrée, 40 $ en sortie). 100 coureurs qui posent 5 questions par semaine ≈ 60 à 100 $ par mois ;
-moitié moins avec Opus 5.5.
+Une question de douleur ou de malaise reçoit toujours la règle de prudence du coach intégré, sans
+passer par l'IA.
 
-Juridique : la politique de confidentialité (`docs/confidentialite.md`) décrit le coach (envoi à
-Anthropic, États-Unis, accord préalable). À faire relire avec le reste avant les stores.
+Si un jour le coach en ligne est très utilisé : passer Cloudflare Workers en offre payante (5 $ par
+mois, puis 0,011 $ par 1 000 neurones au-delà du quota gratuit), à décider à ce moment-là.
 
 ### Programme relu (17/11)
 

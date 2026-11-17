@@ -30,23 +30,28 @@ font sur le téléphone, sans rien envoyer (hors coach, voir plus bas). Les **so
 
 Conditions de l'IGN : cartes.gouv.fr (mentions légales et données personnelles de la Géoplateforme).
 
-## Le coach (intelligence artificielle)
+## Le coach
 
-Le coach est facultatif. Rien n'est envoyé tant que tu n'as pas donné ton accord sur son écran.
-Quand tu lui écris, l'application envoie à **Anthropic** (société américaine, modèle Claude), par
-l'intermédiaire de notre serveur (Cloudflare) :
+Le coach a deux modes.
 
-- tes messages et les réponses précédentes de la conversation ;
-- un résumé de ton entraînement : course visée, niveau déclaré, records, jours et programme de la
-  semaine, nombre de sorties depuis lundi. Tu peux lire ce résumé mot pour mot sur l'écran du coach.
+- **Coach intégré** (par défaut) : il répond sur ton téléphone, à partir de ton programme. Rien
+  n'est envoyé.
+- **Coach en ligne** (facultatif, à activer toi-même sur l'écran du coach) : une intelligence
+  artificielle, un modèle ouvert (Gemma de Google ou Llama de Meta) hébergé par **Cloudflare**,
+  l'hébergeur du site. L'application lui envoie tes messages et un résumé de ton entraînement :
+  course visée, niveau déclaré, records, jours et programme de la semaine, nombre de sorties depuis
+  lundi. Tu peux lire ce résumé mot pour mot sur l'écran du coach.
 
 Ne sont **jamais** envoyés : ton prénom, ta position, tes traces GPS, ta fréquence cardiaque.
 
-Anthropic traite ces données aux **États-Unis** (transfert hors Union européenne, encadré par les
-clauses contractuelles types de ses conditions commerciales), les conserve en principe 30 jours et
-ne les utilise pas pour entraîner ses modèles. Notre serveur ne garde pas les conversations ; avec
-la limite d'usage, il garde un jour ou deux un compteur de messages par adresse IP. La conversation
-est gardée sur ton téléphone : « Effacer la conversation » ou « Retirer mon accord » la supprime.
+Cloudflare ne conserve pas les messages envoyés au modèle et ne s'en sert pas pour entraîner de
+modèles ; le traitement peut avoir lieu hors de l'Union européenne (clauses contractuelles types).
+Avec la limite d'usage, notre serveur garde un jour ou deux un compteur de messages par adresse IP.
+La conversation est gardée sur ton téléphone ; « Effacer la conversation » la supprime, et tu
+désactives le coach en ligne d'un geste.
+
+« Demander à mon IA » ouvre ChatGPT, Claude ou Le Chat avec ta question déjà écrite : c'est toi
+qui l'envoies, avec ton compte, selon les conditions de ce service.
 
 N'écris pas d'informations médicales précises au coach. Ses réponses peuvent être fausses et ne
 remplacent pas un médecin.

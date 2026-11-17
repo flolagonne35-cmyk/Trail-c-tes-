@@ -1,17 +1,19 @@
-// Fonction serveur du coach IA (Cloudflare Pages Functions) : POST /api/coach.
-// La clé Anthropic reste ici, dans les secrets du projet Pages (ANTHROPIC_API_KEY) : elle n'est
-// jamais dans l'appli. Variables facultatives : COACH_MODELE (par défaut claude-fable-5-2 ;
-// claude-opus-5-5 coûte deux fois moins cher), et un espace KV « LIMITES » pour limiter le nombre
-// de messages par jour et par adresse (sans lui, la seule limite est le plafond de dépense réglé
-// dans la console Anthropic : à régler absolument).
-
-import Anthropic from "@anthropic-ai/sdk";
+// Fonction serveur du coach (Cloudflare Pages Functions) : POST /api/coach.
+// Sans clé ni abonnement : elle utilise Workers AI, les modèles ouverts hébergés par Cloudflare
+// (binding « AI » déclaré dans wrangler.toml), dans la limite gratuite de 10 000 neurones par jour.
+// Quota du jour épuisé, modèle indisponible ou binding absent : elle répond 503 et l'appli se
+// rabat sur son coach intégré (src/calcul/coachIntegre.ts). Aucun coût possible sur l'offre gratuite.
+// Facultatif : un espace KV « LIMITES » borne le nombre de messages par jour et par adresse.
 
 import { CONSIGNES, LIMITES, messagesPourModele, validerDemande } from "../../src/calcul/coach.ts";
 
 type KV = { get(cle: string): Promise<string | null>; put(cle: string, valeur: string, options?: { expirationTtl?: number }): Promise<void> };
-type Env = { ANTHROPIC_API_KEY?: string; COACH_MODELE?: string; LIMITES?: KV };
+type IA = { run(modele: string, entree: Record<string, unknown>): Promise<unknown> };
+type Env = { AI?: IA; COACH_MODELES?: string; LIMITES?: KV };
 type Contexte = { request: Request; env: Env };
+
+/** Modèles essayés dans l'ordre : ouverts, bons en français, disponibles sur l'offre gratuite. */
+export const MODELES = ["@cf/google/gemma-4-26b-a4b-it", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"];
 
 const ENTETES = {
   "Content-Type": "application/json; charset=utf-8",
@@ -23,10 +25,17 @@ const ENTETES = {
 };
 const reponse = (statut: number, corps: Record<string, unknown>) => new Response(JSON.stringify(corps), { status: statut, headers: ENTETES });
 
+/** Texte d'une réponse Workers AI : `{ response }` (format historique) ou `{ choices: [{ message }] }`. */
+export function texteDe(r: unknown): string {
+  const x = r as { response?: unknown; choices?: { message?: { content?: unknown } }[] } | null;
+  const t = typeof x?.response === "string" ? x.response : x?.choices?.[0]?.message?.content;
+  return typeof t === "string" ? t.trim() : "";
+}
+
 export const onRequestOptions = () => new Response(null, { status: 204, headers: ENTETES });
 
 export async function onRequestPost({ request, env }: Contexte): Promise<Response> {
-  if (!env.ANTHROPIC_API_KEY) return reponse(503, { erreur: "Le coach n'est pas encore activé sur ce site." });
+  if (!env.AI) return reponse(503, { erreur: "Le coach en ligne n'est pas disponible.", repli: true });
   let corps: unknown;
   try {
     // 64 Ko suffisent largement : on refuse le reste avant de le lire
@@ -38,43 +47,23 @@ export async function onRequestPost({ request, env }: Contexte): Promise<Respons
   const v = validerDemande(corps);
   if (!v.ok) return reponse(400, { erreur: v.erreur });
 
-  // limite par jour et par adresse, si l'espace KV est branché
+  // limite par jour et par adresse, si l'espace KV est branché : le quota gratuit se partage entre tous
   if (env.LIMITES) {
     const cle = `coach:${new Date().toISOString().slice(0, 10)}:${request.headers.get("cf-connecting-ip") ?? "inconnu"}`;
     const n = Number((await env.LIMITES.get(cle)) ?? 0);
-    if (n >= LIMITES.parJourEtParAdresse) return reponse(429, { erreur: "Tu as beaucoup parlé au coach aujourd'hui : reviens demain." });
+    if (n >= LIMITES.parJourEtParAdresse) return reponse(429, { erreur: "Tu as beaucoup parlé au coach en ligne aujourd'hui.", repli: true });
     await env.LIMITES.put(cle, String(n + 1), { expirationTtl: 172800 });
   }
 
-  const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1 });
-  try {
-    // Réflexion toujours active sur Fable : on règle la profondeur avec l'effort (« low » pour une
-    // conversation). max_tokens couvre la réflexion et la réponse. En cas de refus du modèle, l'API
-    // relance la demande sur un modèle de repli (fallbacks).
-    const flux = client.beta.messages.stream({
-      model: env.COACH_MODELE || "claude-fable-5-2",
-      max_tokens: 8000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: { effort: "low" },
-      system: CONSIGNES,
-      messages: messagesPourModele(v.demande),
-    });
-    const message = await flux.finalMessage();
-    if (message.stop_reason === "refusal") {
-      return reponse(200, { texte: "Je ne peux pas répondre à cette question. Pose-moi une question sur ton entraînement, ta course ou ta nutrition." });
+  const messages = [{ role: "system", content: CONSIGNES }, ...messagesPourModele(v.demande)];
+  const modeles = env.COACH_MODELES ? env.COACH_MODELES.split(",").map((m) => m.trim()).filter(Boolean) : MODELES;
+  for (const modele of modeles) {
+    try {
+      const texte = texteDe(await env.AI.run(modele, { messages, max_tokens: 700, temperature: 0.4 }));
+      if (texte) return reponse(200, { texte, modele });
+    } catch {
+      // quota du jour épuisé, modèle saturé ou retiré : on essaie le suivant
     }
-    const texte = message.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n").trim();
-    if (!texte) return reponse(502, { erreur: "Le coach n'a pas répondu : réessaie." });
-    return reponse(200, { texte, coupe: message.stop_reason === "max_tokens" });
-  } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) return reponse(429, { erreur: "Le coach est très demandé : réessaie dans une minute." });
-    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
-      return reponse(503, { erreur: "Le coach est mal configuré (clé refusée)." });
-    }
-    if (e instanceof Anthropic.BadRequestError) return reponse(502, { erreur: "Le coach n'a pas compris la demande." });
-    if (e instanceof Anthropic.APIConnectionError) return reponse(504, { erreur: "Le coach ne répond pas : réessaie." });
-    if (e instanceof Anthropic.APIError) return reponse(502, { erreur: "Le coach a un souci technique : réessaie plus tard." });
-    throw e;
   }
+  return reponse(503, { erreur: "Le coach en ligne a épuisé son quota gratuit du jour.", repli: true });
 }
