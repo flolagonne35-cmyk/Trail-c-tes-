@@ -1,10 +1,10 @@
 {
-  "date_utc": "2026-11-18T13:55:28+00:00",
+  "date_utc": "2026-11-19T14:24:42+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 67223,
       "sportifs": 10234,
-      "courses": 333,
+      "courses": 332,
       "exemple_brut": {
         "Nom_du_POI": "Visites du vignoble Thibeau",
         "Categories_de_POI": "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent|https://www.datatourisme.fr/ontology/core#PointOfInterest|https://www.datatourisme.fr/ontology/core#Product|https://www.datatourisme.fr/ontology/core#Visit|https://www.datatourisme.fr/ontology/core#SportsEvent|http://schema.org/Event|http://schema.org/Product",
@@ -135,7 +135,6 @@
         "Les Gamers de 15h | 16000#Angoulême | 2026-10-23<->2026-10-23 | Après les cours, viens tester des jeux vidéo et participer à l'achat de nouveaux jeux.",
         "Atelier Créatif \"Couronné pour les Saturnales\" | 17100#Saintes | 2026-12-31<->2026-12-31 | Découvre les traditions qui se déroulaient il y a 2000 ans pendant les fêtes de fin d'année et fabrique une couronne vég",
         "Marche de noël - randonnée de nuit | 57770#Moussey | 2026-12-05<->2026-12-05 | La 6ème édition de la marche de Noël de Moussey débutera à la salle polyvalente. Il s'agit d'une randonnée de nuit, d'un",
-        "Parcours dégustation des Sarmentelles | 69430#Beaujeu | 2026-11-18<->2026-11-18 | Partez à la découverte des 12 appellations du Beaujolais. Au fil du parcours, participez au concours de dégustation en r",
         "Chasse aux trésors de Noël : à la découverte de l'éclat de Val de Moder | 67350#Val-de-Moder | 2026-12-26<->2026-12-31 | Lorsque le froid répand doucement son manteau d'hiver, la plus touchante des évocations des fêtes de fin d’année passe p",
         "Randonnée châtaignes à Sainte Marie Laumont | 14350#Souleuvre en Bocage | 2026-11-22<->2026-11-22 | Départ de la salle polyvalente pour une randonnée de 8/10 km, spéciale châtaignes ! Au retour, dégustation châtaignes.",
         "Atelier cuir : bijoux en cuir ou couronne de fleurs en cuir | option :  solo ou duo adulte-enfant | 49570#Mauges-sur-Loire | 2026-12-09<->2026-12-09 | Découvrez la maroquinerie dans un véritable atelier artisanal avec Marion, artisane maroquinière passionnée à Montjean-s",
@@ -158,7 +157,6 @@
         "Courses FIS Slalom Hommes | 73550#Les Allues | 2026-12-29<->2026-12-29 | Les meilleures skieurs français de plus de 18 ans et quelques internationaux se retrouvent à Méribel pour deux épreuves ",
         "Randonnée pédestre pour le don du sang | 45360#Châtillon-sur-Loire | 2026-11-22<->2026-11-22 | Participez à la randonnée solidaire pour le Don du Sang à Châtillon-sur-Loire (Loiret) le dimanche 22 novembre 2026 ! Tr",
         "Visite guidée - Les grandes heures de La Rochelle (version courte) - DS à la carte | 17000#La Rochelle | 2026-04-11<->2026-04-11 | Revivez les temps forts de La Rochelle lors d'une visite insolite. De sa naissance à nos jours, suivez l’incroyable méta",
-        "Concours de Belote | 17700#Surgères | 2026-11-18<->2026-11-18 | Concours de belote organisé par l'association Surgères Accueille. \r\nBuvette sur place.\r\nInscription à partir de 13h.\r\nRé",
         "BD Comédie - Thomas Croisière, Voyage en comédie 2 | 16160#Gond-Pontouvre | 2026-12-12<->2026-12-13 | Thomas Croisière, le Tom Cruise français, vous embarque pour un hilarant voyage au cours duquel il partage sa passion po",
         "Régate Dragon-Fest | 17230#Marans | 2026-03-28<->2026-03-28 | Régate des Voiliers télécommandés comptant pour le championnat international Dragon-Fest DF-65. \r\nParcours sur le Port d",
         "Régate Challenge Atlantique | 17230#Marans | 2026-10-24<->2026-10-24 | Régate des Voiliers télécommandés dans la classe RG65.\r\nParcours sur le Port de Marans, devant le Club House de l'associ",
@@ -222,7 +220,6 @@
         "Saint-Nicolas et le Secret du Vieil Armand | 68360#Soultz-Haut-Rhin | 2026-12-05<->2026-12-05 | Parcours en extérieur avec énigmes pour les 1-10 ans (30-45 min), départ de 14h à 16h sur réservation : noemie.fugler@ca",
         "Le Père Noël est à Courchevel 1850 | 73120#Courchevel | 2026-12-25<->2026-12-25 | Laissez-vous émerveiller par la descente aux flambeaux de l’ESF de Courchevel 1850, l’arrivée du Père Noël et un feu d’a",
         "Concours de coinche | 43220#Dunières | 2026-11-21<->2026-11-21 | Une journée de distractions et loisirs vous attend. Venez partager un moment convivial organisé par l\"EPHATA -A partir d",
-        "Visite guidée : Intra muros | 40100#Dax | 2026-11-18<->2026-11-18 | Un parcours en centre-ville autour des incontournables, pour raconter Dax dans ses grandes lignes et finir par une pause",
         "Visite guidée : Intra muros | 40100#Dax | 2026-11-24<->2026-11-24 | Un parcours en centre-ville autour des incontournables, pour raconter Dax dans ses grandes lignes et finir par une pause",
         "Visite guidée : Intra muros | 40100#Dax | 2026-12-30<->2026-12-30 | Un parcours en centre-ville autour des incontournables, pour raconter Dax dans ses grandes lignes et finir par une pause",
         "Visite guidée : Intra muros | 40100#Dax | 2026-12-07<->2026-12-07 | Un parcours en centre-ville autour des incontournables, pour raconter Dax dans ses grandes lignes et finir par une pause",
@@ -253,7 +250,6 @@
         "ANNULE - 1ère étape du Trophée des Rois 2027 | 45600#Sully-sur-Loire | 2026-11-22<->2026-11-22 | Programme prévisionnel de la journée : \n09h–10h30 : Accueil des participants, remise des dossards et contrôle du matérie",
         "56ème Raid pédestre Le Puy - Firminy | 43000#Le Puy-en-Velay | 2026-11-22<->2026-11-22 | Participez au 56ᵉ Raid pédestre Le Puy/Firminy : 69 km entre ville et nature. Version rando Beaux/Firminy de 39 km. Dépa",
         "CUISINE-MOI LE FRONTONNAIS | 31620#Fronton | 2027-01-18<->2027-01-18 | Première édition du concours Cuisine-moi le Frontonnais (initialement prévue le 12 octobre, reportée au 18 janvier 2027)",
-        "Course hippique : Galop Premium | 80000#Amiens | 2026-10-28<->2026-10-28 | Affectueusement appelé “le Petit Vincennes de Picardie\", l'Hippodrome d'Amiens a pour particularité de “courir” en noctu",
         "CONCOURS DE BELOTE | 31110#Bagnères-de-Luchon | 2026-11-20<->2026-11-20 | Venez partager un moment convivial, et tentez de gagner de nombreux lots !",
         "Marché de Noël à Bouillancourt-en-Séry | 80220#Bouillancourt-en-Séry | 2026-12-06<->2026-12-06 | Salle des fêtes - Samedi 5 : 13h-18h / Dimanche 6 : 10h-17h \nTout au long du weekend : expo de voitures team car auto - ",
         "Atelier réparation de vélos | Vélo d'Vie | 16100#Cognac | 2026-11-21<->2026-11-21 | Vélo d’Vie, qui encourage l’usage du vélo au quotidien, vous propose de participer à des ateliers gratuits pour apprendr",
@@ -308,13 +304,11 @@
         "concours de belote du Club des Aînés | 03220#Chavroches | 2026-11-25<->2026-11-25 | 2ème concours de belote du Club des Aînés.",
         "Cours de Hatha Yoga | 67140#Barr | 2026-11-19<->2026-11-19 | Le mot sanskrit « yoga » signifie « unir ». C’est une méthode globale qui cherche à unifier le corps et l’esprit à l’aid",
         "Spectacle/installation : Espèce de courge - Hop Hop Hop ! | 26000#Valence | 2026-11-29<->2026-11-29 | Une musicienne et un musicien vous accueillent dans ce grand instrumentarium. Zakia En Nassiri, Hervé Lapalud, compagnie",
-        "Concert musiques actuelles - Elle danse | 26200#Montélimar | 2026-11-18<->2026-11-18 | Au cours de cette soirée organisée en lien avec le dispositif d’accompagnement AOC et le réseau Miz'ampli, Elle Danse no",
         "Concours de Belote du Club de L'amitié | 44150#Ancenis-Saint-Géréon | 2026-11-28<->2026-11-28 | Venez vous mesurer à la belote.",
         "CONCOURS DES BOUTIQUES CSO | 72530#Yvré-l'Évêque | 2026-11-20<->2026-11-22 | BJ33 – CONCOURS DES BOUTIQUES au Pôle Européen du Cheval",
         "Les randonnées automnales 2026 | 14450#Grandcamp-Maisy | 2026-12-05<->2026-12-05 | Boucles de randonnée de 9 à 15 km à Grandcamp-Maisy.",
         "Cours de zumba | 74310#Servoz | 2026-11-22<->2026-11-22 | Cours de zumba avec Tiphaine et Karine au profit de l'association Chuma.\r\nAssociation locale qui œuvre auprès des petite",
         "Derby de Luz Ardiden | 65120#Luz-Saint-Sauveur | 2027-02-27<->2027-02-27 | Course de glisse chronométrée en départ groupé ou individuel. Un derby convivial ouvert aux skieurs et snowboardeurs vou",
-        "Animation : \"Bébé au musée : Au fil de l’eau\" - Hop Hop Hop ! | 26000#Valence | 2026-11-18<->2026-11-18 | Plic ploc, splash, plouf ! Les gouttes de pluie tombent, la rivière coule, les vagues se brisent sur la côte. Suivons le",
         "Promenade en catamaran solaire | Quand l'Aisne rejoint l'Oise | 60200#Compiègne | 2026-11-25<->2026-11-25 | Le rendez-vous est fixé Cours Guynemer (près du restaurant Le Daisuki) à Compiègne.\n\nAprès l’accueil des passagers, vous",
         "Promenade en catamaran solaire | Parenthèse nature sur l'Aisne | 60200#Compiègne | 2026-11-18<->2026-11-22 | Le rendez-vous est fixé Cours Guynemer (près du restaurant Le Daisuki) à Compiègne.\n\nAprès l’accueil des passagers, vous",
         "Promenade en catamaran solaire | Croisière repas au fil de l'eau | 60200#Compiègne | 2026-12-09<->2026-12-13 | Le rendez-vous est fixé Cours Guynemer, près du restaurant Le Daisuki, à Compiègne.\n\nÀ bord d’un catamaran électro-solai",
@@ -356,7 +350,6 @@
         "LA CREILLOISE | 60100#Creil | 2027-11-14<->2027-11-14 | Rando Sud Oise organise une randonnée pédestre dimanche 14 novembre au départ de Creil.\nMarche libre en autonomie, à vot",
         "Randonnée pédestre | 16700#Nanteuil-en-Vallée | 2026-11-24<->2026-11-24 | Randonnée de 7 à 8 km.",
         "Randonnée pédestre | 16700#Saint-Gourson | 2026-12-01<->2026-12-01 | Randonnée de 7 à 8 km.",
-        "BALADE – A LA DÉCOUVERTE DES CHAMPIGNONS | 31120#Lacroix-Falgarde | 2026-11-18<->2026-11-18 | Nous vous proposons de venir en apprendre un peu plus au cours d’une balades sur la Réserve naturelle accompagnée de Mar",
         "Les Belles Échappées - Marché de Noël et découverte d'Aix-en-Provence | 83580#Gassin | 2026-12-05<->2026-12-05 | Partez de Gassin pour une escapade à Aix-en-Provence ! Profitez d’une visite guidée de la ville avec Serge Vota, puis fl",
         "L’Automne du CM 3/3 Adultes | 26220#Dieulefit | 2026-12-05<->2026-12-05 | Séance unique 4 courts métrages",
         "Concours de belote | 17700#Marsais | 2026-11-22<->2026-11-22 | Concours de belote organisé par le Belote Club Saint Mardois.\r\nTombola.\r\nBuvette et restauration sur place.",
@@ -371,7 +364,6 @@
         "Téléthon | Concours de pétanque | 17640#Vaux-sur-Mer | 2026-12-05<->2026-12-05 | Des associations vauxoises(*) se mobilisent pour participer à la grande aventure humaine du Téléthon. Venez nombreux sou",
         "Season Opening  - Courchevel 2026 | 73120#Courchevel | 2026-12-04<->2026-12-04 | Préparez vos spatules ! Le domaine skiable de Courchevel est prêt à vous accueillir.",
         "Concert en trio Astor Piazzolla, Métamorphoses - Conservatoire | 26100#Romans-sur-Isère | 2026-12-10<->2026-12-10 | Astor Piazzolla, Métamorphoses : Notre histoire commence à l’ombre d’une cour d’immeuble à New York. Une fenêtre est res",
-        "5e concours culinaire spécial jeunes | 26110#Nyons | 2026-11-18<->2026-11-18 | Le CEDER organise le 5e défi culinaire locavore le Climat des nos assiettes \"spécial Jeunes\" dans  le cadre du Salon Viv",
         "Le Puy O'Night | 43000#Le Puy-en-Velay | 2026-12-12<->2026-12-12 | Animation et course d'orientation urbaine ! Venez chercher les balises dans les ruelles de la vieille ville ! Ouvert à t",
         "Concours de tarot | 24110#Saint-Astier | 2026-11-29<->2026-11-29 | Concours suivi du traditionnel haricot / couenne.\nInscription 14€ et 11€ le repas du midi sur réservation. \n\n14h, Salle ",
         "[Saison Culturelle] Stage de danse Flamenco 💃 | 60117#Vez | 2027-05-29<->2027-05-29 | Avec la Compagnie Rediviva, Stéphanie Fuster.\n\nDans la continuité du spectacle \"Parler Flamenco\" , le conservatoire Dans",
@@ -473,7 +465,6 @@
         "Couronnes de Noël - Téléthon | 17120#Mortagne-sur-Gironde | 2026-12-06<->2026-12-06 | Les couronnes de Noël réalisées par le Club des 400 Coups seront à vendre sur le stand du téléthon lors du Marché de Noë",
         "Préentation et Conférence \"Les oubliées de l'histoire\" | 24600#Ribérac | 2026-11-26<->2026-11-26 | \"Itinéraires d'un barbier de Séville\"\nConférence par André et Yoann-Mathieu Fernandez\nLe parcours de José Fernandez, jeu",
         "Conférence \"Itinéraire d'un barbier de Séville\" | 24600#Ribérac | 2026-11-20<->2026-11-20 | \"Itinéraires d'un barbier de Séville\"\nConférence par André et Yoann-Mathieu Fernandez\nLe parcours de José Fernandez, jeu",
-        "Concours de Belote | 03210#Chemilly | 2026-11-18<->2026-11-18 | Organisé par le club Bel Automne avec de nombreux lots à gagner ! Buffet, buvette et tombola sur place.",
         "Match de Hockey sur glace - Les Renards d'Orléans | 45000#Orléans | 2027-01-23<->2027-01-23 | Encouragez l'équipe de hockey sur glace d'Orléans, les Renards, lors d'un match à domicile !",
         "Visite enquête \"les secrets de la pointe de sagaie\" | 24290#Montignac-Lascaux | 2026-12-20<->2026-12-20 | 16h30. Une visite à Lascaux IV se transforme en enquête immersive pleine de mystères, où indices et surprises jalonnent ",
         "Bilan des \"Alimations\" | 26000#Valence | 2026-11-25<->2026-11-25 | Bilan des \"Alimations\", un parcours citoyen pour mieux comprendre les enjeux agricoles de notre territoire.",
@@ -504,28 +495,37 @@
         "Blackminton Party | 01630#Saint-Genis-Pouilly | 2026-11-28<->2026-11-28 | Venez expérimenter la pratique du badminton dans le noir avec vos amis !\r\nL'association Saint Genis Badminton 01 (SGB01)",
         "Concours de belote | 03400#Gennetines | 2026-11-21<->2026-11-21 | Concours de Belote à Gennetines : nombreux lots à gagner, tombola, filet garni et buffet — une après-midi de cartes en b",
         "Concours de belote | 03150#Montaigu-le-Blin | 2026-12-04<->2026-12-04 | Concours de belote organisé les Amis de Montaigu",
-        "Aventure à vélo en Chine | 65200#Bagnères-de-Bigorre | 2026-11-28<->2026-11-28 | Gavin Anderson vous présente en photo et en anglais (!) son aventure à vélo de Pékin à Hangzou, le long du Grand Canal s"
+        "Aventure à vélo en Chine | 65200#Bagnères-de-Bigorre | 2026-11-28<->2026-11-28 | Gavin Anderson vous présente en photo et en anglais (!) son aventure à vélo de Pékin à Hangzou, le long du Grand Canal s",
+        "Atelier Vidéo | 84600#Grillon | 2026-11-14<->2026-11-14 | Chers passionnés de la photographie et de la vidéo,\r\nVous rêvez de maîtriser les caméras Blackmagic et de captiver votre",
+        "Marche solidaire contre les violences faites aux femmes - Ruban Blanc | 26140#Anneyron | 2026-11-28<->2026-11-28 | Marche de sensibilisation de 3 km, accessible à toutes et tous, au départ de l’étang de l’Argentelle, suivie d’un temps ",
+        "Cueillette solidaire des olives de Nyons | 26110#Nyons | 2026-11-21<->2026-11-21 | Cueillette solidaire des olives de Nyons organisée par la municipalité avec le concours d’associations locales et de tou",
+        "Soirée festive | 03230#Thiel-sur-Acolin | 2026-11-21<->2026-11-21 | Le spectacle de Raphaël Lacour approche à Thiel-sur-Acolin ! \"Le spectacle se prépare\", une soirée d'humour à ne pas man",
+        "Concours de pétanque Triplettes | 03000#Moulins | 2026-12-05<->2026-12-05 | Boulistes, à vos boules ! Un concours de triplettes homologué FFPJ Allier vous attend, limité à 32 équipes et récompensé",
+        "Concours de pétanque Triplettes Vétérans | 03000#Moulins | 2026-11-19<->2026-11-19 | Boulistes vétérans, à vos boules ! Un concours de triplettes homologué FFPJ Allier vous attend, limité à 32 équipes et r",
+        "Couronne de l'avent en sapin frais et fleurs séchées | 53000#Laval | 2026-12-11<->2026-12-11 | Plongez dans la magie de Noël le temps d’un atelier floral et réalisez votre couronne de l’Avent en sapin frais et fleur",
+        "Projection de courts métrages sud-coréens | 26130#Saint-Paul-Trois-Châteaux | 2026-11-21<->2026-11-21 | Projection de courts métrages sud-coréens.",
+        "LES SOURCES 2026 | 48190#Mont Lozère et Goulet | 2026-11-23<->2026-11-28 | Les sources 2026\nVenez découvrir un sport canin: le chien de traîneau. Manifestation canines par étapes de type randonné"
       ]
     },
     "OpenAgenda": {
-      "evenements": 1003,
+      "evenements": 999,
       "courses": 24,
       "exemple_brut": {
-        "uid": "70468665",
-        "title_fr": "Marche active",
-        "firstdate_begin": "2026-12-13T09:00:00+00:00",
-        "lastdate_end": "2026-12-13T10:30:00+00:00",
+        "uid": "71046853",
+        "title_fr": "Centre \"La Presqu'île\" (Giffaumont) - Ligue de l'Enseignement de la Meuse",
+        "firstdate_begin": "2032-01-01T01:00:00+00:00",
+        "lastdate_end": "2032-01-01T03:00:00+00:00",
         "location_coordinates": {
-          "lon": 2.588227,
-          "lat": 48.716073
+          "lon": 4.776986,
+          "lat": 48.552972
         },
-        "location_city": "Servon",
-        "location_postalcode": "77170",
-        "canonicalurl": "https://openagenda.com/le-millepattes-servonnais/events/marche-active-4264358",
-        "description_fr": "Servon, Santeny, Servon",
-        "longdescription_fr": "<p><strong>Stationnement : départ de la mairie de servon</strong><br><strong>Distance : 8 km - Dénivelé : 85 m - rando R26</strong><br><strong>Responsable : Marc 06 42 19 52 85</strong></p>\n<h3><a href=\"https://www.sitytrail.com/fr/trails/3017789-servon--r-26--8x3-km-x--si-pluie-x-servonx-santenyx-servon-/\"><strong>Découvrir le parcours sur SityTrail</strong></a></h3>",
-        "originagenda_title": "Le millepattes",
-        "updatedat": "2026-10-09T12:53:33+00:00"
+        "location_city": "Giffaumont-Champaubert",
+        "location_postalcode": "51290",
+        "canonicalurl": "https://openagenda.com/catalogue-departemental-des-structures-daccueil-et-dhebergement-marne/events/centre-la-presquile-giffaumont-ligue-de-lenseignement-de-la-meuse",
+        "description_fr": "RH",
+        "longdescription_fr": "<h3><a href=\"https://www.youtube.com/watch?v=E1F3oq5J8vo&amp;ab_channel=FOL55FOL55\"><em>Présentation vidéo du centre</em></a></h3>\n<p></p>\n<h2>Histoire : le Lac du Der, un site exceptionnel :</h2>\n<p></p>\n<p>Créé en 1974 pour régulariser le cours de la rivière Marne, il est avec ses 4 800 ha un des plus grands lacs artificiels d'Europe. Il est devenu, au fil des années, le pôle régional majeur du tourisme bleu et vert, et offre en toutes saisons de multiples activités sportives et de loisirs.<br />Classé en Réserve Nationale de Chasse et de Faune Sauvage et géré par l'ONCFS, le Lac du Der a très vite été adopté par une faune riche et diversifiée propice à l’étude de la nature et de l’environnement. Le Lac est devenu un site d’observation ornithologique incontournable, de renommée internationale.</p>\n<p></p>\n<h2>Le centre accueille votre projet de classe de découverte !</h2>\n<p></p>\n<p>Vous souhaitez organiser sur le lac du Der un séjour avec vos élèves autour de l’éducation au développement durable ou axé sur la découverte et la pratiques d’activités sportives et nautiques, notre centre a su exploiter tous les atouts qu’offre le lac. Sa situation permet un accès direct à toutes les installations sportives et aménagements pédagogiques du lac (sentiers et postes d’observation …). Le centre est doté de sa propre école de voile, facilitant la mise en œuvre des activités nautiques mais permettant également de vous faire découvrir de manière plus insolite la biodiversité des berges du lac. Il propose un cadre idéal d’hébergement, de restauration et de salles d’activités, en bordure de lac, propice à la réalisation de votre projet de classe de découverte. Notre équipe a su y développer des animations pédagogiques s’inscrivant pleinement dans une démarche éco-citoyenne puisqu’elle place les élèves au cœur du milieu naturel qui les entoure, les sensibilise et encourage les comportements responsables nécessaires à la préservation de ce milieu.</p>",
+        "originagenda_title": "Catalogue départemental des structures d’accueil et d’hébergement - Marne",
+        "updatedat": "2024-02-23T10:25:19+00:00"
       }
     }
   },
@@ -541,17 +541,16 @@
     ],
     "cache_wikidata": 352,
     "carburants": {
-      "gazole": 2.159,
-      "e10": 1.988,
-      "sp95": 2.058,
+      "gazole": 2.154,
+      "e10": 1.982,
+      "sp95": 2.052,
       "source": "prix-carburants.gouv.fr (moyenne nationale)",
-      "date": "2026-11-18"
+      "date": "2026-11-19"
     }
   },
-  "courses": 352,
+  "courses": 351,
   "statut": "ok",
   "apercu": [
-    "2026-11-18 Reco Corrida avec le Café Breton & Run Aventure (Perros-Guirec) [] D+None route",
     "2026-11-21 35ème Foulée eslettoise (Eslettes) [] D+None route",
     "2026-11-21 6ème Rando-Trail Sympa de la Pleine Lune (Jumilhac-le-Grand) [9.0, 13.0] D+None trail",
     "2026-11-21 Course Les lumières du souvenir (Houssen) [5.2] D+None route",
@@ -610,7 +609,8 @@
     "2026-11-28 Urban Trail Saint Saturnin (Argelès-Gazost) [] D+None trail",
     "2026-11-29 27ème édition du Cross de Morcourt (Morcourt) [] D+None trail",
     "2026-11-29 43eme Semi-Marathon Lourdes-Tarbes (Lourdes) [12.0, 21.1] D+None route",
-    "2026-11-29 47ÈME CROSS DE LA CITÉ (Carcassonne) [] D+None trail"
+    "2026-11-29 47ÈME CROSS DE LA CITÉ (Carcassonne) [] D+None trail",
+    "2026-11-29 9ÈME ÉDITION TRAIL DE NEBIAN (Nébian) [] D+None trail"
   ],
   "taille_ko": 131
 }
