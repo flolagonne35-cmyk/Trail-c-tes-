@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-23T15:56:35+00:00",
+  "date_utc": "2026-11-23T23:19:23+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 66318,
@@ -508,7 +508,7 @@
       ]
     },
     "OpenAgenda": {
-      "evenements": 880,
+      "evenements": 885,
       "courses": 24,
       "exemple_brut": {
         "uid": "71046853",
@@ -539,8 +539,8 @@
     ],
     "cache_wikidata": 384,
     "carburants": {
-      "gazole": 2.128,
-      "e10": 1.962,
+      "gazole": 2.126,
+      "e10": 1.96,
       "sp95": 2.03,
       "source": "prix-carburants.gouv.fr (moyenne nationale)",
       "date": "2026-11-23"
@@ -610,5 +610,5 @@
     "2026-12-04 Téléthon des Bords de Veyle (Chanoz-Châtenay) [] D+None route",
     "2026-12-05 48e Course de l'Escalade (Genève) [] D+None route"
   ],
-  "taille_ko": 130
+  "taille_ko": 150
 }
