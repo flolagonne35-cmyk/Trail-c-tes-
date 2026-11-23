@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
-import { C, S } from "../theme.ts";
+import { C, OMBRE, S } from "../theme.ts";
 
 export function EnTete({ surtitre, titre, sousTitre, retour }: {
   surtitre: string; titre: string; sousTitre?: string; retour?: () => void;
@@ -136,9 +136,21 @@ export const NOMS: Record<Onglet, string> = {
 export function SousOnglets<T extends string>({ options, valeur, onChange }: {
   options: [T, string][]; valeur: T; onChange: (v: T) => void;
 }) {
+  // onglets soulignés (différents des choix en pastilles à l'intérieur des pages) : on voit
+  // tout de suite qu'on change de page, pas de réglage
   return (
-    <View style={{ paddingHorizontal: 20, paddingTop: 2, paddingBottom: 10, backgroundColor: C.fond }}>
-      <Segments options={options} valeur={valeur} onChange={onChange} />
+    <View accessibilityRole="tablist" style={{ flexDirection: "row", gap: 24, paddingHorizontal: 24, backgroundColor: C.fond,
+                                               borderBottomWidth: 1, borderBottomColor: C.sable }}>
+      {options.map(([v, nom]) => {
+        const actif = v === valeur;
+        return (
+          <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="tab" aria-selected={actif}
+                     style={{ paddingTop: 4, paddingBottom: 12, minHeight: 44, justifyContent: "flex-end",
+                              borderBottomWidth: 3, borderBottomColor: actif ? C.montee : "transparent", marginBottom: -1 }}>
+            <Text style={{ fontSize: 16, fontWeight: actif ? "800" : "600", color: actif ? C.encre : C.gris }}>{nom}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -167,14 +179,14 @@ export function Segments<T extends string>({ options, valeur, onChange }: {
   options: [T, string][]; valeur: T; onChange: (v: T) => void;
 }) {
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.sable, borderRadius: 14, padding: 4 }}>
+    <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.sable, borderRadius: 16, padding: 4 }}>
       {options.map(([v, nom]) => {
         const actif = v === valeur;
         return (
           <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="tab" aria-selected={actif}
-                     style={{ flex: 1, minHeight: 40, borderRadius: 11, alignItems: "center", justifyContent: "center",
-                              backgroundColor: actif ? C.blanc : "transparent" }}>
-            <Text style={{ fontSize: 14, fontWeight: actif ? "700" : "600", color: actif ? C.encre : C.gris }}>{nom}</Text>
+                     style={{ flex: 1, minHeight: 44, borderRadius: 13, alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
+                              backgroundColor: actif ? C.blanc : "transparent", ...(actif ? OMBRE : null) }}>
+            <Text style={{ fontSize: 15, fontWeight: actif ? "800" : "600", color: actif ? C.encre : C.gris }} numberOfLines={1}>{nom}</Text>
           </Pressable>
         );
       })}
@@ -182,18 +194,46 @@ export function Segments<T extends string>({ options, valeur, onChange }: {
   );
 }
 
-export function Navigation({ actif, onChange, basSur }: { actif: Page; onChange: (o: Onglet) => void; basSur: number }) {
+/**
+ * Navigation entre les rubriques : barre en bas sur téléphone, barre latérale sur ordinateur et
+ * grande tablette (`laterale`), avec le nom de l'appli en tête.
+ */
+export function Navigation({ actif, onChange, basSur, laterale = false }: {
+  actif: Page; onChange: (o: Onglet) => void; basSur: number; laterale?: boolean;
+}) {
+  if (laterale) {
+    return (
+      <View accessibilityRole="tablist" style={{ width: 248, backgroundColor: C.foret, paddingTop: 32, paddingHorizontal: 16, gap: 6 }}>
+        <Text style={{ color: C.fond, fontSize: 22, fontWeight: "900", letterSpacing: -0.4, paddingHorizontal: 12, marginBottom: 24 }}>
+          Trail<Text style={{ color: C.montee }}>·</Text>côtes
+        </Text>
+        {(Object.keys(NOMS) as Onglet[]).map((o) => {
+          const sel = o === actif;
+          return (
+            <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={sel}
+                       style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 14, minHeight: 50,
+                                borderRadius: 14, backgroundColor: sel ? "rgba(255,255,255,0.12)" : pressed ? "rgba(255,255,255,0.06)" : "transparent" })}>
+              <Icone nom={o} couleur={sel ? C.montee : "#C9D3CC"} />
+              <Text style={{ fontSize: 16, color: sel ? C.blanc : "#C9D3CC", fontWeight: sel ? "800" : "600" }}>{NOMS[o]}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  }
   return (
     <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.blanc, paddingTop: 8,
-                                               paddingHorizontal: 4, paddingBottom: Math.max(16, basSur),
-                                               borderTopWidth: 1, borderTopColor: C.aire }}>
+                                               paddingHorizontal: 6, paddingBottom: Math.max(14, basSur), ...OMBRE }}>
       {(Object.keys(NOMS) as Onglet[]).map((o) => {
-        const couleur = o === actif ? C.montee : C.gris;
+        const sel = o === actif;
+        const couleur = sel ? C.encre : C.gris;
         return (
-          <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={o === actif}
-                     style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, minHeight: 44 }}>
-            <Icone nom={o} couleur={couleur} />
-            <Text style={{ fontSize: 12, color: couleur, fontWeight: o === actif ? "800" : "600" }} numberOfLines={1}>{NOMS[o]}</Text>
+          <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={sel}
+                     style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 6, minHeight: 52 }}>
+            <View style={{ paddingHorizontal: 16, paddingVertical: 4, borderRadius: 14, backgroundColor: sel ? C.monteeClair : "transparent" }}>
+              <Icone nom={o} couleur={sel ? C.montee : couleur} />
+            </View>
+            <Text style={{ fontSize: 12, color: couleur, fontWeight: sel ? "800" : "600" }} numberOfLines={1}>{NOMS[o]}</Text>
           </Pressable>
         );
       })}
@@ -209,9 +249,9 @@ export function BarreHaut({ titre, onProfil, avatar, surProfil, points }: {
   titre: string; onProfil: () => void; avatar: ReactNode; surProfil: boolean; points: number;
 }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 10,
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24, paddingTop: 14, paddingBottom: 14,
                    backgroundColor: C.fond }}>
-      <Text style={{ flex: 1, fontSize: 24, fontWeight: "800", color: C.encre }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
+      <Text style={{ flex: 1, fontSize: 30, fontWeight: "900", color: C.encre, letterSpacing: -0.5 }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
       <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button"
                  accessibilityLabel={`Mon monde, ${points} points`}
                  style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 12, borderRadius: 24, backgroundColor: C.blanc }}>

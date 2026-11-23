@@ -79,7 +79,7 @@ async function nouvellePage(nav) {
   const { ctx, page, erreurs } = await nouvellePage(nav);
   await page.goto(URL_APP);
   await attendre(page, 1500);
-  await page.getByRole("button", { name: "Plus tard" }).click();
+  await page.getByRole("button", { name: "Découvrir d'abord" }).click();
   await attendre(page);
   const etat = await ctx.storageState();
   await ctx.close();

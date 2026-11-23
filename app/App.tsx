@@ -7,7 +7,7 @@
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, Text, View } from "react-native";
+import { Platform, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import parcoursDemo from "./assets/data/parcours_demo.json";
@@ -62,6 +62,9 @@ const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Mon aventure"], ["coure
 
 function Contenu() {
   const bords = useSafeAreaInsets();
+  // ordinateur et grande tablette : barre latérale et colonne centrée
+  const { width: largeur } = useWindowDimensions();
+  const large = largeur >= 900;
   const [page, setPage] = useState<Page>("accueil");
   const [recherche, setRecherche] = useState(false);
   const [profil, setProfil] = useState<Profil | null | undefined>(undefined); // undefined : en cours de chargement
@@ -216,7 +219,7 @@ function Contenu() {
       <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top, paddingBottom: bords.bottom }}>
         <StatusBar style="dark" />
         {accueil === "bienvenue" ? (
-          <EcranBienvenue apparence={apparenceDepart} onCreer={() => setAccueil("editeur")} onPasser={() => creerProfil("Coureur")} />
+          <EcranBienvenue onCreer={() => setAccueil("editeur")} onPasser={() => creerProfil("Coureur")} />
         ) : accueil === "editeur" ? (
           <EditeurAvatar prenomInitial="" apparenceInitiale={apparenceDepart} titre="Mon coureur" action="C'est parti"
                          onValider={(prenom, a) => creerProfil(prenom, a)} onAnnuler={() => setAccueil("bienvenue")} />
@@ -286,7 +289,11 @@ function Contenu() {
   }
   const avatar = <Avatar a={profil.apparence} taille={44} cadrage="buste" />;
   return (
-    <View style={{ flex: 1, backgroundColor: C.fond, paddingTop: bords.top }}>
+    <View style={{ flex: 1, flexDirection: large ? "row" : "column", backgroundColor: C.fond }}>
+      {large && <Navigation laterale actif={page} basSur={0} onChange={(o: Onglet) => aller({ page: o })} />}
+      <View style={{ flex: 1, paddingTop: bords.top }}>
+      {/* colonne de lecture : jamais plus large qu'une page de magazine, centrée sur grand écran */}
+      <View style={{ flex: 1, width: "100%", maxWidth: large ? 880 : 680, alignSelf: "center" }}>
       <StatusBar style="dark" />
       {!detail && (
         <BarreHaut titre={TITRES[page]} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
@@ -303,10 +310,12 @@ function Contenu() {
         </View>
       )}
       <View style={{ flex: 1 }}>{ecran}</View>
-      <Navigation actif={page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />
+      </View>
+      {!large && <Navigation actif={page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />}
+      </View>
       {annonce && (
         <View pointerEvents="none" accessibilityLiveRegion="polite"
-              style={{ position: "absolute", bottom: 96 + bords.bottom, left: 20, right: 20, alignItems: "center" }}>
+              style={{ position: "absolute", bottom: (large ? 32 : 96) + bords.bottom, left: 20, right: 20, alignItems: "center" }}>
           <Text pointerEvents="none" style={{ backgroundColor: C.encre, color: C.fond, fontWeight: "700", fontSize: 14, paddingVertical: 10,
                                               paddingHorizontal: 16, borderRadius: 999, overflow: "hidden" }}>{annonce}</Text>
         </View>

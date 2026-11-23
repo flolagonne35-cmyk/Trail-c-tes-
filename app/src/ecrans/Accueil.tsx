@@ -15,6 +15,7 @@ import { nombre, type Destination } from "../composants/communs.tsx";
 import type { MonPlan } from "../monPlan.ts";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
+import { Paysage } from "../composants/Paysage.tsx";
 import type { VueCourse } from "./Course.tsx";
 
 function semaine(profil: Profil) {
@@ -27,11 +28,12 @@ function semaine(profil: Profil) {
 
 const jourCourt = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
+/** Un bloc de l'accueil : son titre au-dessus, dehors, puis une carte aérée. */
 function Carte({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
-    <View style={[S.carte, { gap: 12, padding: 18 }]}>
-      <Text style={[S.surtitre, { fontSize: 12 }]} accessibilityRole="header">{titre}</Text>
-      {children}
+    <View style={{ marginTop: 36 }}>
+      <Text style={S.surtitre} accessibilityRole="header">{titre}</Text>
+      <View style={[S.carte, { marginTop: 12, gap: 16, padding: 22 }]}>{children}</View>
     </View>
   );
 }
@@ -206,13 +208,19 @@ export function EcranAccueil({ profil, aller, monPlan, allurePlat, mesCourses, p
   const date = useMemo(() => new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }), []);
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
-      <Text style={[S.sousTitre, { marginTop: 0, fontSize: 16 }]}>Bonjour {profil.prenom}, nous sommes {date}.</Text>
+      <View style={{ height: 168, borderRadius: 26, overflow: "hidden", backgroundColor: C.encre, justifyContent: "flex-end", padding: 22, marginTop: 4 }}>
+        <Paysage hauteur={168} sentier={false} />
+        <Text style={{ color: "#F6F4EFCC", fontSize: 15, fontWeight: "600", textTransform: "capitalize" }}>{date}</Text>
+        <Text style={{ color: C.fond, fontSize: 28, fontWeight: "900", letterSpacing: -0.5, marginTop: 2 }}>
+          {profil.prenom && profil.prenom !== "Coureur" ? `Bonjour ${profil.prenom}` : "Bonjour"}
+        </Text>
+      </View>
       <SeanceDuJourCarte monPlan={monPlan} faites={s.sorties} allurePlat={allurePlat} aller={aller} onSeance={onSeance}
                          onSortie={onSortie} onMaCourse={onMaCourse} />
       <MaSemaine faites={s.sorties} prevues={prevues} km={s.km} dplus={s.dplus} mot={petitMot(s.sorties, prevues, profil.prenom)} />
       <ProchaineCourse monPlan={monPlan} mesCourses={mesCourses} aller={aller} onMaCourse={onMaCourse} />
       <Lumiere position={position} />
-      <Text style={[S.petit, { marginTop: 16 }]}>
+      <Text style={[S.petit, { marginTop: 28 }]}>
         Les sorties comptées sont celles ajoutées en GPX (Mon monde → Mon coureur) depuis lundi.
       </Text>
     </ScrollView>

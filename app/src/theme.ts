@@ -1,14 +1,17 @@
-// Couleurs et styles repris de la maquette (4 écrans, 390 × 844).
+// Charte Trail-côtes (v2, 23/11) : un fond clair et chaud, une encre vert forêt profond, et une
+// seule couleur signature, l'orange « lever de soleil » des côtes. Beaucoup d'air : marges de
+// 24 px, 28 px entre deux blocs, cartes sans bordure ni bande de couleur, ombre très douce.
 
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 export const C = {
-  fond: "#F4F1EA",
-  encre: "#1B2A22",
-  gris: "#5A6259",
-  sable: "#E8E2D4",
+  fond: "#F6F4EF",
+  encre: "#14231B",
+  foret: "#1F3D2E", // fonds sombres (bandeau d'accueil, barre latérale)
+  gris: "#5F6A63",
+  sable: "#ECE8DF",
   blanc: "#FFFFFF",
-  aire: "#EFEADF",
+  aire: "#EFECE5",
   montee: "#D9541E",
   monteeDouce: "#E39A2D",
   monteeFonce: "#8A2F08",
@@ -29,22 +32,32 @@ export const COULEUR_TYPE = {
   plat: { trait: C.plat, fond: C.platClair, texte: C.platFonce },
 } as const;
 
+/** Espacements : on n'utilise que ces valeurs, pour un rythme régulier. */
+export const ESPACE = { xs: 6, s: 10, m: 16, l: 24, xl: 32 };
+
+/** Ombre très douce des cartes (les cartes n'ont ni bordure ni bande de couleur). */
+export const OMBRE = Platform.select({
+  web: { boxShadow: "0 1px 2px rgba(20,35,27,0.04), 0 6px 20px rgba(20,35,27,0.06)" } as object,
+  default: { shadowColor: "#14231B", shadowOpacity: 0.07, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+});
+
 export const S = StyleSheet.create({
   ecran: { flex: 1, backgroundColor: C.fond },
-  contenu: { paddingHorizontal: 20, paddingBottom: 24 },
-  surtitre: { fontSize: 13, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase", color: C.gris },
-  titre: { fontSize: 28, lineHeight: 31, fontWeight: "700", color: C.encre, marginTop: 4 },
-  sousTitre: { fontSize: 14, color: C.gris, marginTop: 6 },
-  h2: { fontSize: 17, fontWeight: "700", color: C.encre },
-  carte: { backgroundColor: C.blanc, borderRadius: 18, padding: 16, marginTop: 16 },
-  ligne: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: C.blanc, borderRadius: 16,
-           paddingVertical: 14, paddingHorizontal: 14 },
-  petit: { fontSize: 13, lineHeight: 18, color: C.gris },
-  fort: { fontSize: 16, lineHeight: 21, fontWeight: "700", color: C.encre },
-  bouton: { minHeight: 48, borderRadius: 14, backgroundColor: C.encre, alignItems: "center", justifyContent: "center",
-            paddingHorizontal: 16 },
-  boutonTexte: { color: C.fond, fontSize: 15, fontWeight: "700" },
-  boutonClair: { minHeight: 48, borderRadius: 14, backgroundColor: C.sable, alignItems: "center",
-                 justifyContent: "center", paddingHorizontal: 16 },
-  boutonClairTexte: { color: C.encre, fontSize: 15, fontWeight: "700" },
+  contenu: { paddingHorizontal: ESPACE.l, paddingBottom: 40 },
+  surtitre: { fontSize: 13, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase", color: C.gris },
+  titre: { fontSize: 30, lineHeight: 36, fontWeight: "800", color: C.encre, marginTop: 4, letterSpacing: -0.4 },
+  sousTitre: { fontSize: 16, lineHeight: 23, color: C.gris, marginTop: 8 },
+  h2: { fontSize: 20, lineHeight: 26, fontWeight: "800", color: C.encre, letterSpacing: -0.2 },
+  carte: { backgroundColor: C.blanc, borderRadius: 22, padding: 20, marginTop: ESPACE.l, ...OMBRE },
+  ligne: { flexDirection: "row", alignItems: "center", gap: 14, backgroundColor: C.blanc, borderRadius: 18,
+           paddingVertical: 16, paddingHorizontal: 18, ...OMBRE },
+  petit: { fontSize: 14, lineHeight: 20, color: C.gris },
+  texte: { fontSize: 16, lineHeight: 24, color: C.encre },
+  fort: { fontSize: 17, lineHeight: 23, fontWeight: "700", color: C.encre },
+  bouton: { minHeight: 54, borderRadius: 16, backgroundColor: C.encre, alignItems: "center", justifyContent: "center",
+            paddingHorizontal: 20 },
+  boutonTexte: { color: C.fond, fontSize: 16, fontWeight: "700" },
+  boutonClair: { minHeight: 52, borderRadius: 16, backgroundColor: C.sable, alignItems: "center",
+                 justifyContent: "center", paddingHorizontal: 20 },
+  boutonClairTexte: { color: C.encre, fontSize: 16, fontWeight: "700" },
 });
