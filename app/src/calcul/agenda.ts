@@ -10,6 +10,9 @@ export type CourseAVenir = {
   distances_km: number[]; dplus_m: number | null; type: "trail" | "route";
   site: string; source: string; auteur: string; maj: string;
   connue?: number; // nombre d'articles Wikipédia (Wikidata) : course connue du grand public
+  prix_eur?: number[]; // montants relevés dans la description de l'organisateur
+  inscription?: string; // phrase de la description qui parle d'inscription
+  complet?: boolean;
   wikidata?: string;
 };
 

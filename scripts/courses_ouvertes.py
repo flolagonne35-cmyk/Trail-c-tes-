@@ -131,6 +131,36 @@ def premier_lien(texte: str) -> str:
     return m.group(0).rstrip(".,;)") if m else ""
 
 
+# Prix et inscriptions : les fichiers ouverts n'ont pas de champ dédié, mais les organisateurs les
+# écrivent souvent dans la description (« Inscription : 12 € », « 8 € sur place », « inscriptions
+# jusqu'au 10 mars », « complet »). On les relève tels quels, en précisant à l'écran que la source est
+# la description et que le site officiel fait foi.
+PRIX = re.compile(r"(\d{1,3}(?:[.,]\d{1,2})?)\s?(?:€|euros?\b)", re.I)
+CONTEXTE_PRIX = re.compile(r"inscri|tarif|prix|dossard|engagement|participation|sur place|en ligne|gratuit", re.I)
+INSCRIPTION = re.compile(r"[^.!?\n]*\b(inscriptions?|clôture|cloture|complet|places? limitées?|dossards? limités?)\b[^.!?\n]*[.!?]?", re.I)
+# montants qui ne sont pas un dossard : parking, repas, navette, t-shirt…
+HORS_DOSSARD = re.compile(r"parking|repas|buvette|b[ée]n[ée]vole|navette|consigne|t-?shirt|tee-?shirt|pasta|caution|adh[ée]sion|licence", re.I)
+COMPLET = re.compile(r"(course|[ée]preuve|inscriptions?|c.est|dossards?)\s+(est\s+|sont\s+)?compl[eè]te?s?\b|\bsold.?out\b|plus de dossards?", re.I)
+
+
+def prix_dans(texte: str) -> list[float]:
+    """Montants (€) écrits près d'un mot d'inscription ou de tarif, de 1 à 300 €, sans doublon, du moins cher au plus cher."""
+    vus: set[float] = set()
+    for m in PRIX.finditer(texte or ""):
+        autour = texte[max(0, m.start() - 80):m.end() + 40]
+        juste_avant = texte[max(0, m.start() - 30):m.start()]
+        v = float(m.group(1).replace(",", "."))
+        if 1 <= v <= 300 and CONTEXTE_PRIX.search(autour) and not HORS_DOSSARD.search(juste_avant):
+            vus.add(v)
+    return sorted(vus)[:6]
+
+
+def inscription_dans(texte: str) -> str:
+    """Première phrase de la description qui parle d'inscription (ouverture, clôture, complet), 220 caractères au plus."""
+    m = INSCRIPTION.search(re.sub(r"\s+", " ", texte or ""))
+    return m.group(0).strip()[:220] if m else ""
+
+
 def fiche(nom, debut, fin, lat, lon, commune, cp, texte, site, source, auteur, maj, ident) -> dict:
     d = distances(f"{nom} {texte}")
     dplus = denivele(texte)
@@ -140,6 +170,8 @@ def fiche(nom, debut, fin, lat, lon, commune, cp, texte, site, source, auteur, m
         "distances_km": d, "dplus_m": dplus,
         "type": "trail" if TRAIL.search(sans_accents(nom)) or (dplus and d and dplus / max(d) > 15) else "route",
         "site": site, "source": source, "auteur": auteur, "maj": maj,
+        "prix_eur": prix_dans(texte or ""), "inscription": inscription_dans(texte or ""),
+        "complet": bool(COMPLET.search(texte or "")),
     }
 
 

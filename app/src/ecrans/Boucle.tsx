@@ -1,4 +1,4 @@
-// Programme → Sorties : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
+// Programme → Parcours : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
 // « 10 km avec 3 côtes ». La boucle est composée sur le téléphone, sans réseau, puis exportée en GPX.
 
 import { useEffect, useState } from "react";
@@ -161,7 +161,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
         <Pressable onPress={composer} disabled={enCours || aJour} accessibilityRole="button"
                    style={[S.bouton, { flexDirection: "row", gap: 8, opacity: aJour ? 0.45 : 1 }]}>
           {enCours && <ActivityIndicator color={C.fond} />}
-          <Text style={S.boutonTexte}>{enCours ? "Calcul de la sortie…" : aJour ? "Sorties à jour : change un réglage" : "Préparer ma sortie"}</Text>
+          <Text style={S.boutonTexte}>{enCours ? "Calcul des parcours…" : aJour ? "Parcours à jour : change un réglage" : "Trouver mes parcours"}</Text>
         </Pressable>
       </View>
 

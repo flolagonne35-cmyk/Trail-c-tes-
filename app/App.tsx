@@ -35,8 +35,11 @@ import { EcranEntrainement } from "./src/ecrans/Entrainement.tsx";
 import { EcranProgramme } from "./src/ecrans/Programme.tsx";
 import { EcranAventure } from "./src/ecrans/Aventure.tsx";
 import { EcranCoach } from "./src/ecrans/Coach.tsx";
+import { EcranSecurite } from "./src/ecrans/Securite.tsx";
 import { JOURJ_DEFAUT, type ReglagesJourJ } from "./src/ecrans/JourJ.tsx";
-import { EcranAgenda } from "./src/ecrans/Agenda.tsx";
+import { EcranTrouverCourse } from "./src/ecrans/TrouverCourse.tsx";
+import { EcranFicheComplete } from "./src/ecrans/FicheComplete.tsx";
+import type { CourseProche } from "./src/calcul/agenda.ts";
 import { EcranMesCourses } from "./src/ecrans/MesCourses.tsx";
 import { EcranNutrition } from "./src/ecrans/Nutrition.tsx";
 import { EcranProfil } from "./src/ecrans/Profil.tsx";
@@ -54,10 +57,10 @@ const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {
   accueil: "Aujourd'hui", cotes: "Explorer", programme: "Programme", courses: "Courses", monde: "Mon monde",
-  sources: "Données",
+  sources: "Données", securite: "Sécurité",
 };
-const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon plan"], ["sorties", "Sorties"], ["seance", "Séance"], ["coach", "Coach"]];
-const SOUS_COURSES: [ModeCourses, string][] = [["calendrier", "Calendrier"], ["saison", "Ma saison"], ["course", "Ma course"]];
+const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon plan"], ["sorties", "Parcours"], ["seance", "Séance"], ["coach", "Coach"]];
+const SOUS_COURSES: [ModeCourses, string][] = [["trouver", "Trouver"], ["saison", "Mes courses"], ["course", "Jour J"]];
 const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Mon aventure"], ["coureur", "Mon coureur"], ["progres", "Mes progrès"]];
 
 function Contenu() {
@@ -86,8 +89,9 @@ function Contenu() {
   const [modeCotes, setModeCotes] = useState<Sens>("montee");
   const [resultatsCotes, setResultatsCotes] = useState(false); // les côtes n'apparaissent qu'après la recherche
   const [modeProgramme, setModeProgramme] = useState<ModeProgramme>("programme");
-  const [modeCourses, setModeCourses] = useState<ModeCourses>("calendrier");
+  const [modeCourses, setModeCourses] = useState<ModeCourses>("trouver");
   const [modeMonde, setModeMonde] = useState<ModeMonde>("aventure");
+  const [ficheCourse, setFicheCourse] = useState<CourseProche | null>(null);
   const [vueCourse, setVueCourse] = useState<{ vue: VueCourse; n: number } | undefined>(undefined);
   const [courses, setCoursesEtat] = useState<CourseInscrite[]>([]);
   const setCourses = (c: CourseInscrite[]) => { setCoursesEtat(c); enregistrerCourses(c); };
@@ -157,7 +161,7 @@ function Contenu() {
   // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
-    const autour = page === "cotes" || (page === "programme" && (modeProgramme === "sorties" || modeProgramme === "seance")) || (page === "courses" && modeCourses === "calendrier");
+    const autour = page === "cotes" || (page === "programme" && (modeProgramme === "sorties" || modeProgramme === "seance")) || (page === "courses" && modeCourses === "trouver");
     if (autour && !dejaLocalise.current && depart === DEPART_DEFAUT) {
       dejaLocalise.current = true;
       localiser();
@@ -249,19 +253,27 @@ function Contenu() {
   } else if (page === "programme" && modeProgramme === "programme") {
     ecran = <EcranProgramme cible={monPlan.cible} setCible={(cible) => majPlan({ cible })}
                             questionnaire={monPlan.questionnaire} setQuestionnaire={(questionnaire) => majPlan({ questionnaire })}
-                            parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
-                            mesCourses={courses} modele={modele} allurePlat={ALLURE_PLAT_MIN_KM} onSeance={versSeance} onSortie={versSortie} />;
+                            parcours={parcours} onParcours={setParcours} onTrouver={() => aller({ page: "courses", mode: "trouver" })}
+                            modele={modele} allurePlat={ALLURE_PLAT_MIN_KM} onSeance={versSeance} onSortie={versSortie} />;
   } else if (page === "programme" && modeProgramme === "coach") {
     ecran = <EcranCoach profil={profil} monPlan={monPlan} allurePlat={ALLURE_PLAT_MIN_KM} />;
   } else if (page === "programme" || (page === "monde" && modeMonde === "progres")) {
     ecran = <EcranEntrainement {...commun} mode={page === "monde" ? "progres" : modeProgramme === "sorties" ? "boucle" : "seance"}
                                filtres={filtres} activites={profil.activites} modele={modele}
                                onAjouterSortie={() => aller({ page: "monde", mode: "coureur" })}
-                               demandeSeance={demandeSeance} demandeSortie={demandeSortie} />;
-  } else if (page === "courses" && modeCourses === "calendrier") {
-    ecran = <EcranAgenda depart={depart} localisation={localisation} onLocaliser={localiser} onRecherche={() => setRecherche(true)}
-                         mesCourses={courses} setMesCourses={setCourses}
-                         onPreparer={(cible) => { if (cible) majPlan({ cible, questionnaire: null }); aller({ page: "programme", mode: "programme" }); }} />;
+                               demandeSeance={demandeSeance} demandeSortie={demandeSortie} onSecurite={() => aller({ page: "securite" })} />;
+  } else if (page === "courses" && modeCourses === "trouver" && ficheCourse) {
+    const c = ficheCourse;
+    ecran = <EcranFicheComplete course={c} depart={depart} onRetour={() => setFicheCourse(null)}
+                                deja={courses.some((m) => m.id === `agenda-${c.id}` || (m.nom === c.nom && m.date === c.date))}
+                                onAjouter={() => setCourses([...courses, {
+                                  id: `agenda-${c.id}`, nom: c.nom, date: c.date, lieu: c.commune, distance_km: c.distances_km.at(-1) ?? 0,
+                                  dplus_m: c.dplus_m ?? 0, dossard_eur: c.prix_eur?.at(-1) ?? 0, logement_eur: 0, lien: c.site,
+                                  statut: "envisagee", objectif: "", temps: "" }])}
+                                onPreparer={(cible) => { majPlan({ cible, questionnaire: null }); setFicheCourse(null); aller({ page: "programme", mode: "programme" }); }} />;
+  } else if (page === "courses" && modeCourses === "trouver") {
+    ecran = <EcranTrouverCourse depart={depart} localisation={localisation} onLocaliser={localiser} onRecherche={() => setRecherche(true)}
+                                onOuvrir={setFicheCourse} />;
   } else if (page === "courses" && modeCourses === "saison") {
     ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
       if (c.objectif) setObjectif(c.objectif);
@@ -273,7 +285,7 @@ function Contenu() {
                          parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                          objectif={objectif} setObjectif={setObjectif}
                          cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
-                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} mesCourses={courses}
+                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} onTrouver={() => aller({ page: "courses", mode: "trouver" })}
                          ravitos={ravitos} prefs={prefs} reglagesJourJ={reglagesJourJ} setReglagesJourJ={setReglagesJourJ}
                          nutrition={(entete, importer) => (
                            <EcranNutrition entete={entete} parcours={parcours} objectif={objectif} setObjectif={setObjectif}
@@ -284,6 +296,8 @@ function Contenu() {
   } else if (page === "monde") {
     ecran = <EcranProfil profil={profil} setProfil={changerProfil} cotes={COTES} onPersonnaliser={() => setEdition(true)}
                          onDonnees={() => aller({ page: "sources" })} />;
+  } else if (page === "securite") {
+    ecran = <EcranSecurite depart={depart} onRetour={() => aller({ page: "accueil" })} />;
   } else {
     ecran = <EcranSources />;
   }

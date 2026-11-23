@@ -30,7 +30,11 @@ function Lien({ texte, url, detail }: { texte: string; url: string; detail?: str
   );
 }
 
-export function VueVoyage({ course, depart, onRetour }: { course: CourseProche; depart: PointDepart; onRetour: () => void }) {
+export function VueVoyage({ course, depart, onRetour, entete }: {
+  course: CourseProche; depart: PointDepart; onRetour: () => void;
+  /** en-tête de la fiche course : remplace le titre simple quand le voyage est inclus dans la fiche */
+  entete?: React.ReactNode;
+}) {
   const arrivee = { lat: course.lat, lon: course.lon };
   const [trajet, setTrajet] = useState<Trajet | null | undefined>(undefined);
   const [autour, setAutour] = useState<{ logements: Logement[]; gares: Gare[] } | null | undefined>(undefined);
@@ -53,11 +57,16 @@ export function VueVoyage({ course, depart, onRetour }: { course: CourseProche; 
 
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-      <Pressable onPress={onRetour} accessibilityRole="button" hitSlop={8} style={{ marginTop: 4 }}>
-        <Text style={{ fontSize: 15, fontWeight: "700", color: C.montee }}>← Retour au calendrier</Text>
-      </Pressable>
-      <Text style={[S.titre, { fontSize: 24, marginTop: 10 }]} accessibilityRole="header">{course.nom}</Text>
-      <Text style={S.sousTitre}>{course.commune} · {jourLong(course.date)} · à {kmLisibles(course.distance_m)} de {depart.gps ? "toi" : depart.nom.split(",")[0]} à vol d'oiseau</Text>
+      {entete ?? (
+        <>
+          <Pressable onPress={onRetour} accessibilityRole="button" hitSlop={8} style={{ marginTop: 4 }}>
+            <Text style={{ fontSize: 15, fontWeight: "700", color: C.montee }}>← Retour</Text>
+          </Pressable>
+          <Text style={[S.titre, { fontSize: 24, marginTop: 10 }]} accessibilityRole="header">{course.nom}</Text>
+          <Text style={S.sousTitre}>{course.commune} · {jourLong(course.date)} · à {kmLisibles(course.distance_m)} de {depart.gps ? "toi" : depart.nom.split(",")[0]} à vol d'oiseau</Text>
+        </>
+      )}
+      {entete ? <Text style={[S.h2, { marginTop: 40 }]} accessibilityRole="header">Y aller et dormir</Text> : null}
 
       <Section titre="🚗 En voiture">
         <View style={[S.carte, { marginTop: 0, gap: 12 }]}>

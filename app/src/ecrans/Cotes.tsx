@@ -56,13 +56,13 @@ function LigneCote({ c, rang, position, allurePlat, onPress, adresse, ici }: {
   return (
     <Pressable onPress={onPress} accessibilityRole="button"
                accessibilityLabel={`${descente ? "Descente" : "Côte"} ${rang} : ${Math.round(c.longueur_m)} mètres à ${descente ? "moins " : ""}${c.pente_moy_pct} %, à ${distanceDe(c.distance_m, ici)}${adresse ? `, ${adresse}` : ""}`}
-               style={({ pressed }) => [S.ligne, { alignItems: "stretch", paddingLeft: 0, overflow: "hidden", opacity: pressed ? 0.85 : 1 }]}>
-      <View style={{ width: 6, backgroundColor: couleurPente(c.pente_moy_pct) }} />
-      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: C.aire, alignItems: "center", justifyContent: "center" }}>
-        <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{rang}</Text>
+               style={({ pressed }) => [S.ligne, { alignItems: "flex-start", gap: 16, opacity: pressed ? 0.85 : 1 }]}>
+      {/* le numéro reprend la couleur de la pente, comme sur la carte : pas de bande sur le côté */}
+      <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: couleurPente(c.pente_moy_pct), alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+        <Text style={{ fontSize: 15, fontWeight: "800", color: C.blanc }}>{rang}</Text>
       </View>
-      <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
-        <Text style={[S.fort, { fontSize: 17 }]}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(c.pente_moy_pct, 1)} %</Text>
+      <View style={{ flex: 1, minWidth: 0, gap: 8 }}>
+        <Text style={[S.fort, { fontSize: 18 }]}>{nombre(Math.round(c.longueur_m / 10) * 10)} m à {descente ? "−" : ""}{nombre(c.pente_moy_pct, 1)} %</Text>
         <Text style={[S.petit, { color: C.encre }]} numberOfLines={1}>{descente ? "Haut : " : ""}{adresse ?? (c.nom || "Adresse en cours…")}</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
           <Pastille texte={`${descente ? "−" : "+"}${nombre(c.dplus_m)} m`} />

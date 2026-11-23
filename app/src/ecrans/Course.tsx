@@ -12,9 +12,9 @@ import type { Position } from "../calcul/geo.ts";
 import { tempsPrevu, type Modele } from "../calcul/allure.ts";
 import { analyserGpx } from "../calcul/parcours.ts";
 import { passagesCles } from "../calcul/seances.ts";
-import type { CourseInscrite } from "../calcul/calendrier.ts";
 import type { CourseCible } from "../calcul/plan.ts";
-import { ChoixCourse, EnTeteCourse } from "./Plan.tsx";
+import { EnTeteCourse } from "./Plan.tsx";
+import { SansCourse } from "../composants/SansCourse.tsx";
 import type { Parcours } from "../calcul/profil.ts";
 import { Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { ProfilParcours } from "../composants/graphiques.tsx";
@@ -186,11 +186,11 @@ function SansGpx({ texte, onImporter }: { texte: string; onImporter: () => void 
 }
 
 export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, cotes, position, nomDepart, onChoisir,
-                              modele, cible, setCible, mesCourses, vueInitiale, nutrition, ravitos, prefs, reglagesJourJ, setReglagesJourJ }: {
+                              modele, cible, setCible, onTrouver, vueInitiale, nutrition, ravitos, prefs, reglagesJourJ, setReglagesJourJ }: {
   parcours: Parcours | null; onParcours: (p: Parcours | null) => void; onExemple: () => void;
   objectif: string; setObjectif: (v: string) => void;
   cotes: Cote[]; position: Position; nomDepart: string; onChoisir: (c: CoteProche, rang: number) => void;
-  modele: Modele | null; cible: CourseCible | null; setCible: (c: CourseCible | null) => void; mesCourses: CourseInscrite[];
+  modele: Modele | null; cible: CourseCible | null; setCible: (c: CourseCible | null) => void; onTrouver: () => void;
   vueInitiale?: VueCourse; ravitos: Ravito[]; prefs: Preferences;
   reglagesJourJ: ReglagesJourJ; setReglagesJourJ: (r: ReglagesJourJ) => void;
   /** Écran nutrition de la course (rendu avec l'en-tête de Ma course). */
@@ -226,8 +226,9 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
           </View>
           <Icone nom="fleche" couleur={C.monteeFonce} taille={18} />
         </Pressable>
-        <ChoixCourse mesCourses={mesCourses} onChoisir={(c) => setCible(c)} onImporter={importer}
-                     onExemple={onExemple} etatImport={etatImport} />
+        <SansCourse titre="Ta course, le jour J" onTrouver={onTrouver} onObjectif={(c) => setCible(c)} onImporter={importer} onExemple={onExemple}
+                    etatImport={etatImport}
+                    texte="Choisis ta course, ou importe son GPX : l'appli prépare ta feuille de course (temps de passage, ravitos, matériel) et ta nutrition." />
       </ScrollView>
     );
   }

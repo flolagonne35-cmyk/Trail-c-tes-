@@ -1,6 +1,6 @@
 // Programme → Mon programme (et Courses → Ma course) : choisir sa course (par son nom, par son format ou par le GPX), répondre à un mini
 // questionnaire, puis suivre un plan d'entraînement semaine par semaine. Chaque séance du plan
-// ouvre directement l'endroit où la faire (Programme → Séance ou Sorties).
+// ouvre directement l'endroit où la faire (Programme → Séance ou Parcours).
 
 import { useMemo, useState } from "react";
 import { Linking, Pressable, Text, TextInput, View } from "react-native";

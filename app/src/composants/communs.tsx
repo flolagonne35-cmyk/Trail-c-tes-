@@ -84,10 +84,10 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
  */
 export type Onglet = "accueil" | "cotes" | "programme" | "courses" | "monde";
 /** Toutes les pages : les rubriques, plus « Données et confidentialité ». */
-export type Page = Onglet | "sources";
+export type Page = Onglet | "sources" | "securite";
 /** Sous-rubriques de chaque rubrique (sous-onglets en haut de l'écran). */
 export type ModeProgramme = "programme" | "sorties" | "seance" | "coach";
-export type ModeCourses = "calendrier" | "saison" | "course";
+export type ModeCourses = "trouver" | "saison" | "course";
 export type ModeMonde = "aventure" | "coureur" | "progres";
 /** Où aller : une rubrique et, au besoin, sa sous-rubrique. */
 export type Destination = { page: Page; mode?: string };

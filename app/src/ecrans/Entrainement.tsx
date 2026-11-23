@@ -1,4 +1,4 @@
-// Programme → Sorties (boucle sur mesure) et Séance (« 8 × 400 m à 10 % » : où la faire), et
+// Programme → Parcours (boucle sur mesure) et Séance (« 8 × 400 m à 10 % » : où la faire), et
 // Mon monde → Mes progrès (chronos sur mes côtes, mon allure selon la pente).
 
 import { useMemo } from "react";
@@ -14,10 +14,8 @@ import { couleurPente } from "../composants/Carte.tsx";
 import { C, S } from "../theme.ts";
 import { VueBoucle } from "./Boucle.tsx";
 import { HorsZone } from "./Cotes.tsx";
-import { JeParsCourir } from "../composants/JeParsCourir.tsx";
 import { Convertisseur } from "../composants/Convertisseur.tsx";
 import { Minuteur } from "../composants/Minuteur.tsx";
-import { RetourDepart } from "../composants/RetourDepart.tsx";
 import type { PresetSortie } from "./Plan.tsx";
 import { VueSeance } from "./Seance.tsx";
 
@@ -103,12 +101,13 @@ function MesCotes({ cotes, activites, position, onChoisir }: {
 }
 
 export function EcranEntrainement({ mode, toutes, depart, localisation, onRecherche, onLocaliser, chargement,
-                                    filtres, allurePlat, onChoisir, activites, modele, onAjouterSortie, demandeSeance, demandeSortie }: {
+                                    filtres, allurePlat, onChoisir, activites, modele, onAjouterSortie, demandeSeance, demandeSortie, onSecurite }: {
   mode: ModeEntrainement; toutes: Cote[]; depart: PointDepart;
   localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; chargement: boolean;
   filtres: Filtres; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void; activites: Activite[];
   modele: Modele | null; onAjouterSortie: () => void;
   demandeSeance: { texte: string; n: number } | null; demandeSortie: (PresetSortie & { n: number }) | null;
+  onSecurite?: () => void;
 }) {
   const position = depart.position;
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
@@ -133,8 +132,15 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
         <>
           <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
                      nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele} />
-          <JeParsCourir depart={depart} />
-          <RetourDepart depart={depart.position} nomDepart={depart.nom} />
+          {onSecurite && (
+            <Pressable onPress={onSecurite} accessibilityRole="button" style={[S.ligne, { marginTop: 28 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={S.fort}>Avant de partir : sécurité</Text>
+                <Text style={S.petit}>Prévenir un proche, partager ma position, retrouver mon départ</Text>
+              </View>
+              <Text style={{ fontSize: 22, color: C.gris }}>›</Text>
+            </Pressable>
+          )}
         </>
       ) : (
         <>

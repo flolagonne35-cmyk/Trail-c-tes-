@@ -1,7 +1,7 @@
 // Rubrique « Aujourd'hui » : une seule question, « qu'est-ce que je fais aujourd'hui ? ». De haut en
 // bas : la séance du jour (tirée de mon programme), ma semaine (faite / prévue), ma prochaine course,
 // et la lumière du jour (frontale ?). Le reste a sa rubrique : courses dans Courses, points dans Mon
-// monde, « Je pars courir » au moment de partir (Programme → Sorties).
+// monde, « Je pars courir » dans la page Sécurité.
 
 import { useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -11,7 +11,7 @@ import type { Position } from "../calcul/geo.ts";
 import { petitMot, seanceDuJour } from "../calcul/jour.ts";
 import { genererPlan, JOURS, type Seance } from "../calcul/plan.ts";
 import { heureLisible, soleil } from "../calcul/soleil.ts";
-import { nombre, type Destination } from "../composants/communs.tsx";
+import { Icone, nombre, type Destination } from "../composants/communs.tsx";
 import type { MonPlan } from "../monPlan.ts";
 import type { Profil } from "../profil.ts";
 import { C, S } from "../theme.ts";
@@ -151,7 +151,7 @@ function ProchaineCourse({ monPlan, mesCourses, aller, onMaCourse }: {
     return (
       <Carte titre="Ma prochaine course">
         <Text style={S.fort}>Pas encore de course prévue</Text>
-        <Pressable onPress={() => aller({ page: "courses", mode: "calendrier" })} accessibilityRole="button" style={S.boutonClair}>
+        <Pressable onPress={() => aller({ page: "courses", mode: "trouver" })} accessibilityRole="button" style={S.boutonClair}>
           <Text style={S.boutonClairTexte}>Trouver une course</Text>
         </Pressable>
       </Carte>
@@ -178,7 +178,7 @@ function ProchaineCourse({ monPlan, mesCourses, aller, onMaCourse }: {
 }
 
 /** Lumière du jour : lever, coucher, et le rappel de la frontale si la nuit tombe bientôt. */
-function Lumiere({ position }: { position: Position }) {
+export function Lumiere({ position }: { position: Position }) {
   const maintenant = new Date();
   const s = soleil(maintenant, position);
   if (!s) return null;
@@ -220,6 +220,16 @@ export function EcranAccueil({ profil, aller, monPlan, allurePlat, mesCourses, p
       <MaSemaine faites={s.sorties} prevues={prevues} km={s.km} dplus={s.dplus} mot={petitMot(s.sorties, prevues, profil.prenom)} />
       <ProchaineCourse monPlan={monPlan} mesCourses={mesCourses} aller={aller} onMaCourse={onMaCourse} />
       <Lumiere position={position} />
+      <Pressable onPress={() => aller({ page: "securite" })} accessibilityRole="button" style={[S.ligne, { marginTop: 16 }]}>
+        <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: C.descenteClair, alignItems: "center", justifyContent: "center" }}>
+          <Icone nom="position" couleur={C.descenteFonce} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={S.fort}>Sécurité</Text>
+          <Text style={S.petit}>Prévenir un proche, partager ma position, retrouver mon départ</Text>
+        </View>
+        <Text style={{ fontSize: 22, color: C.gris }}>›</Text>
+      </Pressable>
       <Text style={[S.petit, { marginTop: 28 }]}>
         Les sorties comptées sont celles ajoutées en GPX (Mon monde → Mon coureur) depuis lundi.
       </Text>

@@ -1,4 +1,4 @@
-// Programme → « Coach ». Trois niveaux, tous gratuits et sans compte :
+// Programme → « Coach ». Trois niveaux ; le coach en ligne est réservé à l'abonnement Trail-côtes+ :
 // 1. le coach intégré répond tout de suite, sur le téléphone, sans réseau (src/calcul/coachIntegre.ts) ;
 // 2. le coach en ligne (IA ouverte hébergée par Cloudflare, quota gratuit) répond aux questions
 //    libres, après accord du coureur ; indisponible, le coach intégré prend le relais ;
@@ -15,6 +15,7 @@ import { ASSISTANTS, chargerCoach, COACH_VIDE, demanderCoach, enregistrerCoach, 
 import { partagerTexte } from "../fichiers.ts";
 import type { MonPlan } from "../monPlan.ts";
 import type { Profil } from "../profil.ts";
+import { AVANTAGES_PREMIUM, estPremium } from "../premium.ts";
 import { C, S } from "../theme.ts";
 
 const SUGGESTIONS = [
@@ -59,7 +60,7 @@ export function EcranCoach({ profil, monPlan, allurePlat }: { profil: Profil; mo
     // urgence ou douleur : la règle de prudence du coach intégré, tout de suite, sans passer par l'IA
     const prudence = local.sujet === "urgence" || local.sujet === "douleur";
     let reponse: MessageAffiche = { role: "assistant", content: local.texte, source: "integre" };
-    if (etat.accord && !prudence) {
+    if (estPremium() && etat.accord && !prudence) {
       setAttente(true);
       const enLigne = await demanderCoach(messages.slice(-LIMITES.messages).map(({ role, content }) => ({ role, content })), contexte);
       setAttente(false);
@@ -75,7 +76,23 @@ export function EcranCoach({ profil, monPlan, allurePlat }: { profil: Profil; mo
   return (
     <View style={{ flex: 1 }}>
       <ScrollView ref={defilement} style={S.ecran} contentContainerStyle={[S.contenu, { gap: 10 }]} keyboardShouldPersistTaps="handled">
-        <View style={[S.carte, { marginTop: 4, gap: 10 }]}>
+        {!estPremium() ? (
+          <View style={{ backgroundColor: C.foret, borderRadius: 24, padding: 22, gap: 14, marginTop: 4 }}>
+            <Text style={{ color: C.montee, fontSize: 13, fontWeight: "900", letterSpacing: 1 }}>TRAIL-CÔTES+</Text>
+            <Text style={{ color: C.fond, fontSize: 22, fontWeight: "900", lineHeight: 28 }}>Le coach en ligne, avec l'abonnement</Text>
+            {AVANTAGES_PREMIUM.map(([t, d]) => (
+              <View key={t} style={{ gap: 2 }}>
+                <Text style={{ color: C.fond, fontSize: 16, fontWeight: "800" }}>✓ {t}</Text>
+                <Text style={{ color: "#F6F4EFB3", fontSize: 14, lineHeight: 20 }}>{d}</Text>
+              </View>
+            ))}
+            <View style={{ minHeight: 52, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: C.fond, fontSize: 16, fontWeight: "800" }}>Bientôt disponible</Text>
+            </View>
+            <Text style={{ color: "#F6F4EFB3", fontSize: 13 }}>En attendant, le coach intégré ci-dessous répond gratuitement, sur ton téléphone.</Text>
+          </View>
+        ) : (
+          <View style={[S.carte, { marginTop: 4, gap: 10 }]}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={S.fort}>Coach en ligne (IA gratuite)</Text>
@@ -104,6 +121,7 @@ export function EcranCoach({ profil, monPlan, allurePlat }: { profil: Profil; mo
           )}
         </View>
 
+        )}
         {!etat.messages.length && (
           <View style={{ gap: 8 }}>
             <Text style={S.fort}>Pose ta question, ou touche une idée :</Text>

@@ -1,5 +1,5 @@
 // « Je pars courir » : prévenir un proche (heure de retour, point de départ) et partager sa position
-// en direct. Proposé au moment de partir, sous la boucle choisie (Programme → Sorties).
+// en direct. Proposé au moment de partir, sous la boucle choisie (Sécurité).
 
 import { useState } from "react";
 import { Linking, Pressable, Text, View } from "react-native";

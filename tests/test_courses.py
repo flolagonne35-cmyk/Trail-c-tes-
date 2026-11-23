@@ -97,3 +97,13 @@ def test_cyclo_cross_n_est_pas_une_course_a_pied():
     assert not co.est_course("Coupe de France de Cyclo-cross")
     assert not co.est_course("Cyclo cross")
     assert co.est_course("Festival du Cross")
+
+
+def test_prix_et_inscriptions_lus_dans_la_description():
+    texte = ("Trail de 12 et 25 km. Inscriptions en ligne jusqu'au 10 mars : 12 € (12 km), 18,50 € (25 km), "
+             "+ 3 € sur place. Parking à 2 € la journée. Buvette.")
+    assert co.prix_dans(texte) == [3.0, 12.0, 18.5]
+    assert co.inscription_dans(texte).startswith("Inscriptions en ligne jusqu'au 10 mars")
+    assert co.prix_dans("Repas des bénévoles 15 € le soir.") == []
+    f = co.fiche("Trail du test", "2027-03-20", "2027-03-20", 48.1, -1.6, "Rennes", "35000", texte + " Course complète !", "", "test", "", "", "x")
+    assert f["prix_eur"] == [3.0, 12.0, 18.5] and f["complet"] is True
