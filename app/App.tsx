@@ -61,7 +61,7 @@ const TITRES: Record<Page, string> = {
 };
 const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon plan"], ["sorties", "Parcours"], ["seance", "Séance"], ["coach", "Coach"]];
 const SOUS_COURSES: [ModeCourses, string][] = [["trouver", "Trouver"], ["saison", "Mes courses"], ["course", "Jour J"]];
-const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Mon aventure"], ["coureur", "Mon coureur"], ["progres", "Mes progrès"]];
+const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Progression"], ["coureur", "Mon coureur"], ["progres", "Mes chronos"]];
 
 function Contenu() {
   const bords = useSafeAreaInsets();

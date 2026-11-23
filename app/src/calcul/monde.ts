@@ -104,15 +104,31 @@ export function badges(activites: Activite[], maintenant = new Date()): Badge[] 
   ];
 }
 
-/** Décors du portrait du coureur, à acheter avec ses points (dépensés, mais toujours comptés au classement). */
-export const DECORS: { id: string; nom: string; prix: number; rarete: Rarete; ciel: [string, string]; monts: [string, string] }[] = [
-  { id: "vallee", nom: "Vallée verte", prix: 0, rarete: "commun", ciel: ["#CFE6F3", "#F4F1EA"], monts: ["#9DB89A", "#6E8F6B"] },
-  { id: "foret", nom: "Forêt bretonne", prix: 150, rarete: "commun", ciel: ["#DDE8D5", "#F4F1EA"], monts: ["#4F7A52", "#2E5233"] },
-  { id: "aube", nom: "Crêtes à l'aube", prix: 400, rarete: "rare", ciel: ["#F7C9A9", "#FCE9D8"], monts: ["#8C6F8F", "#5B4A66"] },
-  { id: "glacier", nom: "Glacier", prix: 900, rarete: "epique", ciel: ["#BFE3F2", "#EAF6FB"], monts: ["#DDEFF7", "#8FB7CC"] },
-  { id: "nuit", nom: "Nuit étoilée à la frontale", prix: 2000, rarete: "legendaire", ciel: ["#1B2A4A", "#3E4F7A"], monts: ["#2C3550", "#151B2E"] },
+/**
+ * Équipement de l'avatar, de marques inventées pour l'appli (comme dans les jeux vidéo) : on ne
+ * reprend ni le nom ni le logo d'une vraie marque, ni une imitation qui y ferait penser (le droit
+ * des marques interdit aussi les noms approchants : Code de la propriété intellectuelle, L713-3).
+ * Les objets légendaires ne s'achètent pas : ils se méritent avec un badge.
+ */
+export type Objet = { id: string; marque: string; nom: string; detail: string; rarete: Rarete; prix?: number; merite?: string };
+export const EQUIPEMENT: Objet[] = [
+  { id: "casquette-sillon", marque: "Sillon", nom: "Casquette Sillon Air", detail: "Légère, visière courte", rarete: "commun", prix: 120 },
+  { id: "chaussettes-trame", marque: "Trame", nom: "Chaussettes Trame Trail", detail: "Renfort talon et orteils", rarete: "commun", prix: 80 },
+  { id: "montre-cadran", marque: "Cadran", nom: "Montre GPS Cadran 2", detail: "Altimètre, autonomie 40 h", rarete: "rare", prix: 450 },
+  { id: "chaussures-sentea", marque: "Sentéa", nom: "Sentéa Crête 3", detail: "Chaussure de trail, crampons 5 mm", rarete: "rare", prix: 600 },
+  { id: "gilet-givre", marque: "Givre", nom: "Gilet Givre 10 L", detail: "Deux flasques, poches à gels", rarete: "rare", prix: 550 },
+  { id: "frontale-lumen", marque: "Lumen Nord", nom: "Frontale Lumen Nord 900", detail: "900 lumens, pour les ultras de nuit", rarete: "epique", prix: 1300 },
+  { id: "veste-givre", marque: "Givre", nom: "Veste Givre Tempête", detail: "Imperméable 20 000 mm", rarete: "epique", prix: 1600 },
+  { id: "batons-cretal", marque: "Crêtal", nom: "Bâtons Crêtal Ultra carbone", detail: "Réservés aux finishers d'ultra", rarete: "legendaire", merite: "ultra" },
+  { id: "gilet-everest", marque: "Sillon", nom: "Gilet Sillon 8848", detail: "Pour qui a gravi l'Everest en côtes", rarete: "legendaire", merite: "everest" },
 ];
 
 /** Points encore à dépenser : gagnés moins achats. */
 export const solde = (gagnes: number, achats: string[]) =>
-  gagnes - achats.reduce((t, id) => t + (DECORS.find((d) => d.id === id)?.prix ?? 0), 0);
+  gagnes - achats.reduce((t, id) => t + (EQUIPEMENT.find((d) => d.id === id)?.prix ?? 0), 0);
+
+/** Chiffres de la saison (année civile en cours) : sorties validées. */
+export function saison(activites: Activite[], maintenant = new Date()) {
+  const a = validees(activites).filter((x) => new Date(x.date).getFullYear() === maintenant.getFullYear());
+  return { km: a.reduce((t, x) => t + x.distance_km, 0), dplus: a.reduce((t, x) => t + x.dplus_m, 0), sorties: a.length, montees: montees(a) };
+}

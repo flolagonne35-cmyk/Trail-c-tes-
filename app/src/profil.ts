@@ -8,8 +8,8 @@ import type { Activite } from "./calcul/points.ts";
 
 export type Profil = {
   prenom: string; apparence: Apparence; creeLe: string; activites: Activite[];
-  achats?: string[]; // décors achetés avec les points (Mon monde → Mon aventure)
-  decor?: string; // décor choisi pour le portrait
+  achats?: string[]; // équipement acheté avec les points (Mon monde → Progression)
+  decor?: string; // ancienne version (décors), plus utilisé
 };
 
 const CLE = "trailcotes.profil.v1";

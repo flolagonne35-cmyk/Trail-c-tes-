@@ -41,6 +41,7 @@ test("badges et série de semaines", () => {
 });
 
 test("solde : les achats se déduisent", () => {
-  assert.equal(solde(500, ["foret"]), 350);
+  assert.equal(solde(500, ["casquette-sillon"]), 380);
+  assert.equal(solde(500, ["batons-cretal"]), 500); // légendaire : mérité, pas acheté
   assert.equal(solde(500, []), 500);
 });
