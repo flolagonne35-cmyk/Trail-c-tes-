@@ -2,7 +2,7 @@
 // puis la carte ou la liste des côtes les plus proches (toute la France, chargée autour du départ).
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, type ScrollViewInstance, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, type ScrollViewInstance, Text, useWindowDimensions, View } from "react-native";
 
 import {
   cotesProches, distanceCouverture, distanceDe, enDescente, kmLisibles, meilleures, murDe, NOMS_TRAFIC, RAYON_COUVERTURE_M,
@@ -156,6 +156,8 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   resultats: boolean; setResultats: (v: boolean) => void;
 }) {
   const [vue, setVue] = useState<"carte" | "liste">("carte");
+  // sur ordinateur et tablette, la carte prend de la hauteur
+  const largeEcran = useWindowDimensions().width >= 900;
   // en passant de la recherche aux résultats (et inversement), on repart du haut de la page :
   // sinon on atterrit au niveau du bouton « Voir », en bas, sans voir la carte ni le tri
   const defilement = useRef<ScrollViewInstance>(null);
@@ -211,7 +213,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   }, [cleEau, position.lat, position.lon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const carte = (
-    <Carte hauteur={300} centre={position} position={position} legende={LEGENDE}
+    <Carte hauteur={largeEcran ? 480 : 300} centre={position} position={position} legende={LEGENDE}
            rayonM={cotes.length ? filtres.rayonM : undefined}
            zoom={zoomAjuste([position, ...affichees.slice(0, 10).map((c) => ({ lat: c.lat, lon: c.lon }))], 360, 380, 11, 16)}
            cle={`${position.lat},${position.lon},${affichees.map((c) => c.id).join("-")}`}

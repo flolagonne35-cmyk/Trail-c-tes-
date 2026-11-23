@@ -11,6 +11,7 @@ import type { PointDepart } from "../composants/BarreDepart.tsx";
 import { nombre } from "../composants/communs.tsx";
 import { C, S } from "../theme.ts";
 import { VueVoyage } from "./Voyage.tsx";
+import { CheckList } from "../composants/CheckList.tsx";
 
 const jourLong = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const euros = (v: number) => `${nombre(v, v % 1 ? 2 : 0)} €`;
@@ -56,6 +57,10 @@ export function EcranFicheComplete({ course: c, depart, deja, onRetour, onAjoute
           )}
         </View>
       </View>
+
+      <Bloc titre="Ma check-list">
+        <CheckList idCourse={c.id} site={c.site || undefined} nuit={c.distance_m > 80000} />
+      </Bloc>
 
       <Bloc titre="Les formats">
         {c.distances_km.length ? c.distances_km.map((km) => (
