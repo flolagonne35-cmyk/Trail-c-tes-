@@ -94,8 +94,8 @@ function Formulaire({ initiale, onValider, onSupprimer, onFermer }: {
   );
 }
 
-export function EcranMesCourses({ courses, setCourses, onPreparer }: {
-  courses: CourseInscrite[]; setCourses: (c: CourseInscrite[]) => void; onPreparer: (c: CourseInscrite) => void;
+export function EcranMesCourses({ courses, setCourses, onPreparer, onRetour }: {
+  courses: CourseInscrite[]; setCourses: (c: CourseInscrite[]) => void; onPreparer: (c: CourseInscrite) => void; onRetour?: () => void;
 }) {
   const [edition, setEdition] = useState<CourseInscrite | null>(null);
   const suivante = prochaine(courses);
@@ -107,6 +107,11 @@ export function EcranMesCourses({ courses, setCourses, onPreparer }: {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={S.ecran} contentContainerStyle={S.contenu}>
+        {onRetour && (
+          <Pressable onPress={onRetour} accessibilityRole="button" hitSlop={10} style={{ minHeight: 44, justifyContent: "center" }}>
+            <Text style={{ fontSize: 16, fontWeight: "700", color: C.montee }}>← Trouver une course</Text>
+          </Pressable>
+        )}
         {suivante ? (
           <View style={{ marginTop: 8, borderRadius: 22, backgroundColor: C.encre, padding: 18, gap: 6 }}>
             <Text style={{ color: "#F4F1EAB3", fontSize: 12, fontWeight: "700", letterSpacing: 1, textTransform: "uppercase" }}>

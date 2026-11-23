@@ -78,16 +78,17 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
 }
 
 /**
- * Les cinq rubriques (barre du bas), chacune répond à une seule question du coureur :
- * Aujourd'hui (que faire aujourd'hui ?), Explorer (où courir ?), Programme (comment m'entraîner ?),
- * Courses (quelle course, comment la réussir ?), Mon monde (où j'en suis ?).
+ * Les quatre rubriques, chacune répond à une seule question du coureur :
+ * Aujourd'hui (que faire aujourd'hui ?), Explorer (où courir ? côtes, parcours, lieux de séance),
+ * Ma course (quelle course, mon plan pour y arriver, le jour J), Mon monde (où j'en suis ?).
  */
-export type Onglet = "accueil" | "cotes" | "programme" | "courses" | "monde";
+export type Onglet = "accueil" | "cotes" | "courses" | "monde";
 /** Toutes les pages : les rubriques, plus « Données et confidentialité ». */
 export type Page = Onglet | "sources" | "securite";
 /** Sous-rubriques de chaque rubrique (sous-onglets en haut de l'écran). */
-export type ModeProgramme = "programme" | "sorties" | "seance" | "coach";
-export type ModeCourses = "trouver" | "saison" | "course";
+export type ModeExplorer = "cotes" | "sorties" | "seance";
+/** Ma course : trouver la course, le plan pour y arriver, le jour J, le coach ; « saison » = mes courses de l'année. */
+export type ModeCourses = "trouver" | "plan" | "course" | "coach" | "saison";
 export type ModeMonde = "aventure" | "coureur" | "progres";
 /** Où aller : une rubrique et, au besoin, sa sous-rubrique. */
 export type Destination = { page: Page; mode?: string };
@@ -126,7 +127,7 @@ export function Icone({ nom, couleur = C.encre, taille = 22 }: { nom: keyof type
 }
 
 export const NOMS: Record<Onglet, string> = {
-  accueil: "Aujourd'hui", cotes: "Explorer", programme: "Programme", courses: "Courses", monde: "Mon monde",
+  accueil: "Aujourd'hui", cotes: "Explorer", courses: "Ma course", monde: "Mon monde",
 };
 
 /**

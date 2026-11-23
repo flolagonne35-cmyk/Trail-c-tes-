@@ -54,7 +54,7 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
       <Carte titre="Séance du jour">
         <Text style={S.fort}>{r.cas === "fini" ? "Ta course est passée : bravo !" : "Pas encore de plan d'entraînement"}</Text>
         <Text style={S.petit}>Choisis ta course objectif et réponds à quelques questions : chaque jour, l'appli te dit quoi faire et où.</Text>
-        {bouton(r.cas === "fini" ? "Préparer la prochaine course" : "Créer mon plan", () => aller({ page: "programme", mode: "programme" }))}
+        {bouton(r.cas === "fini" ? "Préparer la prochaine course" : "Créer mon plan", () => aller({ page: "courses", mode: "plan" }))}
       </Carte>
     );
   }
@@ -109,7 +109,7 @@ function SeanceDuJourCarte({ monPlan, faites, allurePlat, aller, onSeance, onSor
       <Text style={S.petit}>≈ {x.minutes} min · semaine {r.semaine.n} · {r.semaine.phase.toLowerCase()} · objectif {cible?.nom}</Text>
       {x.seance ? bouton("Où la faire autour de moi", () => onSeance(x.seance!))
         : x.sortie ? bouton("Voir les parcours autour de moi", () => onSortie(x.sortie!))
-        : bouton("Voir mon programme", () => aller({ page: "programme", mode: "programme" }))}
+        : bouton("Voir mon programme", () => aller({ page: "courses", mode: "plan" }))}
       {x.type === "longue" && x.minutes >= 75 && (
         <Pressable onPress={() => onMaCourse("nutrition")} accessibilityRole="button" style={S.boutonClair}>
           <Text style={S.boutonClairTexte}>Quoi manger et boire pendant cette sortie</Text>

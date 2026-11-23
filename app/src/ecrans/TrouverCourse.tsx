@@ -1,4 +1,4 @@
-// Courses → « Trouver » : on dit ce qu'on cherche en quelques gestes (quand, quelle distance,
+// Ma course → « Trouver » : on dit ce qu'on cherche en quelques gestes (quand, quelle distance,
 // quel dénivelé, trail ou route, jusqu'où), et les courses qui collent s'affichent, de la plus
 // proche dans le temps à la plus lointaine. Chaque course ouvre sa fiche complète.
 
@@ -9,6 +9,9 @@ import { coursesAVenir, FILTRES_AGENDA, prochainsMois, type CourseProche } from 
 import { kmLisibles } from "../calcul/cotes.ts";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { nombre } from "../composants/communs.tsx";
+import type { CourseInscrite } from "../calcul/calendrier.ts";
+import type { CourseCible } from "../calcul/plan.ts";
+import { ObjectifLibre } from "../composants/SansCourse.tsx";
 import { C, S } from "../theme.ts";
 import { AGENDA } from "./Agenda.tsx";
 
@@ -77,8 +80,9 @@ function CarteCourse({ c, ici, onOuvrir }: { c: CourseProche; ici: string; onOuv
   );
 }
 
-export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocaliser, onOuvrir }: {
+export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocaliser, onOuvrir, mesCourses, cible, onMesCourses, onVoirPlan, onObjectif }: {
   depart: PointDepart; localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; onOuvrir: (c: CourseProche) => void;
+  mesCourses: CourseInscrite[]; cible: CourseCible | null; onMesCourses: () => void; onVoirPlan: () => void; onObjectif: (c: CourseCible) => void;
 }) {
   const [mois, setMois] = useState("");
   const [distance, setDistance] = useState<Distance>("toutes");
@@ -99,6 +103,23 @@ export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocali
 
   return (
     <ScrollView style={S.ecran} contentContainerStyle={[S.contenu, { gap: 26, paddingTop: 8 }]} keyboardShouldPersistTaps="handled">
+      {cible && (
+        <Pressable onPress={onVoirPlan} accessibilityRole="button" style={[S.ligne, { marginTop: 16, backgroundColor: C.foret }]}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ color: "#F6F4EFB3", fontSize: 13, fontWeight: "800", letterSpacing: 1 }}>MA COURSE</Text>
+            <Text style={{ color: C.fond, fontSize: 18, fontWeight: "900" }} numberOfLines={2}>{cible.nom}</Text>
+            <Text style={{ color: "#F6F4EFB3", fontSize: 14 }}>{cible.date ? new Date(`${cible.date}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "date à fixer"} · voir mon plan</Text>
+          </View>
+          <Text style={{ fontSize: 24, color: C.fond }}>›</Text>
+        </Pressable>
+      )}
+      <Pressable onPress={onMesCourses} accessibilityRole="button" style={[S.ligne, { marginTop: cible ? 0 : 16 }]}>
+        <View style={{ flex: 1 }}>
+          <Text style={S.fort}>Mes courses de l'année{mesCourses.length ? ` (${mesCourses.length})` : ""}</Text>
+          <Text style={S.petit}>Celles qui te tentent et celles où tu es inscrit : compte à rebours, budget</Text>
+        </View>
+        <Text style={{ fontSize: 22, color: C.gris }}>›</Text>
+      </Pressable>
       <BarreDepart titre="Autour de" depart={depart} localisation={localisation} onRecherche={onRecherche} onLocaliser={onLocaliser} />
       <Puces titre="Quand" options={[["", "Tous les mois"], ...prochainsMois().map((m) => [m.cle, m.nom] as [string, string])]} valeur={mois} onChange={setMois} />
       <Puces titre="Distance" options={DISTANCES} valeur={distance} onChange={setDistance} />
@@ -123,6 +144,7 @@ export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocali
           </Pressable>
         )}
       </View>
+      <ObjectifLibre onObjectif={onObjectif} />
       <Text style={S.petit}>
         Courses publiées par les offices de tourisme (DATAtourisme) et les agendas publics (OpenAgenda), mises à jour chaque jour. Toutes
         les courses n'y sont pas encore : ajoute la tienne dans « Mes courses ».

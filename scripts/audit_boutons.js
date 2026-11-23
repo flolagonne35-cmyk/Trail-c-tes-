@@ -24,44 +24,39 @@ const attendre = (page, ms = 400) => page.waitForTimeout(ms);
 const ECRANS = {
   "Aujourd'hui": async () => {},
   "Explorer · Recherche": async (p) => { await p.getByRole("tab", { name: "Explorer" }).click(); await attendre(p, 1200); },
+  "Explorer · Parcours": async (p) => {
+    await ECRANS["Explorer · Recherche"](p); await p.getByRole("tab", { name: "Parcours" }).click(); await attendre(p, 1200);
+    await p.getByRole("button", { name: "Trouver mes parcours" }).click(); await attendre(p, 3000);
+  },
+  "Explorer · Séance": async (p) => { await ECRANS["Explorer · Recherche"](p); await p.getByRole("tab", { name: "Séance" }).click(); await attendre(p, 1200); },
   "Explorer · Montées": async (p) => { await ECRANS["Explorer · Recherche"](p); await p.getByRole("button", { name: /^Voir / }).click(); },
   "Explorer · Descentes": async (p) => { await ECRANS["Explorer · Montées"](p); await p.getByRole("tab", { name: "Descentes" }).click(); },
   "Recherche de lieu": async (p) => { await ECRANS["Explorer · Recherche"](p); await p.getByRole("search").click(); },
   "Détail d'une côte": async (p) => { await ECRANS["Explorer · Montées"](p); await p.getByRole("button", { name: /^Côte 1 :/ }).click(); },
-  "Programme (vide)": async (p) => { await p.getByRole("tab", { name: "Programme" }).click(); },
-  "Programme · Questionnaire": async (p) => {
-    await ECRANS["Programme (vide)"](p); await p.getByLabel("Format visé").fill("trail 30 km 1500 m");
-    await p.getByRole("button", { name: "Valider cet objectif" }).click();
-  },
-  "Programme · Plan": async (p) => {
-    await ECRANS["Programme · Questionnaire"](p); await p.getByRole("button", { name: "Créer mon plan" }).click();
-  },
-  "Programme · Parcours": async (p) => {
-    await ECRANS["Programme (vide)"](p); await p.getByRole("tab", { name: "Parcours" }).click(); await attendre(p, 1200);
-    await p.getByRole("button", { name: "Trouver mes parcours" }).click(); await attendre(p, 3000);
-  },
-  "Sécurité": async (p) => { await p.getByRole("button", { name: /^Sécurité/ }).click(); await attendre(p, 600); },
-  "Programme · Séance": async (p) => { await ECRANS["Programme (vide)"](p); await p.getByRole("tab", { name: "Séance" }).click(); await attendre(p, 1200); },
-  "Programme · Coach": async (p) => { await ECRANS["Programme (vide)"](p); await p.getByRole("tab", { name: "Coach" }).click(); },
-  "Programme · Coach (réponse)": async (p) => {
-    await ECRANS["Programme · Coach"](p); await p.getByRole("button", { name: "Explique-moi ma séance du jour" }).click(); await attendre(p, 600);
-  },
-  "Courses · Trouver": async (p) => { await p.getByRole("tab", { name: "Courses" }).click(); await p.waitForTimeout(800); },
-  "Courses · Fiche": async (p) => {
-    await ECRANS["Courses · Trouver"](p); await p.getByRole("radio", { name: "Toute la France" }).click();
+  "Ma course · Trouver": async (p) => { await p.getByRole("tab", { name: "Ma course" }).click(); await p.waitForTimeout(800); },
+  "Ma course · Fiche": async (p) => {
+    await ECRANS["Ma course · Trouver"](p); await p.getByRole("radio", { name: "Toute la France" }).click();
     await p.getByRole("button", { name: /Ouvrir la fiche/ }).first().click(); await attendre(p, 1500);
   },
-  "Courses · Mes courses": async (p) => { await ECRANS["Courses · Trouver"](p); await p.getByRole("tab", { name: "Mes courses" }).click(); },
-  "Courses · Mes courses · Formulaire": async (p) => { await ECRANS["Courses · Mes courses"](p); await p.getByRole("button", { name: "Ajouter une course" }).click(); },
-  "Courses · Jour J (vide)": async (p) => { await ECRANS["Courses · Trouver"](p); await p.getByRole("tab", { name: "Jour J" }).click(); },
-  "Courses · Profil": async (p) => {
-    await ECRANS["Courses · Jour J (vide)"](p); await p.getByRole("button", { name: /exemple/ }).click();
+  "Ma course · Mes courses": async (p) => { await ECRANS["Ma course · Trouver"](p); await p.getByRole("button", { name: /^Mes courses de l'année/ }).click(); },
+  "Ma course · Mes courses · Formulaire": async (p) => { await ECRANS["Ma course · Mes courses"](p); await p.getByRole("button", { name: "Ajouter une course" }).click(); },
+  "Ma course · Mon plan (vide)": async (p) => { await ECRANS["Ma course · Trouver"](p); await p.getByRole("tab", { name: "Mon plan" }).click(); },
+  "Ma course · Questionnaire": async (p) => {
+    await ECRANS["Ma course · Trouver"](p); await p.getByLabel("Format visé").fill("trail 30 km 1500 m");
+    await p.getByRole("button", { name: "Valider cet objectif" }).click();
+  },
+  "Ma course · Plan": async (p) => { await ECRANS["Ma course · Questionnaire"](p); await p.getByRole("button", { name: "Créer mon plan" }).click(); },
+  "Ma course · Coach": async (p) => { await ECRANS["Ma course · Trouver"](p); await p.getByRole("tab", { name: "Coach" }).click(); },
+  "Ma course · Jour J (vide)": async (p) => { await ECRANS["Ma course · Trouver"](p); await p.getByRole("tab", { name: "Jour J" }).click(); },
+  "Sécurité": async (p) => { await p.getByRole("button", { name: /^Sécurité/ }).click(); await attendre(p, 600); },
+  "Ma course · Profil": async (p) => {
+    await ECRANS["Ma course · Jour J (vide)"](p); await p.getByRole("button", { name: /exemple/ }).click();
     await p.getByRole("tab", { name: "Profil" }).click();
   },
-  "Courses · Temps": async (p) => { await ECRANS["Courses · Profil"](p); await p.getByRole("tab", { name: "Temps" }).click(); },
-  "Courses · Nutrition": async (p) => { await ECRANS["Courses · Profil"](p); await p.getByRole("tab", { name: "Nutrition" }).click(); },
-  "Courses · Jour J (exemple)": async (p) => { await ECRANS["Courses · Jour J (vide)"](p); await p.getByRole("button", { name: /exemple/ }).click(); },
-  "Courses · Prépa": async (p) => { await ECRANS["Courses · Profil"](p); await p.getByRole("tab", { name: "Prépa" }).click(); },
+  "Ma course · Temps": async (p) => { await ECRANS["Ma course · Profil"](p); await p.getByRole("tab", { name: "Temps" }).click(); },
+  "Ma course · Nutrition": async (p) => { await ECRANS["Ma course · Profil"](p); await p.getByRole("tab", { name: "Nutrition" }).click(); },
+  "Ma course · Jour J (exemple)": async (p) => { await ECRANS["Ma course · Jour J (vide)"](p); await p.getByRole("button", { name: /exemple/ }).click(); },
+  "Ma course · Prépa": async (p) => { await ECRANS["Ma course · Profil"](p); await p.getByRole("tab", { name: "Prépa" }).click(); },
   "Mon monde · Progression": async (p) => { await p.getByRole("tab", { name: "Mon monde" }).click(); await attendre(p, 1600); },
   "Mon monde · Mon coureur": async (p) => { await ECRANS["Mon monde · Progression"](p); await p.getByRole("tab", { name: "Mon coureur" }).click(); },
   "Mon monde · Mes chronos": async (p) => { await ECRANS["Mon monde · Progression"](p); await p.getByRole("tab", { name: "Mes chronos" }).click(); },

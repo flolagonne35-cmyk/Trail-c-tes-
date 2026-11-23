@@ -22,7 +22,7 @@ import { mesPassages } from "./src/calcul/points.ts";
 import { fusionner, modeleAllure } from "./src/calcul/allure.ts";
 import type { Parcours } from "./src/calcul/profil.ts";
 import {
-  BarreHaut, Navigation, SousOnglets, type Destination, type ModeCourses, type ModeMonde, type ModeProgramme, type Onglet, type Page,
+  BarreHaut, Navigation, SousOnglets, type Destination, type ModeCourses, type ModeExplorer, type ModeMonde, type Onglet, type Page,
 } from "./src/composants/communs.tsx";
 import { score } from "./src/calcul/points.ts";
 import { RechercheLieu } from "./src/composants/RechercheLieu.tsx";
@@ -56,11 +56,11 @@ import { useEnLigne } from "./src/zoneHorsLigne.ts";
 const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {
-  accueil: "Aujourd'hui", cotes: "Explorer", programme: "Programme", courses: "Courses", monde: "Mon monde",
+  accueil: "Aujourd'hui", cotes: "Explorer", courses: "Ma course", monde: "Mon monde",
   sources: "Données", securite: "Sécurité",
 };
-const SOUS_PROGRAMME: [ModeProgramme, string][] = [["programme", "Mon plan"], ["sorties", "Parcours"], ["seance", "Séance"], ["coach", "Coach"]];
-const SOUS_COURSES: [ModeCourses, string][] = [["trouver", "Trouver"], ["saison", "Mes courses"], ["course", "Jour J"]];
+const SOUS_EXPLORER: [ModeExplorer, string][] = [["cotes", "Côtes"], ["sorties", "Parcours"], ["seance", "Séance"]];
+const SOUS_COURSES: [ModeCourses, string][] = [["trouver", "Trouver"], ["plan", "Mon plan"], ["course", "Jour J"], ["coach", "Coach"]];
 const SOUS_MONDE: [ModeMonde, string][] = [["aventure", "Progression"], ["coureur", "Mon coureur"], ["progres", "Mes chronos"]];
 
 function Contenu() {
@@ -88,7 +88,7 @@ function Contenu() {
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
   const [modeCotes, setModeCotes] = useState<Sens>("montee");
   const [resultatsCotes, setResultatsCotes] = useState(false); // les côtes n'apparaissent qu'après la recherche
-  const [modeProgramme, setModeProgramme] = useState<ModeProgramme>("programme");
+  const [modeExplorer, setModeExplorer] = useState<ModeExplorer>("cotes");
   const [modeCourses, setModeCourses] = useState<ModeCourses>("trouver");
   const [modeMonde, setModeMonde] = useState<ModeMonde>("aventure");
   const [ficheCourse, setFicheCourse] = useState<CourseProche | null>(null);
@@ -161,12 +161,12 @@ function Contenu() {
   // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
-    const autour = page === "cotes" || (page === "programme" && (modeProgramme === "sorties" || modeProgramme === "seance")) || (page === "courses" && modeCourses === "trouver");
+    const autour = page === "cotes" || (page === "courses" && modeCourses === "trouver");
     if (autour && !dejaLocalise.current && depart === DEPART_DEFAUT) {
       dejaLocalise.current = true;
       localiser();
     }
-  }, [page, modeProgramme, modeCourses, depart, localiser]);
+  }, [page, modeCourses, depart, localiser]);
 
   // confirmation brève à chaque nouveau point de départ (GPS ou lieu choisi)
   const [annonce, setAnnonce] = useState<string | null>(null);
@@ -188,14 +188,14 @@ function Contenu() {
   const aller = (d: Destination) => {
     setDetail(null);
     setRecherche(false);
-    if (d.page === "cotes" && d.mode) setModeCotes(d.mode as Sens);
-    if (d.page === "programme" && d.mode) setModeProgramme(d.mode as ModeProgramme);
+    if (d.page === "cotes" && (d.mode === "montee" || d.mode === "descente")) { setModeCotes(d.mode); setModeExplorer("cotes"); }
+    else if (d.page === "cotes" && d.mode) setModeExplorer(d.mode as ModeExplorer);
     if (d.page === "courses" && d.mode) setModeCourses(d.mode as ModeCourses);
     if (d.page === "monde" && d.mode) setModeMonde(d.mode as ModeMonde);
     setPage(d.page);
   };
-  const versSeance = (texte: string) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "programme", mode: "seance" }); };
-  const versSortie = (p: PresetSortie) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "programme", mode: "sorties" }); };
+  const versSeance = (texte: string) => { setDemandeSeance({ texte, n: Date.now() }); aller({ page: "cotes", mode: "seance" }); };
+  const versSortie = (p: PresetSortie) => { setDemandeSortie({ ...p, n: Date.now() }); aller({ page: "cotes", mode: "sorties" }); };
   const versMaCourse = (vue: VueCourse) => { setVueCourse({ vue, n: Date.now() }); aller({ page: "courses", mode: "course" }); };
   const ouvrirCote = (cote: CoteProche, rang: number) => setDetail({ cote, rang });
 
@@ -247,18 +247,18 @@ function Contenu() {
   } else if (page === "accueil") {
     ecran = <EcranAccueil profil={profil} aller={aller} monPlan={monPlan} allurePlat={ALLURE_PLAT_MIN_KM} mesCourses={courses} position={depart.position}
                           onSeance={versSeance} onSortie={versSortie} onMaCourse={versMaCourse} />;
-  } else if (page === "cotes") {
+  } else if (page === "cotes" && modeExplorer === "cotes") {
     ecran = <EcranCotes {...commun} filtres={filtres} setFiltres={setFiltres} mode={modeCotes} setMode={setModeCotes}
                         resultats={resultatsCotes} setResultats={setResultatsCotes} />;
-  } else if (page === "programme" && modeProgramme === "programme") {
+  } else if (page === "courses" && modeCourses === "plan") {
     ecran = <EcranProgramme cible={monPlan.cible} setCible={(cible) => majPlan({ cible })}
                             questionnaire={monPlan.questionnaire} setQuestionnaire={(questionnaire) => majPlan({ questionnaire })}
-                            parcours={parcours} onParcours={setParcours} onTrouver={() => aller({ page: "courses", mode: "trouver" })}
+                            parcours={parcours} onParcours={setParcours} onTrouver={() => setModeCourses("trouver")}
                             modele={modele} allurePlat={ALLURE_PLAT_MIN_KM} onSeance={versSeance} onSortie={versSortie} />;
-  } else if (page === "programme" && modeProgramme === "coach") {
+  } else if (page === "courses" && modeCourses === "coach") {
     ecran = <EcranCoach profil={profil} monPlan={monPlan} allurePlat={ALLURE_PLAT_MIN_KM} />;
-  } else if (page === "programme" || (page === "monde" && modeMonde === "progres")) {
-    ecran = <EcranEntrainement {...commun} mode={page === "monde" ? "progres" : modeProgramme === "sorties" ? "boucle" : "seance"}
+  } else if (page === "cotes" || (page === "monde" && modeMonde === "progres")) {
+    ecran = <EcranEntrainement {...commun} mode={page === "monde" ? "progres" : modeExplorer === "sorties" ? "boucle" : "seance"}
                                filtres={filtres} activites={profil.activites} modele={modele}
                                onAjouterSortie={() => aller({ page: "monde", mode: "coureur" })}
                                demandeSeance={demandeSeance} demandeSortie={demandeSortie} onSecurite={() => aller({ page: "securite" })} />;
@@ -270,12 +270,14 @@ function Contenu() {
                                   id: `agenda-${c.id}`, nom: c.nom, date: c.date, lieu: c.commune, distance_km: c.distances_km.at(-1) ?? 0,
                                   dplus_m: c.dplus_m ?? 0, dossard_eur: c.prix_eur?.at(-1) ?? 0, logement_eur: 0, lien: c.site,
                                   statut: "envisagee", objectif: "", temps: "" }])}
-                                onPreparer={(cible) => { majPlan({ cible, questionnaire: null }); setFicheCourse(null); aller({ page: "programme", mode: "programme" }); }} />;
+                                onPreparer={(cible) => { majPlan({ cible, questionnaire: null }); setFicheCourse(null); aller({ page: "courses", mode: "plan" }); }} />;
   } else if (page === "courses" && modeCourses === "trouver") {
     ecran = <EcranTrouverCourse depart={depart} localisation={localisation} onLocaliser={localiser} onRecherche={() => setRecherche(true)}
-                                onOuvrir={setFicheCourse} />;
+                                onOuvrir={setFicheCourse} mesCourses={courses} cible={monPlan.cible}
+                                onMesCourses={() => setModeCourses("saison")} onVoirPlan={() => setModeCourses("plan")}
+                                onObjectif={(cible) => { majPlan({ cible, questionnaire: null }); setModeCourses("plan"); }} />;
   } else if (page === "courses" && modeCourses === "saison") {
-    ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onPreparer={(c) => {
+    ecran = <EcranMesCourses courses={courses} setCourses={setCourses} onRetour={() => setModeCourses("trouver")} onPreparer={(c) => {
       if (c.objectif) setObjectif(c.objectif);
       majPlan({ cible: { nom: c.nom, distance_km: c.distance_km, dplus_m: c.dplus_m, date: c.date, site: c.lien || undefined } });
       versMaCourse("jourj");
@@ -285,7 +287,7 @@ function Contenu() {
                          parcours={parcours} onParcours={setParcours} onExemple={() => setParcours(parcoursDemo as Parcours)}
                          objectif={objectif} setObjectif={setObjectif}
                          cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
-                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} onTrouver={() => aller({ page: "courses", mode: "trouver" })}
+                         cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} onTrouver={() => setModeCourses("trouver")}
                          ravitos={ravitos} prefs={prefs} reglagesJourJ={reglagesJourJ} setReglagesJourJ={setReglagesJourJ}
                          nutrition={(entete, importer) => (
                            <EcranNutrition entete={entete} parcours={parcours} objectif={objectif} setObjectif={setObjectif}
@@ -313,8 +315,10 @@ function Contenu() {
         <BarreHaut titre={TITRES[page]} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
                    surProfil={page === "monde" && modeMonde === "aventure"} points={score(profil.activites).valides} />
       )}
-      {!detail && page === "programme" && <SousOnglets options={SOUS_PROGRAMME} valeur={modeProgramme} onChange={setModeProgramme} />}
-      {!detail && page === "courses" && <SousOnglets options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />}
+      {!detail && page === "cotes" && <SousOnglets options={SOUS_EXPLORER} valeur={modeExplorer} onChange={setModeExplorer} />}
+      {!detail && page === "courses" && !ficheCourse && modeCourses !== "saison" && (
+        <SousOnglets options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />
+      )}
       {!detail && page === "monde" && <SousOnglets options={SOUS_MONDE} valeur={modeMonde} onChange={setModeMonde} />}
       {!enLigne && (
         <View style={{ backgroundColor: C.encre, paddingHorizontal: 16, paddingVertical: 6 }} accessibilityRole="alert">

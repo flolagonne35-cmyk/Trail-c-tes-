@@ -27,7 +27,7 @@ export function EcranProgramme({ cible, setCible, questionnaire, setQuestionnair
   if (!course) {
     return (
       <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-        <SansCourse titre="D'abord, ta course" onTrouver={onTrouver} onObjectif={(c) => setCible(c)}
+        <SansCourse titre="D'abord, ta course" onTrouver={onTrouver}
                     texte="Ton programme se construit autour d'elle : choisis-la, réponds à quelques questions, et chaque semaine tu sais quoi faire et où." />
         {etatImport}
       </ScrollView>

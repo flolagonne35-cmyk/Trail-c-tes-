@@ -226,7 +226,7 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
           </View>
           <Icone nom="fleche" couleur={C.monteeFonce} taille={18} />
         </Pressable>
-        <SansCourse titre="Ta course, le jour J" onTrouver={onTrouver} onObjectif={(c) => setCible(c)} onImporter={importer} onExemple={onExemple}
+        <SansCourse titre="Ta course, le jour J" onTrouver={onTrouver} onImporter={importer} onExemple={onExemple}
                     etatImport={etatImport}
                     texte="Choisis ta course, ou importe son GPX : l'appli prépare ta feuille de course (temps de passage, ravitos, matériel) et ta nutrition." />
       </ScrollView>
