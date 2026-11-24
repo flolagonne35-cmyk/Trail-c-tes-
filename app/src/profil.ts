@@ -5,11 +5,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { migrerApparence, type Apparence } from "./avatar/modele.ts";
 import type { Activite } from "./calcul/points.ts";
+import type { Corps } from "./avatar3d/corps.ts";
 
 export type Profil = {
   prenom: string; apparence: Apparence; creeLe: string; activites: Activite[];
   achats?: string[]; // équipement acheté avec les points (Mon monde → Progression)
   decor?: string; // ancienne version (décors), plus utilisé
+  corps?: Corps; // le coureur en 3D (taille, poids, morphologie, tenue)
 };
 
 const CLE = "trailcotes.profil.v1";

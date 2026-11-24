@@ -11,8 +11,9 @@ import { Platform, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import parcoursDemo from "./assets/data/parcours_demo.json";
-import { Avatar } from "./src/avatar/Avatar.tsx";
-import { EditeurAvatar } from "./src/avatar/Editeur.tsx";
+import { Monogramme } from "./src/composants/Monogramme.tsx";
+import { EditeurCoureur } from "./src/avatar3d/EditeurCoureur.tsx";
+import { CORPS_DEFAUT, corpsPour, type Corps } from "./src/avatar3d/corps.ts";
 import { apparenceAleatoire } from "./src/avatar/modele.ts";
 import type { CourseInscrite } from "./src/calcul/calendrier.ts";
 import { type Cote, type CoteProche, type Filtres, type Sens } from "./src/calcul/cotes.ts";
@@ -119,8 +120,8 @@ function Contenu() {
     setProfil(p);
     enregistrerProfil(p).catch(() => undefined);
   };
-  const creerProfil = (prenom: string, apparence = apparenceDepart) => {
-    changerProfil({ prenom, apparence, creeLe: new Date().toISOString(), activites: [] });
+  const creerProfil = (prenom: string, apparence = apparenceDepart, corps?: Corps) => {
+    changerProfil({ prenom, apparence, creeLe: new Date().toISOString(), activites: [], ...(corps ? { corps } : {}) });
     setAccueil(null);
   };
 
@@ -225,12 +226,12 @@ function Contenu() {
         {accueil === "bienvenue" ? (
           <EcranBienvenue onCreer={() => setAccueil("editeur")} onPasser={() => creerProfil("Coureur")} />
         ) : accueil === "editeur" ? (
-          <EditeurAvatar prenomInitial="" apparenceInitiale={apparenceDepart} titre="Mon coureur" action="C'est parti"
-                         onValider={(prenom, a) => creerProfil(prenom, a)} onAnnuler={() => setAccueil("bienvenue")} />
+          <EditeurCoureur prenomInitial="" corpsInitial={CORPS_DEFAUT} achats={[]} titre="Ton profil de coureur" action="C'est parti"
+                          onValider={(prenom, corps) => creerProfil(prenom, apparenceDepart, corps)} onAnnuler={() => setAccueil("bienvenue")} />
         ) : profil && (
-          <EditeurAvatar prenomInitial={profil.prenom} apparenceInitiale={profil.apparence} titre="Personnaliser"
-                         action="Enregistrer" onAnnuler={() => setEdition(false)}
-                         onValider={(prenom, apparence) => { changerProfil({ ...profil, prenom, apparence }); setEdition(false); }} />
+          <EditeurCoureur prenomInitial={profil.prenom} corpsInitial={profil.corps ?? corpsPour(profil.apparence.silhouette)} achats={profil.achats ?? []}
+                          titre="Mon coureur" action="Enregistrer" onAnnuler={() => setEdition(false)}
+                          onValider={(prenom, corps) => { changerProfil({ ...profil, prenom, corps }); setEdition(false); }} />
         )}
       </View>
     );
@@ -303,7 +304,7 @@ function Contenu() {
   } else {
     ecran = <EcranSources />;
   }
-  const avatar = <Avatar a={profil.apparence} taille={44} cadrage="buste" />;
+  const avatar = <Monogramme prenom={profil.prenom} />;
   return (
     <View style={{ flex: 1, flexDirection: large ? "row" : "column", backgroundColor: C.fond }}>
       {large && <Navigation laterale actif={page} basSur={0} onChange={(o: Onglet) => aller({ page: o })} />}

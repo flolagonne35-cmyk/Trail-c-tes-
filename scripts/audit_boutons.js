@@ -15,7 +15,9 @@ const fs = require("fs");
 
 const URL_APP = process.argv[2] || "http://127.0.0.1:8765/";
 const RAPPORT = process.argv[3] || "audit_boutons.json";
-const CHROMIUM = process.env.CHROMIUM || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+// Chromium préinstallé : le premier qui existe (le chemin change avec la version de Playwright)
+const CHROMIUM = process.env.CHROMIUM || ["/opt/pw-browsers/chromium", "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"]
+  .find((c) => require("fs").existsSync(c) && require("fs").statSync(c).isFile());
 const ROLES = '[role="button"],[role="tab"],[role="switch"],[role="checkbox"],[role="link"],[role="search"],input[type="checkbox"]';
 
 const attendre = (page, ms = 400) => page.waitForTimeout(ms);
@@ -60,6 +62,7 @@ const ECRANS = {
   "Mon monde · Progression": async (p) => { await p.getByRole("tab", { name: "Mon monde" }).click(); await attendre(p, 1600); },
   "Mon monde · Mon coureur": async (p) => { await ECRANS["Mon monde · Progression"](p); await p.getByRole("tab", { name: "Mon coureur" }).click(); },
   "Mon monde · Mes chronos": async (p) => { await ECRANS["Mon monde · Progression"](p); await p.getByRole("tab", { name: "Mes chronos" }).click(); },
+  "Mon coureur · Éditeur 3D": async (p) => { await ECRANS["Mon monde · Mon coureur"](p); await p.getByRole("button", { name: "Personnaliser mon coureur" }).click(); },
   "Données": async (p) => { await ECRANS["Mon monde · Mon coureur"](p); await p.getByRole("button", { name: "Mes données et confidentialité" }).click(); },
 };
 
@@ -74,7 +77,7 @@ async function nouvellePage(nav) {
 }
 
 (async () => {
-  const nav = await chromium.launch({ executablePath: CHROMIUM });
+  const nav = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
   // profil créé une fois, gardé dans le stockage du navigateur
   const { ctx, page, erreurs } = await nouvellePage(nav);
   await page.goto(URL_APP);

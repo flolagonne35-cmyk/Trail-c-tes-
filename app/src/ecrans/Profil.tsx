@@ -4,7 +4,9 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { Avatar } from "../avatar/Avatar.tsx";
+import { Avatar3D } from "../avatar3d/Avatar3D.tsx";
+import { Monogramme } from "../composants/Monogramme.tsx";
+import { corpsPour } from "../avatar3d/corps.ts";
 import type { Cote } from "../calcul/cotes.ts";
 import { activiteDepuisGpx, activiteDepuisPhoto, BAREME, score, type Activite } from "../calcul/points.ts";
 import { Icone, nombre, Section, Tuiles } from "../composants/communs.tsx";
@@ -64,7 +66,7 @@ export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser, onDonne
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
       <View style={{ alignItems: "center", marginTop: 12 }}>
-        <Avatar a={profil.apparence} taille={150} />
+        <Avatar3D corps={profil.corps ?? corpsPour(profil.apparence.silhouette)} hauteur={440} />
         <Text style={[S.titre, { marginTop: 10 }]}>{profil.prenom}</Text>
         <Text style={S.petit}>Points comptés depuis le {new Date(profil.creeLe).toLocaleDateString("fr-FR")}</Text>
         <Pressable onPress={onPersonnaliser} accessibilityRole="button" style={[S.boutonClair, { marginTop: 12, minHeight: 44, alignSelf: "stretch" }]}>
@@ -107,7 +109,7 @@ export function EcranProfil({ profil, setProfil, cotes, onPersonnaliser, onDonne
         <View style={[S.carte, { marginTop: 0, gap: 8 }]}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Text style={[S.fort, { width: 22 }]}>1</Text>
-            <Avatar a={profil.apparence} taille={40} cadrage="buste" />
+            <Monogramme prenom={profil.prenom} taille={40} />
             <Text style={[S.fort, { flex: 1 }]}>{profil.prenom} (toi)</Text>
             <Text style={S.fort}>{nombre(valides)} pts</Text>
           </View>
