@@ -26,8 +26,8 @@ import sys
 import tempfile
 import zipfile
 from collections import defaultdict
-from datetime import date, timedelta
 from collections.abc import Callable, Iterable
+from datetime import date, timedelta
 from pathlib import Path
 
 from courses_ouvertes import prix_dans
