@@ -16,7 +16,7 @@ import { creerScene, type Rendu } from "./scene.ts";
 // (170 à 180 pas par minute, soit environ 1,45 cycle par seconde), pour que le geste se lise.
 const CYCLES_PAR_SECONDE = 0.8;
 
-export function Avatar3D({ corps, hauteur = 420, tourne = true, pose = "course" }: { corps: Corps; hauteur?: number; tourne?: boolean; pose?: Pose }) {
+export function Avatar3D({ corps, hauteur = 420, tourne = false, pose = "course" }: { corps: Corps; hauteur?: number; tourne?: boolean; pose?: Pose }) {
   const [donnees, setDonnees] = useState<DonneesCorps | null | undefined>(undefined);
   useEffect(() => { chargerCorps().then(setDonnees); }, []);
   const rendu = useRef<Rendu | null>(null);
@@ -32,12 +32,16 @@ export function Avatar3D({ corps, hauteur = 420, tourne = true, pose = "course" 
   const calme = useRef(false);
   useEffect(() => { AccessibilityInfo.isReduceMotionEnabled().then((v) => { calme.current = v; }).catch(() => {}); }, []);
 
+  // retour du 24/11 : il ne tourne plus tout seul ; on le fait tourner en glissant (doigt ou souris),
+  // d'un tour complet pour environ 400 pixels
+  const depart = useRef(0);
   const glisser = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 3,
-    onPanResponderGrant: () => { touche.current = true; },
-    onPanResponderMove: (_, g) => { angle.current += g.vx * 0.12; },
-    onPanResponderRelease: () => { setTimeout(() => { touche.current = false; }, 2500); },
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderGrant: () => { touche.current = true; depart.current = angle.current; },
+    onPanResponderMove: (_, g) => { angle.current = depart.current + g.dx * 0.016; },
+    onPanResponderRelease: () => { touche.current = false; },
   }), []);
 
   const creer = (gl: ExpoWebGLRenderingContext) => {
@@ -78,7 +82,7 @@ export function Avatar3D({ corps, hauteur = 420, tourne = true, pose = "course" 
 
   return (
     <View style={{ height: hauteur, width: "100%" }} {...glisser.panHandlers}
-          accessibilityLabel="Ton coureur en 3D : fais-le tourner en glissant le doigt">
+          accessibilityLabel="Ton coureur en 3D : fais-le tourner en glissant le doigt ou la souris">
       {donnees === undefined && (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={C.montee} /></View>
       )}

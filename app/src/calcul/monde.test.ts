@@ -12,9 +12,11 @@ const sortie = (date: string, km: number, dplus: number, montees = 0): Activite 
 
 test("paliers : avancement vers le suivant, sommet au bout", () => {
   assert.equal(palier(0).actuel.nom, "Fond de vallée");
-  const p = palier(100);
+  const p = palier(550);
   assert.equal(p.actuel.nom, "Premier lacet");
   assert.equal(p.avance, 0.5);
+  // une année à 1 200 km et 35 000 m de D+ (15 500 points) : niveau 10 sur 14
+  assert.equal(palier(15500).rang + 1, 10);
   assert.equal(palier(99999).suivant, null);
 });
 
@@ -41,7 +43,7 @@ test("badges et série de semaines", () => {
 });
 
 test("solde : les achats se déduisent", () => {
-  assert.equal(solde(500, ["casquette-sillon"]), 380);
-  assert.equal(solde(500, ["batons-cretal"]), 500); // légendaire : mérité, pas acheté
-  assert.equal(solde(500, []), 500);
+  assert.equal(solde(5000, ["casquette-sillon"]), 3800);
+  assert.equal(solde(5000, ["batons-cretal"]), 5000); // légendaire : mérité, pas acheté
+  assert.equal(solde(5000, []), 5000);
 });

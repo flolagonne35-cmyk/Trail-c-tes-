@@ -16,17 +16,24 @@ export const RARETES: Record<Rarete, { nom: string; couleur: string; fond: strin
 };
 
 /** Paliers du chemin : du fond de vallée au sommet (points cumulés gagnés). */
+// Paliers du barème 2 (1 km = 10 points, 100 m de D+ = 10 points). Repères : un coureur à 1 200 km et
+// 35 000 m de D+ par an (15 500 points) atteint le niveau 10 en un an ; un ultra-traileur (3 000 km,
+// 100 000 m) le sommet. Les premiers niveaux viennent vite pour accrocher, les derniers se méritent.
 export const PALIERS: { points: number; nom: string; altitude: number }[] = [
   { points: 0, nom: "Fond de vallée", altitude: 300 },
-  { points: 50, nom: "Premier lacet", altitude: 600 },
-  { points: 150, nom: "Source des Biches", altitude: 900 },
-  { points: 300, nom: "Refuge des Marmottes", altitude: 1300 },
-  { points: 600, nom: "Col du Vent", altitude: 1700 },
-  { points: 1000, nom: "Lac d'Altitude", altitude: 2100 },
-  { points: 1600, nom: "Refuge des Crêtes", altitude: 2500 },
-  { points: 2500, nom: "Brèche du Glacier", altitude: 3000 },
-  { points: 4000, nom: "Arête Finale", altitude: 3600 },
-  { points: 6000, nom: "Le Sommet", altitude: 4200 },
+  { points: 300, nom: "Premier lacet", altitude: 500 },
+  { points: 800, nom: "Source des Biches", altitude: 700 },
+  { points: 1500, nom: "Bois des Hêtres", altitude: 900 },
+  { points: 2500, nom: "Refuge des Marmottes", altitude: 1200 },
+  { points: 4000, nom: "Col du Vent", altitude: 1500 },
+  { points: 6000, nom: "Lac d'Altitude", altitude: 1800 },
+  { points: 8500, nom: "Alpage des Crêtes", altitude: 2100 },
+  { points: 11500, nom: "Refuge des Crêtes", altitude: 2400 },
+  { points: 15000, nom: "Brèche du Glacier", altitude: 2800 },
+  { points: 20000, nom: "Moraine Haute", altitude: 3200 },
+  { points: 26000, nom: "Arête Finale", altitude: 3600 },
+  { points: 33000, nom: "Antécime", altitude: 4000 },
+  { points: 42000, nom: "Le Sommet", altitude: 4400 },
 ];
 
 /** Palier atteint, palier suivant et avancement vers lui (0 à 1). */
@@ -112,13 +119,13 @@ export function badges(activites: Activite[], maintenant = new Date()): Badge[] 
  */
 export type Objet = { id: string; marque: string; nom: string; detail: string; rarete: Rarete; prix?: number; merite?: string };
 export const EQUIPEMENT: Objet[] = [
-  { id: "casquette-sillon", marque: "Sillon", nom: "Casquette Sillon Air", detail: "Légère, visière courte", rarete: "commun", prix: 120 },
-  { id: "chaussettes-trame", marque: "Trame", nom: "Chaussettes Trame Trail", detail: "Renfort talon et orteils", rarete: "commun", prix: 80 },
-  { id: "montre-cadran", marque: "Cadran", nom: "Montre GPS Cadran 2", detail: "Altimètre, autonomie 40 h", rarete: "rare", prix: 450 },
-  { id: "chaussures-sentea", marque: "Sentéa", nom: "Sentéa Crête 3", detail: "Chaussure de trail, crampons 5 mm", rarete: "rare", prix: 600 },
-  { id: "gilet-givre", marque: "Givre", nom: "Gilet Givre 10 L", detail: "Deux flasques, poches à gels", rarete: "rare", prix: 550 },
-  { id: "frontale-lumen", marque: "Lumen Nord", nom: "Frontale Lumen Nord 900", detail: "900 lumens, pour les ultras de nuit", rarete: "epique", prix: 1300 },
-  { id: "veste-givre", marque: "Givre", nom: "Veste Givre Tempête", detail: "Imperméable 20 000 mm", rarete: "epique", prix: 1600 },
+  { id: "casquette-sillon", marque: "Sillon", nom: "Casquette Sillon Air", detail: "Légère, visière courte", rarete: "commun", prix: 1200 },
+  { id: "chaussettes-trame", marque: "Trame", nom: "Chaussettes Trame Trail", detail: "Renfort talon et orteils", rarete: "commun", prix: 800 },
+  { id: "montre-cadran", marque: "Cadran", nom: "Montre GPS Cadran 2", detail: "Altimètre, autonomie 40 h", rarete: "rare", prix: 4500 },
+  { id: "chaussures-sentea", marque: "Sentéa", nom: "Sentéa Crête 3", detail: "Chaussure de trail, crampons 5 mm", rarete: "rare", prix: 6000 },
+  { id: "gilet-givre", marque: "Givre", nom: "Gilet Givre 10 L", detail: "Deux flasques, poches à gels", rarete: "rare", prix: 5500 },
+  { id: "frontale-lumen", marque: "Lumen Nord", nom: "Frontale Lumen Nord 900", detail: "900 lumens, pour les ultras de nuit", rarete: "epique", prix: 13000 },
+  { id: "veste-givre", marque: "Givre", nom: "Veste Givre Tempête", detail: "Imperméable 20 000 mm", rarete: "epique", prix: 16000 },
   { id: "batons-cretal", marque: "Crêtal", nom: "Bâtons Crêtal Ultra carbone", detail: "Réservés aux finishers d'ultra", rarete: "legendaire", merite: "ultra" },
   { id: "gilet-everest", marque: "Sillon", nom: "Gilet Sillon 8848", detail: "Pour qui a gravi l'Everest en côtes", rarete: "legendaire", merite: "everest" },
 ];

@@ -8,6 +8,7 @@ import * as THREE from "three";
 
 import { CHEVEUX, couleurZone, morphoser, pivotsMorphoses, poidsCibles, TISSUS, type Corps, type DonneesCorps } from "./corps.ts";
 import { matricesOs, poser, rotationsPose, type Pose } from "./pose.ts";
+import { vetementsDe } from "./vetements.ts";
 
 const DM = 0.1; // MakeHuman travaille en décimètres ; la scène en mètres
 
@@ -120,6 +121,10 @@ function accessoires(c: Corps, r: Reperes): [Accroche, THREE.Object3D][] {
     }
   }
   if (c.equipement.includes("frontale-lumen")) {
+    const sangle = new THREE.Mesh(new THREE.TorusGeometry(R * 1.0, R * 0.07, 8, 40), matiere("#1E2326", 0.7));
+    sangle.rotation.x = Math.PI / 2 - 0.12;
+    sangle.position.set(r.tete.x, r.front.y + R * 0.08, r.tete.z);
+    objets.push(sangle);
     const lampe = new THREE.Mesh(new THREE.BoxGeometry(R * 0.42, R * 0.26, R * 0.2), matiere("#2B2F31", 0.4));
     lampe.position.copy(r.front).add(new THREE.Vector3(0, R * 0.1, R * 0.12));
     const verre = new THREE.Mesh(new THREE.CircleGeometry(R * 0.09, 20), new THREE.MeshStandardMaterial({ color: "#FFF6D8", emissive: "#FFE9A8", emissiveIntensity: 0.9 }));
@@ -205,15 +210,31 @@ export function creerScene(d: DonneesCorps, c0: Corps, aspect: number): Rendu {
   let poseActuelle: Pose = "debout";
   let phaseActuelle = Math.PI / 2;
 
+  // vêtements en relief : une géométrie par pièce, mise à jour à chaque pose depuis le corps posé
+  type Habit = { geo: THREE.BufferGeometry; mesh: THREE.Mesh; membres: Int32Array; epaisseur: number };
+  let habits: Habit[] = [];
+  const majHabits = () => {
+    const normales = geo.attributes.normal.array as Float32Array;
+    for (const h of habits) {
+      const p = h.geo.attributes.position.array as Float32Array;
+      for (const i of h.membres) {
+        for (let k = 0; k < 3; k++) p[i * 3 + k] = positions[i * 3 + k] + normales[i * 3 + k] * h.epaisseur;
+      }
+      h.geo.attributes.position.needsUpdate = true;
+      h.geo.computeVertexNormals();
+    }
+  };
+
   let hauteur = 1.7;
   const poserCorps = (pose: Pose, phase = phaseActuelle) => {
     poseActuelle = pose;
     phaseActuelle = phase;
-    if (!d.os.length) { positions.set(repos); return; }
+    if (!d.os.length) { positions.set(repos); geo.computeVertexNormals(); majHabits(); return; }
     const m = matricesOs(d, pivotsOs, rotationsPose(d, pivotsOs, pose, phase));
     const bas = poser(d, repos, m, positions);
     geo.attributes.position.needsUpdate = true;
     geo.computeVertexNormals();
+    majHabits();
     for (const [nom, g] of accroches) {
       const i = d.os.findIndex((o) => o.nom === nom);
       if (i >= 0) g.matrix.copy(echelle).multiply(m[i]).multiply(echelleInv);
@@ -246,11 +267,65 @@ export function creerScene(d: DonneesCorps, c0: Corps, aspect: number): Rendu {
     let sol = Infinity;
     for (let i = 1; i < positions.length; i += 3) sol = Math.min(sol, positions[i]);
     const semelle = new THREE.Color("#F2F0EB").convertSRGBToLinear();
+    // chaussure : semelle claire, bande latérale contrastée (comme les renforts des chaussures de trail)
+    const nChaussure = geo.attributes.normal.array as Float32Array;
+    const bande = new THREE.Color(c.couleurChaussures === 4 ? "#E8572A" : "#F2F0EB").convertSRGBToLinear();
     for (let i = 0; i < d.sommets; i++) {
-      const col = d.zoneDe[i] === pied && positions[i * 3 + 1] < sol + 0.22 ? semelle : parZone[d.zoneDe[i]];
+      const y = positions[i * 3 + 1];
+      const col = d.zoneDe[i] === pied && y < sol + 0.22 ? semelle
+        : d.zoneDe[i] === pied && Math.abs(nChaussure[i * 3]) > 0.7 && y < sol + 0.55 ? bande : parZone[d.zoneDe[i]];
       couleurs[i * 3] = col.r; couleurs[i * 3 + 1] = col.g; couleurs[i * 3 + 2] = col.b;
     }
     geo.attributes.color.needsUpdate = true;
+
+    // vêtements : sommets de la pièce, triangles entièrement dedans, ourlet (bord), panneaux et logo
+    for (const h of habits) { pivot.remove(h.mesh); h.geo.dispose(); (h.mesh.material as THREE.Material).dispose(); }
+    habits = [];
+    const nrm = geo.attributes.normal.array as Float32Array;
+    const torseHaut = d.zones.indexOf("torse_haut");
+    let yMin = Infinity, yMax = -Infinity;
+    for (let i = 0; i < d.sommets; i++) if (d.zoneDe[i] === torseHaut) { yMin = Math.min(yMin, repos[i * 3 + 1]); yMax = Math.max(yMax, repos[i * 3 + 1]); }
+    for (const v of vetementsDe(c)) {
+      const zonesV = new Set(v.zones.map((z) => d.zones.indexOf(z)));
+      const dans = new Uint8Array(d.sommets);
+      for (let i = 0; i < d.sommets; i++) {
+        if (!zonesV.has(d.zoneDe[i])) continue;
+        // gilet : ouvert devant, sur le sternum
+        if (v.ouvertDevant && nrm[i * 3 + 2] > 0.55 && Math.abs(repos[i * 3]) < 0.38) continue;
+        dans[i] = 1;
+      }
+      const tri: number[] = [];
+      const bord = new Uint8Array(d.sommets);
+      for (let t = 0; t < d.indices.length; t += 3) {
+        const a = d.indices[t], b = d.indices[t + 1], e = d.indices[t + 2];
+        const n = dans[a] + dans[b] + dans[e];
+        if (n === 3) tri.push(a, b, e);
+        else if (n > 0) { bord[a] = dans[a]; bord[b] = dans[b]; bord[e] = dans[e]; }
+      }
+      if (!tri.length) continue;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(d.sommets * 3), 3));
+      const col = new Float32Array(d.sommets * 3);
+      const [cBase, cAccent, cOurlet] = [v.base, v.accent, v.ourlet].map((x) => new THREE.Color(x).convertSRGBToLinear());
+      const brasHaut = d.zones.indexOf("bras_haut");
+      const membres: number[] = [];
+      for (let i = 0; i < d.sommets; i++) {
+        if (!dans[i]) continue;
+        membres.push(i);
+        const x = repos[i * 3], y = repos[i * 3 + 1];
+        const cote = Math.abs(nrm[i * 3]) > 0.86 && d.zoneDe[i] !== brasHaut; // bande étroite sur le côté
+        const hauteurTorse = (y - yMin) / Math.max(yMax - yMin, 0.01);
+        const logo = v.logo && d.zoneDe[i] === torseHaut && nrm[i * 3 + 2] > 0.75 && x > 0.18 && x < 0.55 && hauteurTorse > 0.45 && hauteurTorse < 0.62;
+        const k = bord[i] ? cOurlet : (v.panneaux && cote) || logo ? cAccent : cBase;
+        col[i * 3] = k.r; col[i * 3 + 1] = k.g; col[i * 3 + 2] = k.b;
+      }
+      g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      g.setIndex(tri);
+      const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: v.rugosite, metalness: 0, side: THREE.DoubleSide }));
+      mesh.scale.setScalar(DM);
+      pivot.add(mesh);
+      habits.push({ geo: g, mesh, membres: Int32Array.from(membres), epaisseur: v.epaisseur });
+    }
     const r = reperes(repos, d);
     for (const g of accroches.values()) {
       for (const o of [...g.children]) { g.remove(o); (o as THREE.Mesh).geometry?.dispose(); }

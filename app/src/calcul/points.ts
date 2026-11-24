@@ -10,8 +10,15 @@ import { alluresDeTrace, type Allures } from "./allure.ts";
 import { lireGpx } from "./gpx.ts";
 
 /** Barème : à ajuster. Le dénivelé pèse autant que la distance (10 m de D+ = 1 km). */
+/**
+ * Barème (version 2, retour du 24/11 : « bien, et pas trop dur ») : 1 km = 10 points et 100 m de D+ =
+ * 10 points, l'équivalence du km-effort de l'ITRA (100 m de D+ ≈ 1 km). Exemple : une année à 1 200 km
+ * et 35 000 m de D+ = 12 000 + 3 500 = 15 500 points. La version 1 comptait 1 point par km et 1 par
+ * 10 m de D+ : le dénivelé pesait dix fois trop.
+ */
+export const VERSION_BAREME = 2;
 export const BAREME = {
-  parKm: 1,
+  parKm: 10,
   parDplus10m: 1,
   /** chaque montée d'une côte connue rapporte 1 point par tranche de 5 m de D+ (au moins 1) */
   repetitionParDplus5m: 1,
@@ -49,7 +56,15 @@ export type Activite = {
   photo?: string;
   motif?: string;
   allures?: Allures; // mon allure par tranche de pente (GPX horodaté), pour les prévisions
+  /** version du barème qui a calculé `points` (absente = version 1) */
+  bareme?: number;
 };
+
+/** Points d'une sortie au barème actuel (les sorties de la version 1 sont recalculées : + 9 points par km). */
+export function pointsDe(a: Activite): number {
+  if (a.statut === "refusee") return 0;
+  return (a.bareme ?? 1) >= VERSION_BAREME ? a.points : a.points + Math.round(9 * a.distance_km);
+}
 
 export function pointsRepetition(c: Pick<Cote, "dplus_m">): number {
   return Math.max(1, Math.round(c.dplus_m / 5)) * BAREME.repetitionParDplus5m;
@@ -152,7 +167,7 @@ export function activiteDepuisGpx(texte: string, cotes: Cote[], compteCreeLe: st
   const base: Activite = {
     id: empreinte, date: new Date(debut ?? Date.now()).toISOString(), source: "gpx", statut: "validee", nom: t.nom,
     distance_km: Math.round(distance / 10) / 100, dplus_m: Math.round(dplus), duree_min: dureeMin && Math.round(dureeMin),
-    repetitions, points: calculerPoints(distance / 1000, dplus, repetitions, cotes), empreinte,
+    repetitions, points: calculerPoints(distance / 1000, dplus, repetitions, cotes), empreinte, bareme: VERSION_BAREME,
     allures: alluresDeTrace(t.lat, t.lon, t.ele, t.temps),
   };
   const refus = (motif: string): Activite => ({ ...base, statut: "refusee", points: 0, motif });
@@ -166,16 +181,26 @@ export function activiteDepuisGpx(texte: string, cotes: Cote[], compteCreeLe: st
   return base;
 }
 
-/** Sortie déclarée depuis une capture d'écran : points calculés mais en attente de validation. */
-export function activiteDepuisPhoto(saisie: { date: string; distance_km: number; dplus_m: number; photo: string },
-                                    compteCreeLe: string): Activite {
-  const empreinte = `photo-${saisie.date}-${saisie.distance_km}-${saisie.dplus_m}`;
+/**
+ * Sortie déclarée depuis une capture d'écran (Strava, Garmin…). Lue par l'IA puis vérifiée par le coureur :
+ * validée tout de suite si elle est plausible (date, vitesse) ; saisie à la main sans lecture : en attente.
+ */
+export function activiteDepuisPhoto(saisie: { date: string; distance_km: number; dplus_m: number; photo: string; duree_min?: number | null;
+                                              luParIA?: boolean; titre?: string | null },
+                                    compteCreeLe: string, empreintes: string[] = []): Activite {
+  const empreinte = `photo-${saisie.date.slice(0, 10)}-${saisie.distance_km}-${saisie.dplus_m}`;
   const a: Activite = {
-    id: `${empreinte}-${Date.now()}`, date: saisie.date, source: "photo", statut: "en_attente", nom: "Sortie (capture)",
-    distance_km: saisie.distance_km, dplus_m: saisie.dplus_m, duree_min: null, repetitions: [], photo: saisie.photo,
-    points: calculerPoints(saisie.distance_km, saisie.dplus_m, [], []), empreinte,
+    id: `${empreinte}-${Date.now()}`, date: saisie.date, source: "photo", statut: saisie.luParIA ? "validee" : "en_attente",
+    nom: saisie.titre || "Sortie (capture)", distance_km: saisie.distance_km, dplus_m: saisie.dplus_m, duree_min: saisie.duree_min ?? null,
+    repetitions: [], photo: saisie.photo, points: calculerPoints(saisie.distance_km, saisie.dplus_m, [], []), empreinte, bareme: VERSION_BAREME,
   };
-  if (Date.parse(saisie.date) < Date.parse(compteCreeLe)) return { ...a, statut: "refusee", points: 0, motif: "Sortie antérieure à la création du compte." };
+  const refus = (motif: string): Activite => ({ ...a, statut: "refusee", points: 0, motif });
+  if (Date.parse(saisie.date) < Date.parse(compteCreeLe)) return refus("Sortie antérieure à la création du compte.");
+  if (Date.parse(saisie.date) > Date.now() + 86400_000) return refus("Sortie datée dans le futur.");
+  if (empreintes.includes(empreinte)) return refus("Cette sortie a déjà été envoyée.");
+  if (saisie.duree_min && saisie.distance_km / (saisie.duree_min / 60) > BAREME.vitesseMaxKmh) {
+    return refus(`Vitesse moyenne supérieure à ${BAREME.vitesseMaxKmh} km/h : sortie à vélo ?`);
+  }
   return a;
 }
 
@@ -185,14 +210,14 @@ export function score(activites: Activite[]): { valides: number; enAttente: numb
   let valides = 0;
   let enAttente = 0;
   for (const a of [...activites].sort((x, y) => x.date.localeCompare(y.date))) {
-    if (a.statut === "en_attente") enAttente += a.points;
+    if (a.statut === "en_attente") enAttente += pointsDe(a);
     if (a.statut !== "validee") continue;
     const d = new Date(a.date);
     const semaine = `${d.getUTCFullYear()}-${Math.floor((d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 1)) / 604800000)}`;
     const deja = parSemaine.get(semaine) ?? 0;
     const kmComptes = Math.max(0, Math.min(a.distance_km, BAREME.plafondKmSemaine - deja));
     parSemaine.set(semaine, deja + a.distance_km);
-    valides += a.points - Math.round((a.distance_km - kmComptes) * BAREME.parKm);
+    valides += pointsDe(a) - Math.round((a.distance_km - kmComptes) * BAREME.parKm);
   }
   return { valides, enAttente };
 }

@@ -19,13 +19,15 @@ import type { Pose } from "./pose.ts";
 /** Objets visibles sur le coureur (les autres restent dans l'inventaire). */
 const VISIBLES = ["batons-cretal", "frontale-lumen", "gilet-givre", "gilet-everest", "montre-cadran"];
 
-function Bloc({ titre, sous, children }: { titre: string; sous?: string; children: React.ReactNode }) {
+function Bloc({ titre, sous, children }: { titre?: string; sous?: string; children: React.ReactNode }) {
   return (
-    <View style={{ marginTop: 34, gap: 14 }}>
-      <View style={{ gap: 4 }}>
-        <Text style={S.h2} accessibilityRole="header">{titre}</Text>
-        {sous ? <Text style={S.petit}>{sous}</Text> : null}
-      </View>
+    <View style={{ marginTop: titre ? 34 : 20, gap: 14 }}>
+      {titre ? (
+        <View style={{ gap: 4 }}>
+          <Text style={S.h2} accessibilityRole="header">{titre}</Text>
+          {sous ? <Text style={S.petit}>{sous}</Text> : null}
+        </View>
+      ) : null}
       <View style={[S.carte, { marginTop: 0, gap: 20 }]}>{children}</View>
     </View>
   );
@@ -88,7 +90,7 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
 
   const apercu = (
     <View style={{ backgroundColor: C.sable, borderRadius: 28, overflow: "hidden", ...OMBRE }}>
-      <Avatar3D corps={c} hauteur={large ? 620 : 380} pose={pose} />
+      <Avatar3D corps={c} hauteur={large ? 620 : 300} pose={pose} />
       <View style={{ position: "absolute", left: 16, bottom: 14, backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 6 }}>
         <Text style={{ fontWeight: "800", color: C.encre }}>{resumeCorps(c)}</Text>
       </View>
@@ -101,7 +103,7 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
 
   const reglages = (
     <View style={{ flex: 1, minWidth: 0 }}>
-      <Bloc titre="Toi">
+      <Bloc>
         <View style={{ gap: 8 }}>
           <Text style={[S.fort, { fontWeight: "600" }]}>Prénom ou pseudo</Text>
           <TextInput value={prenom} onChangeText={setPrenom} placeholder="Ton prénom" maxLength={24} accessibilityLabel="Prénom ou pseudo"
@@ -152,6 +154,8 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
           <Segments options={[["short", "Short"], ["cuissard", "Cuissard"], ["collant", "Collant"]] as [Bas, string][]} valeur={c.bas} onChange={(bas) => maj({ bas })} />
         </View>
         <Pastilles etiquette="Couleur du bas" couleurs={TISSUS} valeur={c.couleurBas} onChange={(couleurBas) => maj({ couleurBas })} />
+        <Pastilles etiquette="Couleur des détails (panneaux sur les côtés, logo)" couleurs={TISSUS} valeur={c.couleurDetail ?? -1}
+                   onChange={(couleurDetail) => maj({ couleurDetail })} />
         <Pastilles etiquette="Chaussures" couleurs={TISSUS} valeur={c.couleurChaussures} onChange={(couleurChaussures) => maj({ couleurChaussures })} />
         <View style={{ gap: 8 }}>
           <Text style={[S.fort, { fontWeight: "600" }]}>Sur la tête</Text>
@@ -195,21 +199,31 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
     </View>
   );
 
+  // retour du 24/11 : « quand on descend dans les réglages, on ne voit plus le coureur » : l'aperçu reste
+  // fixe (en haut sur téléphone, à gauche sur ordinateur) et seuls les réglages défilent
+  const entete = (
+    <View style={{ paddingHorizontal: 24, paddingTop: 12 }}>
+      <Text style={[S.titre, { fontSize: 24 }]} accessibilityRole="header">{titre}</Text>
+      <Text style={[S.petit, { marginTop: 2 }]}>Fais-le tourner en glissant. Chaque réglage le change en direct.</Text>
+    </View>
+  );
+  if (large) {
+    return (
+      <View style={[S.ecran, { flexDirection: "row", gap: 32, paddingLeft: 24 }]}>
+        <View style={{ width: 380, paddingTop: 16 }}>{entete}<View style={{ marginTop: 16 }}>{apercu}</View></View>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingRight: 24, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+          {reglages}
+        </ScrollView>
+      </View>
+    );
+  }
   return (
-    <ScrollView style={S.ecran} contentContainerStyle={[S.contenu, { paddingTop: 16 }]} keyboardShouldPersistTaps="handled">
-      <Text style={S.titre} accessibilityRole="header">{titre}</Text>
-      <Text style={S.sousTitre}>Fais-le tourner du doigt. Chaque réglage change ton coureur en direct.</Text>
-      {large ? (
-        <View style={{ flexDirection: "row", gap: 32, marginTop: 24, alignItems: "flex-start" }}>
-          <View style={{ width: 380 }}>{apercu}</View>
-          {reglages}
-        </View>
-      ) : (
-        <>
-          <View style={{ marginTop: 20 }}>{apercu}</View>
-          {reglages}
-        </>
-      )}
-    </ScrollView>
+    <View style={S.ecran}>
+      {entete}
+      <View style={{ paddingHorizontal: 16, marginTop: 10 }}>{apercu}</View>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={[S.contenu, { paddingTop: 0 }]} keyboardShouldPersistTaps="handled">
+        {reglages}
+      </ScrollView>
+    </View>
   );
 }

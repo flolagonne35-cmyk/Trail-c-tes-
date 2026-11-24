@@ -28,6 +28,8 @@ export type Corps = {
   profil: "trail" | "route";
   haut: Haut; bas: Bas; couleurHaut: number; couleurBas: number; couleurChaussures: number;
   tete: Tete; couleurTete: number; lunettes: boolean;
+  /** couleur des panneaux latéraux et du logo (indice de TISSUS) ; absente = choisie selon le tissu */
+  couleurDetail?: number;
   /** équipement porté (objets des marques de l'univers Trail-côtes, voir calcul/monde.ts) */
   equipement: string[];
 };
@@ -49,7 +51,7 @@ export const MORPHOS: [Morpho, string, string][] = [
 export const CORPS_DEFAUT: Corps = {
   sexe: "femme", tailleCm: 166, poidsKg: 57, morpho: "athletique", age: 32, peau: 1, coupe: "attaches", cheveux: 2, yeux: 0,
   profil: "trail", haut: "debardeur", bas: "short", couleurHaut: 0, couleurBas: 3, couleurChaussures: 1,
-  tete: "casquette", couleurTete: 4, lunettes: false, equipement: [],
+  tete: "rien", couleurTete: 4, lunettes: false, equipement: [],
 };
 
 /** Valeurs proposées selon le sexe (moyennes françaises de coureurs). */

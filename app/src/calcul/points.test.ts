@@ -40,7 +40,7 @@ test("compte les montées complètes d'une côte connue", () => {
   // 3 × 600 m + 200 m ≈ 2 km, D+ 3 × 24 m = 72 m, 3 montées × 5 points (24 m / 5)
   assert.ok(Math.abs(a.distance_km - 1.99) < 0.05, String(a.distance_km));
   assert.ok(Math.abs(a.dplus_m - 72) <= 3, String(a.dplus_m));
-  assert.equal(a.points, Math.round(a.distance_km + a.dplus_m / 10 + 3 * 5));
+  assert.equal(a.points, Math.round(10 * a.distance_km + a.dplus_m / 10 + 3 * 5));
 });
 
 test("refuse : avant la création du compte, doublon, vélo, sans horodatage", () => {
@@ -54,21 +54,25 @@ test("refuse : avant la création du compte, doublon, vélo, sans horodatage", (
   assert.match(activiteDepuisGpx(sansHeure, [cote], CREATION, []).motif ?? "", /horodatage/);
 });
 
-test("capture d'écran : points en attente, refus si antérieure", () => {
+test("capture d'écran : en attente si saisie à la main, validée si lue par l'IA, refus si antérieure ou à vélo", () => {
   const p = activiteDepuisPhoto({ date: "2026-10-12T07:00:00Z", distance_km: 21.1, dplus_m: 450, photo: "x" }, CREATION);
   assert.equal(p.statut, "en_attente");
-  assert.equal(p.points, Math.round(21.1 + 45));
+  assert.equal(p.points, Math.round(211 + 45));
+  assert.equal(activiteDepuisPhoto({ date: "2026-10-12T07:00:00Z", distance_km: 21.1, dplus_m: 450, photo: "x", luParIA: true }, CREATION).statut, "validee");
+  assert.equal(activiteDepuisPhoto({ date: "2026-10-12T07:00:00Z", distance_km: 60, dplus_m: 0, photo: "x", luParIA: true, duree_min: 90 }, CREATION).statut, "refusee");
   assert.equal(activiteDepuisPhoto({ date: "2026-09-12T07:00:00Z", distance_km: 10, dplus_m: 0, photo: "x" }, CREATION).statut, "refusee");
 });
 
 test("score : seules les sorties validées comptent, distance plafonnée par semaine", () => {
   const a = (km: number, statut: Activite["statut"], date = "2026-10-12T07:00:00Z"): Activite => ({
     id: `${km}${statut}${date}`, date, source: "gpx", statut, nom: "", distance_km: km, dplus_m: 0, duree_min: null,
-    repetitions: [], points: km, empreinte: "",
+    repetitions: [], points: km * 10, empreinte: "", bareme: 2,
   });
-  assert.deepEqual(score([a(10, "validee"), a(5, "en_attente"), a(8, "refusee")]), { valides: 10, enAttente: 5 });
+  assert.deepEqual(score([a(10, "validee"), a(5, "en_attente"), a(8, "refusee")]), { valides: 100, enAttente: 50 });
   const s = score([a(200, "validee"), a(100, "validee", "2026-10-13T07:00:00Z")]);
-  assert.equal(s.valides, BAREME.plafondKmSemaine);
+  assert.equal(s.valides, BAREME.plafondKmSemaine * BAREME.parKm);
+  // sortie de la version 1 du barème (1 point par km) : recalculée à 10 points par km
+  assert.equal(score([{ ...a(12, "validee"), points: 12, bareme: undefined }]).valides, 120);
 });
 
 test("D+ sans bruit", () => {
