@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-24T15:51:12+00:00",
+  "date_utc": "2026-11-24T16:42:02+00:00",
   "sources": {
     "DATAtourisme": {
       "evenements": 66150,
@@ -508,24 +508,24 @@
       ]
     },
     "OpenAgenda": {
-      "evenements": 881,
+      "evenements": 880,
       "courses": 24,
       "exemple_brut": {
-        "uid": "70468665",
-        "title_fr": "Marche active",
-        "firstdate_begin": "2026-12-13T09:00:00+00:00",
-        "lastdate_end": "2026-12-13T10:30:00+00:00",
+        "uid": "71046853",
+        "title_fr": "Centre \"La Presqu'île\" (Giffaumont) - Ligue de l'Enseignement de la Meuse",
+        "firstdate_begin": "2032-01-01T01:00:00+00:00",
+        "lastdate_end": "2032-01-01T03:00:00+00:00",
         "location_coordinates": {
-          "lon": 2.588227,
-          "lat": 48.716073
+          "lon": 4.776986,
+          "lat": 48.552972
         },
-        "location_city": "Servon",
-        "location_postalcode": "77170",
-        "canonicalurl": "https://openagenda.com/le-millepattes-servonnais/events/marche-active-4264358",
-        "description_fr": "Servon, Santeny, Servon",
-        "longdescription_fr": "<p><strong>Stationnement : départ de la mairie de servon</strong><br><strong>Distance : 8 km - Dénivelé : 85 m - rando R26</strong><br><strong>Responsable : Marc 06 42 19 52 85</strong></p>\n<h3><a href=\"https://www.sitytrail.com/fr/trails/3017789-servon--r-26--8x3-km-x--si-pluie-x-servonx-santenyx-servon-/\"><strong>Découvrir le parcours sur SityTrail</strong></a></h3>",
-        "originagenda_title": "Le millepattes",
-        "updatedat": "2026-10-09T12:53:33+00:00"
+        "location_city": "Giffaumont-Champaubert",
+        "location_postalcode": "51290",
+        "canonicalurl": "https://openagenda.com/catalogue-departemental-des-structures-daccueil-et-dhebergement-marne/events/centre-la-presquile-giffaumont-ligue-de-lenseignement-de-la-meuse",
+        "description_fr": "RH",
+        "longdescription_fr": "<h3><a href=\"https://www.youtube.com/watch?v=E1F3oq5J8vo&amp;ab_channel=FOL55FOL55\"><em>Présentation vidéo du centre</em></a></h3>\n<p></p>\n<h2>Histoire : le Lac du Der, un site exceptionnel :</h2>\n<p></p>\n<p>Créé en 1974 pour régulariser le cours de la rivière Marne, il est avec ses 4 800 ha un des plus grands lacs artificiels d'Europe. Il est devenu, au fil des années, le pôle régional majeur du tourisme bleu et vert, et offre en toutes saisons de multiples activités sportives et de loisirs.<br />Classé en Réserve Nationale de Chasse et de Faune Sauvage et géré par l'ONCFS, le Lac du Der a très vite été adopté par une faune riche et diversifiée propice à l’étude de la nature et de l’environnement. Le Lac est devenu un site d’observation ornithologique incontournable, de renommée internationale.</p>\n<p></p>\n<h2>Le centre accueille votre projet de classe de découverte !</h2>\n<p></p>\n<p>Vous souhaitez organiser sur le lac du Der un séjour avec vos élèves autour de l’éducation au développement durable ou axé sur la découverte et la pratiques d’activités sportives et nautiques, notre centre a su exploiter tous les atouts qu’offre le lac. Sa situation permet un accès direct à toutes les installations sportives et aménagements pédagogiques du lac (sentiers et postes d’observation …). Le centre est doté de sa propre école de voile, facilitant la mise en œuvre des activités nautiques mais permettant également de vous faire découvrir de manière plus insolite la biodiversité des berges du lac. Il propose un cadre idéal d’hébergement, de restauration et de salles d’activités, en bordure de lac, propice à la réalisation de votre projet de classe de découverte. Notre équipe a su y développer des animations pédagogiques s’inscrivant pleinement dans une démarche éco-citoyenne puisqu’elle place les élèves au cœur du milieu naturel qui les entoure, les sensibilise et encourage les comportements responsables nécessaires à la préservation de ce milieu.</p>",
+        "originagenda_title": "Catalogue départemental des structures d’accueil et d’hébergement - Marne",
+        "updatedat": "2024-02-23T10:25:19+00:00"
       }
     }
   },

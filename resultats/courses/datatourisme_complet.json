@@ -1,0 +1,1112 @@
+{
+ "courses_datatourisme": 352,
+ "url": "https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261124-034500/datatourisme.nt.zip",
+ "taille_mo": 1922,
+ "statut": "ok",
+ "trouvees": 351,
+ "noeuds": 7563,
+ "completees": 249,
+ "avec_prix": 91,
+ "avec_reservation": 46,
+ "avec_dates_inscription": 190,
+ "predicats": [
+  "acceptedPaymentMethod",
+  "accessTips",
+  "additionalInformation",
+  "address",
+  "addressLocality",
+  "altInsee",
+  "appliesOnDay",
+  "appliesOnPeriod",
+  "availableLanguage",
+  "cedex",
+  "charged",
+  "checksum",
+  "closes",
+  "comment",
+  "comments",
+  "contributor",
+  "creationDate",
+  "credits",
+  "date",
+  "dayOfWeek",
+  "description",
+  "elevation",
+  "email",
+  "endDate",
+  "endTime",
+  "familyName",
+  "faxNumber",
+  "features",
+  "fileSize",
+  "fingerprint",
+  "geo",
+  "givenName",
+  "hasAddressCity",
+  "hasAnnotation",
+  "hasAudience",
+  "hasBeenCreatedBy",
+  "hasBeenPublishedBy",
+  "hasBookingContact",
+  "hasClientTarget",
+  "hasContact",
+  "hasDescription",
+  "hasEligibleAudience",
+  "hasEligiblePolicy",
+  "hasExternalIdentifier",
+  "hasExternalPlatform",
+  "hasExternalReference",
+  "hasFeature",
+  "hasFloorSize",
+  "hasFluxIdentifier",
+  "hasGeographicReach",
+  "hasMainRepresentation",
+  "hasMimeType",
+  "hasNeighborhood",
+  "hasOrganizationIdentifier",
+  "hasPricingMode",
+  "hasPricingOffer",
+  "hasRelatedResource",
+  "hasRepresentation",
+  "hasReview",
+  "hasReviewValue",
+  "hasTheme",
+  "hasTranslatedProperty",
+  "height",
+  "heightUnit",
+  "homepage",
+  "identifier",
+  "internetAccess",
+  "isCoveredBy",
+  "isDedicatedTo",
+  "isEquippedWith",
+  "isLocatedAt",
+  "isOwnedBy",
+  "label",
+  "language",
+  "lastUpdate",
+  "lastUpdateDatatourisme",
+  "latitude",
+  "latlon",
+  "legalName",
+  "locator",
+  "logo",
+  "longitude",
+  "maxPrice",
+  "minPrice",
+  "name",
+  "offers",
+  "openingDetails",
+  "openingHoursSpecification",
+  "opens",
+  "petsAllowed",
+  "postalCode",
+  "predicate",
+  "price",
+  "priceCurrency",
+  "priceSpecification",
+  "rightsEndDate",
+  "rightsStartDate",
+  "shortDescription",
+  "sourceChecksum",
+  "startDate",
+  "startTime",
+  "streetAddress",
+  "takesPlaceAt",
+  "telephone",
+  "textOpeningHoursSpecification",
+  "textPriceSpecification",
+  "title",
+  "topDataProperty",
+  "topObjectProperty",
+  "type",
+  "unitText",
+  "validFrom",
+  "validThrough",
+  "width",
+  "widthUnit"
+ ],
+ "exemple_brut": [
+  {
+   "offers": [
+    {
+     "priceSpecification": [
+      {
+       "hasEligiblePolicy": [
+        "https://www.datatourisme.fr/resource/core#BaseRateFullRate"
+       ],
+       "hasPricingMode": [
+        "https://www.datatourisme.fr/resource/core#PerPerson"
+       ],
+       "hasPricingOffer": [
+        "https://www.datatourisme.fr/resource/core#Ticket"
+       ],
+       "name": [
+        "Tarif de base",
+        "Normalpreis",
+        "Base rate"
+       ],
+       "minPrice": [
+        "10"
+       ],
+       "maxPrice": [
+        "32"
+       ],
+       "priceCurrency": [
+        "EUR"
+       ],
+       "type": [
+        "https://www.datatourisme.fr/ontology/core#PriceSpecification",
+        "http://schema.org/PriceSpecification"
+       ]
+      }
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Offer",
+      "http://schema.org/Offer"
+     ]
+    },
+    {}
+   ],
+   "topObjectProperty": [
+    {
+     "hasTranslatedProperty": [
+      {
+       "language": [
+        "es"
+       ],
+       "checksum": [
+        "0c5784bcea91871fbf1e126039fed131-38c641b201066ae8febf04ea8763475f"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-08-19"
+       ]
+      },
+      {
+       "language": [
+        "nl"
+       ],
+       "checksum": [
+        "0c5784bcea91871fbf1e126039fed131-efda1a6087e28c2d0f28695a6a07e357"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-08-19"
+       ]
+      },
+      {
+       "language": [
+        "it"
+       ],
+       "checksum": [
+        "0c5784bcea91871fbf1e126039fed131-19d773b6e531acfcbeeaccd0dd22153f"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-08-19"
+       ]
+      }
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Description"
+     ],
+     "description": [
+      "Una carrera en el corazón de los paisajes del Jura\n\nOrganizada por la EJCA, la Trail de la Maison du Comté es una de las principales carreras por la naturaleza ",
+      "A race through the heart of the Jura countryside\n\nOrganised by the EJCA, the Trail de la Maison du Comté is one of the Jura’s major trail runs. Running through ",
+      "Una corsa nel cuore dei paesaggi del Giura\n\nOrganizzata dall’EJCA, la Trail de la Maison du Comté è una delle principali gare di trail running del Giura. Tra sc",
+      "Une course au cœur des paysages jurassiens\n\nOrganisé par l’EJCA, le Trail de la Maison du Comté est une course nature majeure du Jura. Entre falaises, forêts et",
+      "Een hardloopwedstrijd door het hart van het Jura-landschap\n\nDe Trail de la Maison du Comté, georganiseerd door de EJCA, is een belangrijke natuurloop in de Jura",
+      "Ein Lauf durch die Landschaft des Jura\n\nDer von der EJCA organisierte „Trail de la Maison du Comté“ ist ein bedeutendes Naturlauf-Event im Jura. Zwischen Felsen"
+     ]
+    }
+   ],
+   "availableLanguage": [
+    "fr"
+   ],
+   "hasBeenCreatedBy": [
+    {
+     "address": [
+      {
+       "hasAddressCity": [
+        "https://www.datatourisme.fr/resource/core#39013"
+       ],
+       "addressLocality": [
+        "Arbois"
+       ],
+       "postalCode": [
+        "39600"
+       ],
+       "streetAddress": [
+        "17 Rue de l'Hôtel de ville"
+       ],
+       "type": [
+        "https://www.datatourisme.fr/ontology/core#PostalAddress",
+        "http://schema.org/PostalAddress"
+       ]
+      }
+     ],
+     "email": [
+      "salins@cdj-tourisme.com"
+     ],
+     "legalName": [
+      "OFFICE DE TOURISME ARBOIS-POLIGNY-SALINS CŒUR DU JURA"
+     ],
+     "telephone": [
+      "+33 3 84 66 55 50"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Agent",
+      "http://schema.org/Organization",
+      "http://xmlns.com/foaf/0.1/Agent"
+     ],
+     "homepage": [
+      "https://www.coeurdujura-tourisme.com/"
+     ],
+     "identifier": [
+      "8329d7ce-aab1-47c2-b1e4-8172ae310db2"
+     ]
+    }
+   ],
+   "hasBeenPublishedBy": [
+    {
+     "email": [
+      "m.boularess@bfctourisme.com"
+     ],
+     "legalName": [
+      "Bourgogne-Franche-Comté Tourisme - Decibelles Data"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Agent",
+      "http://schema.org/Organization",
+      "http://xmlns.com/foaf/0.1/Agent"
+     ],
+     "homepage": [
+      "https://www.bourgognefranchecomte.com/"
+     ]
+    }
+   ],
+   "hasContact": [
+    {
+     "telephone": [
+      "+33 3 84 73 08 68"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Agent",
+      "http://xmlns.com/foaf/0.1/Agent"
+     ],
+     "homepage": [
+      "https://courses-pedestres-ejca.com/trail-de-la-maison-du-comte-2026-une-nouvelle-edition-a-noter/"
+     ]
+    },
+    {
+     "email": [
+      "paul.jeandot@wanadoo.fr"
+     ],
+     "telephone": [
+      "+33 3 84 73 08 68"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Agent",
+      "http://xmlns.com/foaf/0.1/Agent"
+     ],
+     "homepage": [
+      "https://www.facebook.com/trail.poligny.jura/?hc_ref=ARQAt0PbJ26AIFNz1OO2ra5eiX3UgBkU85xPlE06jYnWdnzaTt3NxoQibs6mLDoZ7CI&ref=nf_target&__tn__=kCH-R",
+      "https://youtube.com/playlist?list=PL8gmyhngOK1a37mbfMDxiP3_uaeO0X3h_",
+      "https://courses-pedestres-ejca.com/trail-de-la-maison-du-comte-2026-une-nouvelle-edition-a-noter/"
+     ]
+    }
+   ],
+   "hasDescription": [
+    {}
+   ],
+   "hasTheme": [
+    "https://www.datatourisme.fr/resource/core#Pedestrian",
+    "https://www.datatourisme.fr/resource/core#Hiking",
+    "https://www.datatourisme.fr/resource/core#Running"
+   ],
+   "isLocatedAt": [
+    {
+     "geo": [
+      {
+       "latlon": [
+        "46.83379#5.69925"
+       ],
+       "latitude": [
+        "46.833795"
+       ],
+       "longitude": [
+        "5.699255"
+       ],
+       "type": [
+        "http://schema.org/GeoCoordinates"
+       ]
+      }
+     ],
+     "address": [
+      {
+       "hasAddressCity": [
+        "https://www.datatourisme.fr/resource/core#39434"
+       ],
+       "addressLocality": [
+        "Poligny"
+       ],
+       "postalCode": [
+        "39800"
+       ],
+       "streetAddress": [
+        "Maison du Comté",
+        "Rue de la Maison du Comté"
+       ],
+       "type": [
+        "https://www.datatourisme.fr/ontology/core#PostalAddress",
+        "http://schema.org/PostalAddress"
+       ]
+      }
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Place",
+      "http://schema.org/Place"
+     ]
+    }
+   ],
+   "lastUpdate": [
+    "2026-09-30"
+   ],
+   "lastUpdateDatatourisme": [
+    "2026-10-21T01:22:20.908Z"
+   ],
+   "takesPlaceAt": [
+    {
+     "endDate": [
+      "2027-03-07"
+     ],
+     "startDate": [
+      "2027-03-07"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Period"
+     ]
+    }
+   ],
+   "fingerprint": [
+    "14fea8911e6ca0c82ed50411d474ca6f"
+   ],
+   "hasFluxIdentifier": [
+    "149"
+   ],
+   "hasOrganizationIdentifier": [
+    "6"
+   ],
+   "sourceChecksum": [
+    "54a4c8cce84c168f31d6dfcd99e9def9"
+   ],
+   "hasBookingContact": [
+    {}
+   ],
+   "endDate": [
+    "2027-03-07"
+   ],
+   "startDate": [
+    "2027-03-07"
+   ],
+   "type": [
+    "https://www.datatourisme.fr/ontology/core#CulturalEvent",
+    "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent",
+    "https://www.datatourisme.fr/ontology/core#PointOfInterest",
+    "https://www.datatourisme.fr/ontology/core#ChildrensEvent",
+    "https://www.datatourisme.fr/ontology/core#Rambling",
+    "https://www.datatourisme.fr/ontology/core#SocialEvent",
+    "https://www.datatourisme.fr/ontology/core#SportsCompetition",
+    "https://www.datatourisme.fr/ontology/core#SportsEvent",
+    "https://www.datatourisme.fr/ontology/core#Tour",
+    "https://www.datatourisme.fr/ontology/core#WalkingTour",
+    "http://schema.org/Event",
+    "http://purl.org/ontology/olo/core#OrderedList",
+    "http://schema.org/SocialEvent",
+    "http://schema.org/SportsEvent"
+   ],
+   "label": [
+    "Le Trail de la Maison du Comté",
+    "Le Trail de la Maison du Comté",
+    "Le Trail de la Maison du Comté"
+   ],
+   "identifier": [
+    "FMABFC000V50DUYK"
+   ]
+  },
+  {
+   "offers": [
+    {
+     "priceSpecification": [
+      {
+       "hasTranslatedProperty": [
+        {
+         "language": [
+          "en"
+         ],
+         "checksum": [
+          "1cb9e706a9e53780cdb6a2032ee015ed-5070eaaa95b7b16977213c23cc6a21cb"
+         ],
+         "predicate": [
+          "https://www.datatourisme.fr/ontology/core#additionalInformation"
+         ],
+         "contributor": [
+          "https://api.deepl.com/v2/translate"
+         ],
+         "date": [
+          "2026-10-13"
+         ]
+        },
+        {
+         "language": [
+          "de"
+         ],
+         "checksum": [
+          "1cb9e706a9e53780cdb6a2032ee015ed-cc2fdac7280d1c2a30d4331179074687"
+         ],
+         "predicate": [
+          "https://www.datatourisme.fr/ontology/core#additionalInformation"
+         ],
+         "contributor": [
+          "https://api.deepl.com/v2/translate"
+         ],
+         "date": [
+          "2026-10-13"
+         ]
+        },
+        {
+         "language": [
+          "es"
+         ],
+         "checksum": [
+          "1cb9e706a9e53780cdb6a2032ee015ed-e0818c41769a4a153aca8c25c04b9150"
+         ],
+         "predicate": [
+          "https://www.datatourisme.fr/ontology/core#additionalInformation"
+         ],
+         "contributor": [
+          "https://api.deepl.com/v2/translate"
+         ],
+         "date": [
+          "2026-10-13"
+         ]
+        },
+        {
+         "language": [
+          "nl"
+         ],
+         "checksum": [
+          "1cb9e706a9e53780cdb6a2032ee015ed-f986359685bd96fee8faef9467ae9a90"
+         ],
+         "predicate": [
+          "https://www.datatourisme.fr/ontology/core#additionalInformation"
+         ],
+         "contributor": [
+          "https://api.deepl.com/v2/translate"
+         ],
+         "date": [
+          "2026-10-13"
+         ]
+        },
+        {
+         "language": [
+          "it"
+         ],
+         "checksum": [
+          "1cb9e706a9e53780cdb6a2032ee015ed-8d1d696bfda343d5e6a8481dedd8bd52"
+         ],
+         "predicate": [
+          "https://www.datatourisme.fr/ontology/core#additionalInformation"
+         ],
+         "contributor": [
+          "https://api.deepl.com/v2/translate"
+         ],
+         "date": [
+          "2026-10-13"
+         ]
+        }
+       ],
+       "hasEligiblePolicy": [
+        "https://www.datatourisme.fr/resource/core#BaseRateFullRate"
+       ],
+       "hasPricingMode": [
+        "https://www.datatourisme.fr/resource/core#PerPerson"
+       ],
+       "additionalInformation": [
+        "Inscription chronolap.net 12€pour 13km, 10€ pour 8,5km et 5€ pour la marche",
+        "Registration at chronolap.net: 12? for the 13-km race, 10? for the 8.5-km race, and 5? for the walk",
+        "Inschrijving op chronolap.net: 12? voor 13 km, 10? voor 8,5 km en 5? voor de wandeling",
+        "Anmeldung bei chronolap.net: 12? für 13 km, 10? für 8,5 km und 5? für das Wandern",
+        "Iscrizione su chronolap.net: 12? per i 13 km, 10? per gli 8,5 km e 5? per la camminata",
+        "Inscripción en chronolap.net: 12 € para los 13 km, 10 € para los 8,5 km y 5 € para la marcha"
+       ],
+       "minPrice": [
+        "5"
+       ],
+       "maxPrice": [
+        "12"
+       ],
+       "priceCurrency": [
+        "EUR"
+       ],
+       "type": [
+        "https://www.datatourisme.fr/ontology/core#PriceSpecification",
+        "http://schema.org/PriceSpecification"
+       ]
+      }
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Offer",
+      "http://schema.org/Offer"
+     ]
+    },
+    {}
+   ],
+   "topObjectProperty": [
+    {
+     "topDataProperty": [
+      "Le Trail nocturne vous propose des tracés de 8,5km à 13km à parcourir de nuit.  Rues, sentiers et lieux méconnus de la ville de Vervins…  Un run urbain diversif"
+     ],
+     "hasTranslatedProperty": [
+      {
+       "language": [
+        "de"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-0a8dac2d715b8e02ac3d70cc6173dc86"
+       ],
+       "predicate": [
+        "https://www.datatourisme.fr/ontology/core#shortDescription"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "de"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-0a8dac2d715b8e02ac3d70cc6173dc86"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "es"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-778f048004ae3e6d543fedd15ec1f8f7"
+       ],
+       "predicate": [
+        "https://www.datatourisme.fr/ontology/core#shortDescription"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "en"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-9e1a3df54b936582155c6da1690b6bbf"
+       ],
+       "predicate": [
+        "https://www.datatourisme.fr/ontology/core#shortDescription"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "it"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-d0370023549456a899cc3fd0efbf19a3"
+       ],
+       "predicate": [
+        "https://www.datatourisme.fr/ontology/core#shortDescription"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "it"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-d0370023549456a899cc3fd0efbf19a3"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "nl"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-8bd98c756087d82d8123947a49ce2b9f"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "en"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-9e1a3df54b936582155c6da1690b6bbf"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "nl"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-8bd98c756087d82d8123947a49ce2b9f"
+       ],
+       "predicate": [
+        "https://www.datatourisme.fr/ontology/core#shortDescription"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      },
+      {
+       "language": [
+        "es"
+       ],
+       "checksum": [
+        "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-778f048004ae3e6d543fedd15ec1f8f7"
+       ],
+       "predicate": [
+        "http://purl.org/dc/elements/1.1/description"
+       ],
+       "contributor": [
+        "https://api.deepl.com/v2/translate"
+       ],
+       "date": [
+        "2026-10-13"
+       ]
+      }
+     ],
+     "shortDescription": [
+      "Le Trail nocturne vous propose des tracés de 8,5km à 13km à parcourir de nuit.  Rues, sentiers et lieux méconnus de la ville de Vervins…  Un run urbain diversif",
+      "The Night Trail offers 8.5 km and 13 km routes to run at night. Streets, trails, and little-known spots in the town of Vervins?  A varied, fun urban run with a ",
+      "De Nachttrail biedt routes van 8,5 km tot 13 km die je ’s nachts kunt afleggen.  Straten, paden en onbekende plekjes in de stad Vervins?  Een afwisselende, spee",
+      "El Trail nocturno te ofrece recorridos de 8,5 km y 13 km para recorrer de noche. ¿Calles, senderos y rincones desconocidos de la ciudad de Vervins?  Una carrera",
+      "Der Nacht-Trail bietet Ihnen Strecken von 8,5 km bis 13 km, die Sie nachts zurücklegen können. Straßen, Wege und unbekannte Orte der Stadt Vervins?  Ein abwechs",
+      "Il Trail notturno propone percorsi da 8,5 km a 13 km da percorrere di notte. Strade, sentieri e luoghi poco conosciuti della città di Vervins?  Una corsa urbana"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Description"
+     ],
+     "description": [
+      "Le Trail nocturne vous propose des tracés de 8,5km à 13km à parcourir de nuit.  Rues, sentiers et lieux méconnus de la ville de Vervins…  Un run urbain diversif",
+      "The Night Trail offers 8.5 km and 13 km routes to run at night. Streets, trails, and little-known spots in the town of Vervins?  A varied, fun urban run with a ",
+      "De Nachttrail biedt routes van 8,5 km tot 13 km die je ’s nachts kunt afleggen.  Straten, paden en onbekende plekjes in de stad Vervins?  Een afwisselende, spee",
+      "El Trail nocturno te ofrece recorridos de 8,5 km y 13 km para recorrer de noche. ¿Calles, senderos y rincones desconocidos de la ciudad de Vervins?  Una carrera",
+      "Der Nacht-Trail bietet Ihnen Strecken von 8,5 km bis 13 km, die Sie nachts zurücklegen können. Straßen, Wege und unbekannte Orte der Stadt Vervins?  Ein abwechs",
+      "Il Trail notturno propone percorsi da 8,5 km a 13 km da percorrere di notte. Strade, sentieri e luoghi poco conosciuti della città di Vervins?  Una corsa urbana"
+     ]
+    }
+   ],
+   "availableLanguage": [
+    "fr"
+   ],
+   "hasAudience": [
+    "https://www.datatourisme.fr/resource/core#Regional"
+   ],
+   "hasBeenCreatedBy": [
+    {
+     "address": [
+      {
+       "postalCode": [
+        "02140"
+       ],
+       "streetAddress": [
+        "7 avenue du préau"
+       ],
+       "type": [
+        "http://schema.org/PostalAddress"
+       ]
+      }
+     ],
+     "email": [
+      "accueil@tourisme-thierache.fr"
+     ],
+     "legalName": [
+      "OT du Pays de Thiérache"
+     ],
+     "telephone": [
+      "+33 3 23 91 30 10"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Agent",
+      "http://schema.org/Organization",
+      "http://xmlns.com/foaf/0.1/Agent"
+     ],
+     "homepage": [
+      "https://www.tourisme-thierache.fr/"
+     ],
+     "identifier": [
+      "ac6db5ce-a2d6-4b5b-a9d8-cfe296b393cb"
+     ]
+    }
+   ],
+   "hasBeenPublishedBy": [
+    {}
+   ],
+   "hasContact": [
+    {
+     "email": [
+      "sport-detente-nature@laposte.net"
+     ],
+     "familyName": [
+      "SPORT DÉTENTE NATURE"
+     ],
+     "telephone": [
+      "+33 6 28 90 28 44",
+      "+33 9 87 67 94 32"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Agent",
+      "https://www.datatourisme.fr/ontology/core#Person",
+      "http://schema.org/Person",
+      "http://xmlns.com/foaf/0.1/Agent",
+      "http://xmlns.com/foaf/0.1/Person"
+     ],
+     "title": [
+      "Société/Asso."
+     ]
+    }
+   ],
+   "hasDescription": [
+    {}
+   ],
+   "hasFeature": [
+    {
+     "features": [
+      "https://www.datatourisme.fr/resource/core#Bar",
+      "https://www.datatourisme.fr/resource/core#CarPark",
+      "https://www.datatourisme.fr/resource/core#FoodGrocery",
+      "https://www.datatourisme.fr/resource/core#ProjectionRoom",
+      "https://www.datatourisme.fr/resource/core#Toilet",
+      "https://www.datatourisme.fr/resource/core#CateringOnSite",
+      "https://www.datatourisme.fr/resource/core#MarkedTrails"
+     ],
+     "petsAllowed": [
+      "false"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#FeatureSpecification",
+      "http://schema.org/PropertyValue"
+     ]
+    }
+   ],
+   "hasTheme": [
+    "https://www.datatourisme.fr/resource/core#Hiking",
+    "https://www.datatourisme.fr/resource/core#Running"
+   ],
+   "hasTranslatedProperty": [
+    {
+     "language": [
+      "nl"
+     ],
+     "checksum": [
+      "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-8bd98c756087d82d8123947a49ce2b9f"
+     ],
+     "predicate": [
+      "http://www.w3.org/2000/01/rdf-schema#comment"
+     ],
+     "contributor": [
+      "https://api.deepl.com/v2/translate"
+     ],
+     "date": [
+      "2026-10-13"
+     ]
+    },
+    {
+     "language": [
+      "es"
+     ],
+     "checksum": [
+      "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-778f048004ae3e6d543fedd15ec1f8f7"
+     ],
+     "predicate": [
+      "http://www.w3.org/2000/01/rdf-schema#comment"
+     ],
+     "contributor": [
+      "https://api.deepl.com/v2/translate"
+     ],
+     "date": [
+      "2026-10-13"
+     ]
+    },
+    {
+     "language": [
+      "it"
+     ],
+     "checksum": [
+      "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-d0370023549456a899cc3fd0efbf19a3"
+     ],
+     "predicate": [
+      "http://www.w3.org/2000/01/rdf-schema#comment"
+     ],
+     "contributor": [
+      "https://api.deepl.com/v2/translate"
+     ],
+     "date": [
+      "2026-10-13"
+     ]
+    },
+    {
+     "language": [
+      "en"
+     ],
+     "checksum": [
+      "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-9e1a3df54b936582155c6da1690b6bbf"
+     ],
+     "predicate": [
+      "http://www.w3.org/2000/01/rdf-schema#comment"
+     ],
+     "contributor": [
+      "https://api.deepl.com/v2/translate"
+     ],
+     "date": [
+      "2026-10-13"
+     ]
+    },
+    {
+     "language": [
+      "de"
+     ],
+     "checksum": [
+      "b9c7349a32fa4ae8a9e6bd0ad7aef0b4-0a8dac2d715b8e02ac3d70cc6173dc86"
+     ],
+     "predicate": [
+      "http://www.w3.org/2000/01/rdf-schema#comment"
+     ],
+     "contributor": [
+      "https://api.deepl.com/v2/translate"
+     ],
+     "date": [
+      "2026-10-13"
+     ]
+    }
+   ],
+   "isEquippedWith": [
+    "https://www.datatourisme.fr/resource/core#Bar",
+    "https://www.datatourisme.fr/resource/core#CarPark",
+    "https://www.datatourisme.fr/resource/core#FoodGrocery",
+    "https://www.datatourisme.fr/resource/core#ProjectionRoom",
+    "https://www.datatourisme.fr/resource/core#Toilet",
+    "https://www.datatourisme.fr/resource/core#CateringOnSite",
+    "https://www.datatourisme.fr/resource/core#MarkedTrails"
+   ],
+   "isLocatedAt": [
+    {
+     "openingHoursSpecification": [
+      {
+       "opens": [
+        "19:30:00"
+       ],
+       "validFrom": [
+        "2026-12-19T00:00:00+01:00"
+       ],
+       "validThrough": [
+        "2026-12-19T00:00:00+01:00"
+       ],
+       "type": [
+        "http://schema.org/OpeningHoursSpecification"
+       ]
+      }
+     ],
+     "petsAllowed": [
+      "false"
+     ],
+     "geo": [
+      {
+       "latlon": [
+        "49.82979#3.8956"
+       ],
+       "latitude": [
+        "49.8297983"
+       ],
+       "longitude": [
+        "3.89560714"
+       ],
+       "type": [
+        "http://schema.org/GeoCoordinates"
+       ]
+      }
+     ],
+     "address": [
+      {
+       "hasAddressCity": [
+        "https://www.datatourisme.fr/resource/core#02789"
+       ],
+       "addressLocality": [
+        "Vervins"
+       ],
+       "postalCode": [
+        "02140"
+       ],
+       "streetAddress": [
+        "Place du Général de Gaulle"
+       ],
+       "type": [
+        "https://www.datatourisme.fr/ontology/core#PostalAddress",
+        "http://schema.org/PostalAddress"
+       ]
+      }
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Place",
+      "http://schema.org/Place"
+     ]
+    }
+   ],
+   "lastUpdate": [
+    "2018-09-18"
+   ],
+   "lastUpdateDatatourisme": [
+    "2026-10-21T03:52:37.436Z"
+   ],
+   "takesPlaceAt": [
+    {
+     "endDate": [
+      "2026-12-19"
+     ],
+     "startDate": [
+      "2026-12-19"
+     ],
+     "startTime": [
+      "19:30:00"
+     ],
+     "type": [
+      "https://www.datatourisme.fr/ontology/core#Period"
+     ]
+    }
+   ],
+   "fingerprint": [
+    "97e719f071c7fe989ca4fe3a6c0efc5b"
+   ],
+   "hasFluxIdentifier": [
+    "1184"
+   ],
+   "hasOrganizationIdentifier": [
+    "28"
+   ],
+   "sourceChecksum": [
+    "de6d04c0f9a9cf3801415d42c21d03f5"
+   ],
+   "creationDate": [
+    "2018-09-18"
+   ],
+   "hasBookingContact": [
+    {}
+   ],
+   "hasGeographicReach": [
+    "https://www.datatourisme.fr/resource/core#Regional"
+   ],
+   "isOwnedBy": [
+    {}
+   ],
+   "endDate": [
+    "2026-12-19"
+   ],
+   "startDate": [
+    "2026-12-19"
+   ],
+   "type": [
+    "https://www.datatourisme.fr/ontology/core#EntertainmentAndEvent",
+    "https://www.datatourisme.fr/ontology/core#PointOfInterest",
+    "https://www.datatourisme.fr/ontology/core#Rambling",
+    "https://www.datatourisme.fr/ontology/core#SportsCompetition",
+    "https://www.datatourisme.fr/ontology/core#SportsEvent",
+    "http://schema.org/Event",
+    "http://schema.org/SportsEvent"
+   ],
+   "comment": [
+    "Le Trail nocturne vous propose des tracés de 8,5km à 13km à parcourir de nuit.  Rues, sentiers et lieux méconnus de la ville de Vervins…  Un run urbain diversif",
+    "The Night Trail offers 8.5 km and 13 km routes to run at night. Streets, trails, and little-known spots in the town of Vervins?  A varied, fun urban run with a ",
+    "De Nachttrail biedt routes van 8,5 km tot 13 km die je ’s nachts kunt afleggen.  Straten, paden en onbekende plekjes in de stad Vervins?  Een afwisselende, spee",
+    "El Trail nocturno te ofrece recorridos de 8,5 km y 13 km para recorrer de noche. ¿Calles, senderos y rincones desconocidos de la ciudad de Vervins?  Una carrera",
+    "Der Nacht-Trail bietet Ihnen Strecken von 8,5 km bis 13 km, die Sie nachts zurücklegen können. Straßen, Wege und unbekannte Orte der Stadt Vervins?  Ein abwechs",
+    "Il Trail notturno propone percorsi da 8,5 km a 13 km da percorrere di notte. Strade, sentieri e luoghi poco conosciuti della città di Vervins?  Una corsa urbana"
+   ],
+   "label": [
+    "9ème trail nocturne des remparts de Vervins"
+   ],
+   "identifier": [
+    "FMAPIC002V50SYND"
+   ]
+  }
+ ]
+}
