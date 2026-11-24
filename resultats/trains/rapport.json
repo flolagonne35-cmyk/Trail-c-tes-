@@ -1,0 +1,66 @@
+{
+ "statut": "ok",
+ "date": "2026-11-24",
+ "enregistrements": {
+  "tgv": 36349,
+  "intercites": 2559,
+  "gares": 2792
+ },
+ "gares": 340,
+ "trajets": 5319,
+ "taille_ko": 127,
+ "gares_sans_position": [
+  "AVIGNON SUD",
+  "CONFLANS FIN D'OISE TGV",
+  "FUTUROSCOPE",
+  "IRUN FRANCE",
+  "JUVISY TGV",
+  "LE TEIL",
+  "MANTES LA JOLIE TGV",
+  "MONACO MONTE CARLO",
+  "PORT BOU."
+ ],
+ "exemple_brut": {
+  "tgv": [
+   {
+    "transporteur": "OUIGO TRAIN CLASSIQUE",
+    "gare_origine": "FUTUROSCOPE",
+    "gare_origine_code_uic": "87325095",
+    "gare_destination": "ST PIERRE DES CORPS",
+    "gare_destination_code_uic": "87571240",
+    "classe": "2",
+    "profil_tarifaire": "Tarif Normal",
+    "prix_minimum": 10.0,
+    "prix_maximum": 59.0
+   }
+  ],
+  "intercites": [
+   {
+    "transporteur": "Intercités de jour à réservation obligatoire",
+    "origine": "AGEN",
+    "origine_uic8": "87586008",
+    "destination": "MONTPELLIER SAINT-ROCH",
+    "destination_uic8": "87773002",
+    "classe": "2",
+    "profil_tarifaire": "Tarif Normal",
+    "type_place": "assise",
+    "prix_min": 19.0,
+    "prix_max": 55.0
+   }
+  ],
+  "gares": [
+   {
+    "nom": "Abancourt",
+    "libellecourt": "ABT",
+    "segment_drg": "C",
+    "position_geographique": {
+     "lon": 1.7743058,
+     "lat": 49.6852237
+    },
+    "codeinsee": "60001",
+    "codes_uic": "87313759",
+    "id": "a99c4503-7fa0-4176-b908-74f5e50cba32"
+   }
+  ]
+ }
+}
