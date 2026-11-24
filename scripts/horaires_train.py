@@ -9,9 +9,10 @@ Sortie (lancée au déploiement du site, pas enregistrée dans le dépôt : les 
 - `gares.json`    : [[uic, nom, lat, lon], ...] toutes les gares desservies (TER compris) ;
 - `services.json` : {"debut": "AAAA-MM-JJ", "jours": n, "s": [bitmap hexadécimal par service]}
                     (bit j = le service circule le jour debut + j) ;
-- `<uic>.json`    : passages de la gare, [[train, ordre, arrivée, départ, service, mode, numéro], ...]
+- `<uic>.json`    : passages de la gare, [[train, ordre, arrivée, départ, service, mode, numéro, drapeaux], ...]
                     (heures en minutes depuis minuit, au-delà de 1 440 pour les trains de nuit ;
-                    mode 0 TER, 1 TGV INOUI, 2 OUIGO, 3 Intercités, 4 car TER, 5 autre).
+                    mode 0 TER, 1 TGV INOUI, 2 OUIGO, 3 Intercités, 4 car TER, 5 autre ;
+                    drapeaux : 1 = montée interdite, 2 = descente interdite à cet arrêt).
 L'appli lit les fichiers des gares proches de chez toi et de la course : un même train qui passe
 par les deux, dans le bon ordre, un jour où il circule, est un train direct.
 
@@ -127,8 +128,10 @@ def construire(z: zipfile.ZipFile, aujourdhui: date | None = None) -> dict:
         if k not in mode_train:  # le type se lit au premier arrêt et vaut pour tout le train
             route_type, nom_ligne = t[2].split("|", 1)
             mode_train[k] = mode_de(f'{r["stop_id"]} {nom_ligne}', route_type)
+        # 1 : pas de montée (pickup_type 1), 2 : pas de descente (drop_off_type 1) à cet arrêt
+        drapeaux = (1 if r.get("pickup_type") == "1" else 0) | (2 if r.get("drop_off_type") == "1" else 0)
         par_gare[uic].append([k, int(r["stop_sequence"]), minutes(r["arrival_time"]), minutes(r["departure_time"]), t[0],
-                              mode_train[k], t[1]])
+                              mode_train[k], t[1], drapeaux])
     gares = []
     for r in lire(z, "stops.txt"):
         uic = uic_de(r["stop_id"])

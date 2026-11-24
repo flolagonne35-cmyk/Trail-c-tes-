@@ -23,9 +23,9 @@ FICHIERS = {
                     "S1,1,1,1,1,1,1,1,20261123,20261129\n",
     # S2 : samedi 28 seulement ; S3 : supprimé ce jour-là
     "calendar_dates.txt": "service_id,date,exception_type\nS2,20261128,1\nS3,20261128,1\nS3,20261128,2\nS1,20261125,2\n",
-    "stop_times.txt": "trip_id,arrival_time,departure_time,stop_id,stop_sequence\n"
-                      "T1,07:05:00,07:05:00,StopPoint:OCETGV INOUI-87471003,0\n"
-                      "T1,07:42:00,07:44:00,StopPoint:OCETGV INOUI-87478404,1\n"
+    "stop_times.txt": "trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type\n"
+                      "T1,07:05:00,07:05:00,StopPoint:OCETGV INOUI-87471003,0,0,1\n"
+                      "T1,07:42:00,07:44:00,StopPoint:OCETGV INOUI-87478404,1,1,0\n"
                       "T2,23:50:00,23:50:00,StopPoint:OCETrain TER-87471003,0\n"
                       "T2,24:10:00,24:10:00,StopPoint:OCETrain TER-87476002,1\n"
                       "T2,24:40:00,24:40:00,StopPoint:OCETGV INOUI-87478404,2\n"
@@ -60,6 +60,7 @@ def test_construction(tmp_path):
     assert len(rennes) == 2  # T3 ne circule jamais (ajouté puis supprimé) : écarté
     tgv = next(p for p in rennes if p[6] == "8612")
     assert tgv[3] == 7 * 60 + 5 and tgv[5] == 1
+    assert tgv[7] == 2  # à Rennes, on monte mais on ne descend pas
     bits = int(res["services"][tgv[4]], 16)
     assert [bool(bits >> j & 1) for j in range(7)] == [True, True, False, True, True, True, True]  # pas le 25
     ter = next(p for p in res["par_gare"]["87478404"] if p[6] == "857000")

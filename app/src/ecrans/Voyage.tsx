@@ -14,6 +14,8 @@ import { coutVoiture, liens, NOMS_CARBURANT, NOMS_LOGEMENT, veille, type Carbura
 import type { PointDepart } from "../composants/BarreDepart.tsx";
 import { Ajusteur, nombre, Section, Segments } from "../composants/communs.tsx";
 import { trainDirect, type OffreTrain } from "../calcul/train.ts";
+import { dernierJour, garesProches, heure, indiceJour, trainsDirects, type TrainDirect } from "../calcul/horaires.ts";
+import { chargerGares, chargerPassages, chargerServices } from "../horaires.ts";
 import { chargerTarifs } from "../trains.ts";
 import { autourDeLaCourse } from "../voyage.ts";
 import { C, S } from "../theme.ts";
@@ -23,6 +25,7 @@ const euros = (v: number) => `${nombre(v, v < 100 ? 2 : 0)} €`;
 /** Prix de billet : sans centimes quand il n'y en a pas (« 25,50 € », « 51 € »). */
 const prix = (v: number) => `${nombre(v, Number.isInteger(v) ? 0 : 2)} €`;
 const ouvrir = (url: string) => Linking.openURL(url).catch(() => undefined);
+const jourCourt = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
 const jourLong = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
 function Lien({ texte, url, detail }: { texte: string; url: string; detail?: string }) {
@@ -47,6 +50,29 @@ export function VueVoyage({ course, depart, onRetour, entete }: {
   const [personnes, setPersonnes] = useState(1);
   // train direct (TGV INOUI, OUIGO, Intercités) : undefined = en cours, null = pas de données (hors connexion)
   const [train, setTrain] = useState<OffreTrain | null | undefined | "aucun">(undefined);
+  // horaires des trains directs, la veille ou le jour de la course
+  const [jourTrain, setJourTrain] = useState<"veille" | "jourj">("veille");
+  const [horaires, setHoraires] = useState<TrainDirect[] | { hors: string } | null | undefined>(undefined);
+  // gare SNCF la plus proche de la course (liste officielle des gares desservies, TER compris)
+  const [gareSncf, setGareSncf] = useState<{ nom: string; d: number } | null>(null);
+  useEffect(() => {
+    let actif = true;
+    setHoraires(undefined);
+    (async () => {
+      const [s, gares] = await Promise.all([chargerServices(), chargerGares()]);
+      if (!s || !gares) return null;
+      const proche = garesProches(gares, arrivee, 60000, 1)[0];
+      if (actif) setGareSncf(proche ? { nom: proche.nom, d: proche.d } : null);
+      const jour = jourTrain === "veille" ? veille(course.date) : course.date;
+      if (indiceJour(s, jour) === null) return { hors: dernierJour(s) };
+      // gares à 40 km de chez toi et à 30 km du départ de la course (4 de chaque côté au plus)
+      const avec = (g: { uic: string; nom: string; d: number }[]) =>
+        Promise.all(g.map(async (x) => ({ ...x, passages: (await chargerPassages(x.uic)) ?? [] })));
+      const [dep, arr] = await Promise.all([avec(garesProches(gares, depart.position, 40000)), avec(garesProches(gares, arrivee, 30000))]);
+      return trainsDirects(s, jour, dep, arr);
+    })().then((h) => { if (actif) setHoraires(h); }).catch(() => { if (actif) setHoraires(null); });
+    return () => { actif = false; };
+  }, [course.id, jourTrain, depart.position.lat, depart.position.lon]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let actif = true;
     itineraire(depart.position, arrivee, "car").then((t) => { if (actif) setTrajet(t); });
@@ -110,10 +136,33 @@ export function VueVoyage({ course, depart, onRetour, entete }: {
 
       <Section titre="🚆 En train">
         <View style={[S.carte, { marginTop: 0, gap: 8 }]}>
-          {autour === undefined ? <Text style={S.petit}>Recherche de la gare la plus proche…</Text>
+          {gareSncf ? <Text style={S.fort}>Gare la plus proche : {gareSncf.nom}, à {kmLisibles(gareSncf.d)} du départ (à vol d'oiseau)</Text>
+            : autour === undefined ? <Text style={S.petit}>Recherche de la gare la plus proche…</Text>
             : gare ? <Text style={S.fort}>Gare la plus proche : {gare.nom}, à {kmLisibles(gare.distance_m)} du départ</Text>
             : <Text style={S.petit}>{autour === null ? "Gares indisponibles (pas de connexion)." : "Pas de gare à moins de 25 km : prévois une navette ou un covoiturage depuis la gare."}</Text>}
-          {train === undefined && <Text style={S.petit}>Recherche des trains directs…</Text>}
+          <Segments options={[["veille", `La veille (${jourCourt(veille(course.date))})`], ["jourj", `Le jour J (${jourCourt(course.date)})`]]}
+                    valeur={jourTrain} onChange={setJourTrain} />
+          {horaires === undefined && <View style={{ flexDirection: "row", gap: 8 }}><ActivityIndicator color={C.encre} /><Text style={S.petit}>Recherche des trains directs…</Text></View>}
+          {horaires === null && <Text style={S.petit}>Horaires indisponibles sans connexion.</Text>}
+          {horaires && !Array.isArray(horaires) && (
+            <Text style={S.petit}>La SNCF publie ses horaires environ 5 mois à l'avance : ceux de ce jour-là ne sont pas encore connus (publiés jusqu'au {jourCourt(horaires.hors)}). Reviens plus tard.</Text>
+          )}
+          {Array.isArray(horaires) && horaires.length === 0 && (
+            <Text style={S.petit}>Pas de train direct ce jour-là entre les gares proches de chez toi et de la course : il faudra une correspondance (cherche sur SNCF Connect).</Text>
+          )}
+          {Array.isArray(horaires) && horaires.slice(0, 10).map((t) => (
+            <View key={`${t.numero}-${t.depart}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6, borderTopWidth: 1, borderTopColor: C.aire }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={S.fort}>{heure(t.depart)} → {heure(t.arrivee)} <Text style={{ fontWeight: "500", color: C.gris }}>· {dureeLisible(t.duree)}</Text></Text>
+                <Text style={S.petit} numberOfLines={2}>{t.mode} {t.numero} · {t.gareDepart} → {t.gareArrivee}</Text>
+              </View>
+            </View>
+          ))}
+          {Array.isArray(horaires) && horaires.length > 10 && <Text style={S.petit}>Et {horaires.length - 10} autres trains directs ce jour-là.</Text>}
+          {Array.isArray(horaires) && horaires.length > 0 && (
+            <Text style={[S.petit, { fontSize: 12 }]}>Horaires théoriques SNCF (TGV INOUI, OUIGO, Intercités, TER, cars TER) : vérifie avant de partir (travaux, grèves).</Text>
+          )}
+          {train === undefined && <Text style={S.petit}>Recherche des prix…</Text>}
           {train && train !== "aucun" && (
             <View style={{ backgroundColor: C.descenteClair, borderRadius: 14, padding: 12, gap: 4 }}>
               <Text style={[S.fort, { color: C.descenteFonce }]}>{train.gareDepart} → {train.gareArrivee}, sans changement</Text>

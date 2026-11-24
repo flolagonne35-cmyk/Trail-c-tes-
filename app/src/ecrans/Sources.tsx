@@ -14,6 +14,7 @@ const SOURCES: [string, string][] = [
   ["Revêtement", "© contributeurs OpenStreetMap (ODbL), quand la BD TOPO ne le précise pas."],
   ["Points d'eau", "© contributeurs OpenStreetMap (ODbL) : fontaines et robinets d'eau potable publics, mis à jour chaque mois. À vérifier sur place (coupures l'hiver)."],
   ["Prix des trains", "SNCF Voyageurs, données ouvertes (ODbL) : tarifs TGV INOUI, OUIGO et Intercités (plein tarif 2de classe), gares de voyageurs ; mis à jour chaque mois. Pas de TER : leurs prix ne sont pas publiés."],
+  ["Horaires des trains", "SNCF Voyageurs, horaires théoriques au format GTFS (ODbL), TGV INOUI, OUIGO, Intercités, TER et cars TER, pour les 5 mois à venir ; mis à jour chaque jour."],
   ["Coureur 3D", "Corps humain et squelette issus de MakeHuman (licence CC0, makehumancommunity.org), affichés avec three.js (licence MIT). Foulée d'après Novacheck 1998 (biomécanique de la course)."],
   ["Courses à venir", "DATAtourisme (événements des offices de tourisme, ADN Tourisme) et OpenAgenda (agendas publics), sous Licence Ouverte 2.0 ; le producteur et la date de mise à jour sont indiqués sur chaque course."],
   ["Effort selon la pente", "Minetti et al. 2002 (coût énergétique de la course), recalé sur tes sorties ; km-effort de l'ITRA (100 m de D+ ≈ 1 km)."],
