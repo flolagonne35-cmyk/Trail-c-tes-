@@ -9,6 +9,11 @@ on:
   schedule:
     - cron: "41 4 2 1 *" # une fois par an (fusions de communes au 1er janvier)
 
+# une exécution à la fois : deux passages simultanés écriraient les mêmes fichiers
+concurrency:
+  group: communes-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -31,7 +36,7 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "Communes de France pour la recherche hors ligne (run ${{ github.run_id }})"
           for i in 1 2 3 4; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
             sleep $((i * 5))
           done
           exit 1

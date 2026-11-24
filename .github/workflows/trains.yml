@@ -12,6 +12,11 @@ on:
   schedule:
     - cron: "41 4 3 * *" # le 3 de chaque mois, 4 h 41 UTC
 
+# une exécution à la fois : deux passages simultanés écriraient les mêmes fichiers
+concurrency:
+  group: trains-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -43,7 +48,7 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "Prix des trains SNCF (run ${{ github.run_id }})"
           for i in 1 2 3 4; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
             sleep $((i * 5))
           done
           exit 1
