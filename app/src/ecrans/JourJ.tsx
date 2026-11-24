@@ -42,6 +42,8 @@ export function VueJourJ({ parcours, objectif, setObjectif, ravitos, prefs, date
   }, [parcours, heures, ravitos, prefs, objectifOk]);
   const [kmB, setKmB] = useState("");
   const [heureB, setHeureB] = useState("");
+  // une barrière horaire se rajoute seulement si le km est sur le parcours et l'heure lisible (ex. 14:30)
+  const barriereValide = (() => { const km = parseFloat(kmB.replace(",", ".")); return km > 0 && km <= parcours.distance_km && Number.isFinite(lireHeure(heureB)); })();
   const listeMarges = objectifOk && departOk ? marges(parcours, heures, departMin, reglages.barrieres) : [];
 
   // nuit : départ avant le lever ou arrivée après le coucher (au départ de la course, le jour de la course)
@@ -164,15 +166,15 @@ export function VueJourJ({ parcours, objectif, setObjectif, ravitos, prefs, date
                            style={[champ, { width: 80 }]} />
                 <TextInput value={heureB} onChangeText={setHeureB} placeholder="14:30" accessibilityLabel="Heure limite"
                            style={[champ, { flex: 1 }]} />
-                <Pressable accessibilityRole="button"
+                <Pressable accessibilityRole="button" disabled={!barriereValide} accessibilityState={{ disabled: !barriereValide }}
                            onPress={() => {
                              const km = parseFloat(kmB.replace(",", "."));
                              const h = lireHeure(heureB);
-                             if (!(km > 0 && km <= parcours.distance_km) || !Number.isFinite(h)) return;
+                             if (!barriereValide) return;
                              setReglages({ ...reglages, barrieres: [...reglages.barrieres, { km, heureMin: h, nom: `km ${nombre(km, 1)}` }].sort((a, b) => a.km - b.km) });
                              setKmB(""); setHeureB("");
                            }}
-                           style={[S.bouton, { paddingHorizontal: 14 }]}>
+                           style={[S.bouton, { paddingHorizontal: 14, opacity: barriereValide ? 1 : 0.4 }]}>
                   <Text style={S.boutonTexte}>Ajouter</Text>
                 </Pressable>
               </View>

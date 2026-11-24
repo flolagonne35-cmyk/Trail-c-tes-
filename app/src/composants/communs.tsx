@@ -57,14 +57,19 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
   etiquette: string; valeur: number; unite: string; pas: number; min?: number; max?: number;
   onChange: (v: number) => void;
 }) {
-  const bouton = (signe: -1 | 1) => (
+  const bouton = (signe: -1 | 1) => {
+    // en butée (ex. 1 personne minimum), le bouton est grisé et désactivé
+    const bute = signe < 0 ? valeur <= min : valeur >= max;
+    return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${signe < 0 ? "Moins" : "Plus"} ${pas} ${unite}, ${etiquette}`}
+               disabled={bute} accessibilityState={{ disabled: bute }}
                onPress={() => onChange(Math.min(max, Math.max(min, Math.round((valeur + signe * pas) / pas) * pas)))}
                style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.sable, alignItems: "center",
-                        justifyContent: "center" }}>
+                        justifyContent: "center", opacity: bute ? 0.35 : 1 }}>
       <Text style={{ fontSize: 22, fontWeight: "700", color: C.encre }}>{signe < 0 ? "−" : "+"}</Text>
     </Pressable>
-  );
+    );
+  };
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <Text style={[S.fort, { flex: 1, fontWeight: "600" }]}>{etiquette}</Text>
