@@ -1,15 +1,15 @@
 {
-  "date_utc": "2026-11-24T00:15:56+00:00",
+  "date_utc": "2026-11-24T02:42:32+00:00",
   "statut": "ok",
   "resume": {
     "Mont Ventoux par Bédoin": "conforme — 21.91 km, 1570 m, 7.17 % ; écarts {'longueur_pct': 1.9, 'denivele_pct': -2.5, 'pente_pts': -0.33, 'alt_arrivee_m': -12.7}",
     "Alpe d'Huez par Le Bourg-d'Oisans": "conforme — 13.31 km, 1090 m, 8.19 % ; écarts {'longueur_pct': -3.5, 'denivele_pct': -2.6, 'pente_pts': 0.09, 'alt_arrivee_m': -52.1}",
-    "Débit GET lot 150 (6 déc., ×1)": "114.3 pts/s {'200': 3}",
-    "Débit GET lot 300 (6 déc., ×1)": "388.7 pts/s {'200': 3}",
-    "Débit GET lot 330 (5 déc., ×1)": "351.6 pts/s {'200': 3}",
-    "Débit POST_JSON lot 1000 (6 déc., ×1)": "567.9 pts/s {'200': 1}",
-    "Débit POST_JSON lot 5000 (6 déc., ×1)": "707.3 pts/s {'200': 1}",
-    "Débit GET lot 150 (6 déc., ×4)": "286.1 pts/s {'200': 8}"
+    "Débit GET lot 150 (6 déc., ×1)": "119.0 pts/s {'200': 3}",
+    "Débit GET lot 300 (6 déc., ×1)": "208.9 pts/s {'200': 3}",
+    "Débit GET lot 330 (5 déc., ×1)": "396.7 pts/s {'200': 3}",
+    "Débit POST_JSON lot 1000 (6 déc., ×1)": "465.7 pts/s {'200': 1}",
+    "Débit POST_JSON lot 5000 (6 déc., ×1)": "880.2 pts/s {'200': 1}",
+    "Débit GET lot 150 (6 déc., ×4)": "178.4 pts/s {'200': 5, '429': 3}"
   },
   "montees": [
     {
@@ -17,8 +17,7 @@
       "nom": "Mont Ventoux par Bédoin",
       "troncons": 7049,
       "wfs_codes": {
-        "200": 8,
-        "504": 1
+        "200": 8
       },
       "statut": "conforme",
       "autour_arrivee": [
@@ -407,7 +406,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 2.7
+      "alti_duree_s": 3.4
     },
     {
       "cle": "alpe_d_huez",
@@ -788,7 +787,7 @@
       "alti_codes": {
         "200": 1
       },
-      "alti_duree_s": 2.4
+      "alti_duree_s": 2.5
     }
   ],
   "debit_api": [
@@ -801,9 +800,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 3.91,
+      "duree_s": 3.76,
       "points_ok": 447,
-      "points_par_s": 114.3,
+      "points_par_s": 119.0,
       "erreur": ""
     },
     {
@@ -815,9 +814,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 2.31,
+      "duree_s": 4.29,
       "points_ok": 897,
-      "points_par_s": 388.7,
+      "points_par_s": 208.9,
       "erreur": ""
     },
     {
@@ -829,9 +828,9 @@
       "codes_http": {
         "200": 3
       },
-      "duree_s": 2.81,
+      "duree_s": 2.49,
       "points_ok": 987,
-      "points_par_s": 351.6,
+      "points_par_s": 396.7,
       "erreur": ""
     },
     {
@@ -843,9 +842,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 1.76,
+      "duree_s": 2.14,
       "points_ok": 997,
-      "points_par_s": 567.9,
+      "points_par_s": 465.7,
       "erreur": ""
     },
     {
@@ -857,9 +856,9 @@
       "codes_http": {
         "200": 1
       },
-      "duree_s": 7.04,
+      "duree_s": 5.66,
       "points_ok": 4979,
-      "points_par_s": 707.3,
+      "points_par_s": 880.2,
       "erreur": ""
     },
     {
@@ -869,12 +868,13 @@
       "paralleles": 4,
       "points": 1200,
       "codes_http": {
-        "200": 8
+        "200": 5,
+        "429": 3
       },
-      "duree_s": 4.18,
-      "points_ok": 1197,
-      "points_par_s": 286.1,
-      "erreur": ""
+      "duree_s": 4.19,
+      "points_ok": 747,
+      "points_par_s": 178.4,
+      "erreur": "HTTP 429 lot 750-900 : <html>\r\n<head><title>429 Too Many Requests</title></head>\r\n<body>\r\n<center><h1>429 Too Many Requests</h1></center>\r\n</body>\r\n</html>\r\n"
     }
   ],
   "rayon_terre_m": 6371000.0
