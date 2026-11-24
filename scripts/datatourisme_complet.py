@@ -26,6 +26,7 @@ import sys
 import tempfile
 import zipfile
 from collections import defaultdict
+from datetime import date, timedelta
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
@@ -159,9 +160,11 @@ def fusionner(courses: list[dict], infos: dict[str, dict]) -> int:
             c["reservation"] = i["reservation"]
         # la période de validité d'une offre est le plus souvent le jour même de la course (vérifié
         # sur le run du 24/11 : 185 fiches sur 190) : seule une date AVANT la course parle d'inscription
+        # et une date de plus de 8 mois avant vient en général de l'édition précédente
         jour = c.get("date") or "9999"
+        plancher = (date.fromisoformat(jour) - timedelta(days=240)).isoformat() if jour != "9999" else ""
         for cle in ("inscription_debut", "inscription_fin"):
-            if i[cle] and i[cle] < jour:
+            if i[cle] and plancher <= i[cle] < jour:
                 c[cle] = i[cle]
             else:
                 c.pop(cle, None)

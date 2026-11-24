@@ -62,6 +62,10 @@ def test_fusion_garde_l_annonce_de_l_organisateur():
     assert dc.fusionner(courses, infos) == 1
     assert courses[0]["inscription_fin"] == "2027-03-10"
     assert "inscription_debut" not in courses[2] and "inscription_fin" not in courses[2]
+    # date de l'édition précédente (plus de 8 mois avant) : écartée
+    ancienne = [{"id": "dt-z", "date": "2026-12-06", "prix_eur": []}]
+    dc.fusionner(ancienne, {"dt-z": {"prix_eur": [], "reservation": "", "inscription_debut": "2025-06-28", "inscription_fin": "2025-06-29", "complet": False}})
+    assert "inscription_fin" not in ancienne[0]
     assert courses[0]["prix_eur"] == [12.0] and courses[0]["reservation"] == "https://r"
     assert courses[2]["prix_eur"] == [25]  # le prix écrit par l'organisateur reste
 
