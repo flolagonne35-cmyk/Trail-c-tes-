@@ -21,7 +21,7 @@ test("train direct : les gares les plus proches de chez soi et de la course", ()
 
 test("un trajet vaut dans les deux sens", () => {
   const o = trainDirect(T, { lat: 48.84, lon: 2.32 }, { lat: 48.1, lon: -1.67 });
-  assert.equal(o?.gareDepart, "Paris Montparnasse");
+  assert.equal(o?.gareDepart, "Paris (gare selon le train)");
   assert.deepEqual(o?.transporteurs, ["TGV INOUI", "OUIGO"]);
 });
 

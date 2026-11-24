@@ -31,6 +31,10 @@ function garesProches(t: Tarifs, p: Position, rayon: number): { i: number; d: nu
   return res.sort((a, b) => a.d - b.d).slice(0, 8);
 }
 
+// Paris : les gares d'un même trajet changent selon le transporteur (TGV INOUI à Montparnasse,
+// OUIGO Train Classique à Austerlitz, par exemple) ; le nom exact serait trompeur.
+const nomGare = (nom: string) => (/^Paris /.test(nom) ? "Paris (gare selon le train)" : nom);
+
 /** Le meilleur train direct entre deux lieux, ou null s'il n'y en a pas (correspondance ou TER). */
 export function trainDirect(t: Tarifs, depart: Position, arrivee: Position, rayon = RAYON_GARE_M): OffreTrain | null {
   const a = garesProches(t, depart, rayon);
@@ -49,7 +53,7 @@ export function trainDirect(t: Tarifs, depart: Position, arrivee: Position, rayo
       const c = ga.d + gb.d + tr[2] * 50;
       if (c < cout) {
         cout = c;
-        meilleur = { gareDepart: t.gares[ga.i][1], gareArrivee: t.gares[gb.i][1], accesDepart_m: ga.d, accesArrivee_m: gb.d,
+        meilleur = { gareDepart: nomGare(t.gares[ga.i][1]), gareArrivee: nomGare(t.gares[gb.i][1]), accesDepart_m: ga.d, accesArrivee_m: gb.d,
                      prixMin: tr[2], prixMax: tr[3], transporteurs: transporteurs(tr[4]) };
       }
     }
