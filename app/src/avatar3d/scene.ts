@@ -1,11 +1,13 @@
 // Scène three.js de l'avatar : le corps MakeHuman habillé par zones (couleurs par sommet), et les
 // accessoires construits en géométrie simple, placés sur le corps déformé : casquette, visière ou
-// bandeau, queue de cheval, lunettes, bâtons, frontale, flasques du gilet, montre.
+// bandeau, coiffures (queue de cheval, chignon, cheveux longs), lunettes, bâtons, frontale,
+// flasques du gilet, montre. Chaque accessoire est accroché à un os : il suit la pose de course.
 // Commun au web et au téléphone (le rendu passe par expo-gl dans Avatar3D.tsx).
 
 import * as THREE from "three";
 
-import { CHEVEUX, couleurZone, morphoser, poidsCibles, TISSUS, type Corps, type DonneesCorps } from "./corps.ts";
+import { CHEVEUX, couleurZone, morphoser, pivotsMorphoses, poidsCibles, TISSUS, type Corps, type DonneesCorps } from "./corps.ts";
+import { matricesOs, poser, rotationsPose, type Pose } from "./pose.ts";
 
 const DM = 0.1; // MakeHuman travaille en décimètres ; la scène en mètres
 
@@ -48,8 +50,11 @@ function reperes(pos: Float32Array, d: DonneesCorps): Reperes {
 const matiere = (couleur: string, rugosite = 0.7, metal = 0) => new THREE.MeshStandardMaterial({ color: couleur, roughness: rugosite, metalness: metal });
 
 /** Accessoires selon la tenue et l'équipement porté. */
-function accessoires(c: Corps, r: Reperes): THREE.Object3D[] {
-  const objets: THREE.Object3D[] = [];
+type Accroche = "tete" | "poitrine" | "mainG" | "mainD" | "avantbrasG";
+function accessoires(c: Corps, r: Reperes): [Accroche, THREE.Object3D][] {
+  const liste: [Accroche, THREE.Object3D][] = [];
+  const sur = (os: Accroche) => ({ push: (...o: THREE.Object3D[]) => o.forEach((x) => liste.push([os, x])) });
+  const objets = sur("tete");
   const tissuTete = TISSUS[c.couleurTete]?.[0] ?? TISSUS[4][0];
   const R = r.rayonTete;
   if (c.tete === "casquette") {
@@ -72,12 +77,28 @@ function accessoires(c: Corps, r: Reperes): THREE.Object3D[] {
     bande.position.set(r.tete.x, r.hautTete - R * 0.55, r.tete.z);
     objets.push(bande);
   }
+  const couleurCheveux = CHEVEUX[c.cheveux]?.[0] ?? CHEVEUX[1][0];
   if (c.coupe === "attaches") {
-    const couleur = CHEVEUX[c.cheveux]?.[0] ?? CHEVEUX[1][0];
-    const queue = new THREE.Mesh(new THREE.CapsuleGeometry(R * 0.2, R * 0.95, 6, 14), matiere(couleur, 0.6));
+    const queue = new THREE.Mesh(new THREE.CapsuleGeometry(R * 0.2, R * 0.95, 6, 14), matiere(couleurCheveux, 0.6));
     queue.position.set(r.tete.x, r.tete.y - R * 0.15, r.tete.z - R * 1.05);
     queue.rotation.x = 0.35;
-    objets.push(queue);
+    const elastique = new THREE.Mesh(new THREE.TorusGeometry(R * 0.2, R * 0.05, 8, 20), matiere(TISSUS[0][0], 0.6));
+    elastique.position.set(r.tete.x, r.tete.y + R * 0.38, r.tete.z - R * 0.88);
+    elastique.rotation.x = Math.PI / 2 + 0.35;
+    objets.push(queue, elastique);
+  } else if (c.coupe === "chignon") {
+    const chignon = new THREE.Mesh(new THREE.SphereGeometry(R * 0.36, 20, 14), matiere(couleurCheveux, 0.65));
+    chignon.position.set(r.tete.x, r.tete.y + R * 0.45, r.tete.z - R * 1.02);
+    objets.push(chignon);
+  } else if (c.coupe === "longs") {
+    // cheveux longs : une nappe derrière la tête qui descend jusqu'aux épaules
+    // (three.js : l'angle phi part de -x et tourne vers +z ; l'arrière de la tête est autour de phi = 1,5 π)
+    const nappe = new THREE.Mesh(new THREE.SphereGeometry(R * 1.04, 28, 18, Math.PI * 0.92, Math.PI * 1.16, 0.08 * Math.PI, 0.6 * Math.PI),
+                                 matiere(couleurCheveux, 0.65));
+    nappe.material.side = THREE.DoubleSide;
+    nappe.scale.set(1.02, 1.75, 0.95);
+    nappe.position.set(r.tete.x, r.tete.y - R * 0.55, r.tete.z - R * 0.12);
+    objets.push(nappe);
   }
   if (c.lunettes) {
     const verreMat = new THREE.MeshStandardMaterial({ color: "#20262B", roughness: 0.08, metalness: 0.85, envMapIntensity: 1 });
@@ -106,7 +127,7 @@ function accessoires(c: Corps, r: Reperes): THREE.Object3D[] {
     objets.push(lampe, verre);
   }
   if (c.equipement.includes("batons-cretal")) {
-    for (const main of [r.mainG, r.mainD]) {
+    for (const [main, os] of [[r.mainG, "mainG"], [r.mainD, "mainD"]] as const) {
       const bas = new THREE.Vector3(main.x * 1.25, r.sol, main.z + 0.12);
       const haut = main.clone().add(new THREE.Vector3(0, 0.05, 0));
       const long = haut.distanceTo(bas);
@@ -117,26 +138,30 @@ function accessoires(c: Corps, r: Reperes): THREE.Object3D[] {
       const poignee = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.014, 0.12, 12), matiere("#E8572A", 0.6));
       poignee.position.copy(haut);
       poignee.quaternion.copy(baton.quaternion);
-      objets.push(baton, poignee);
+      sur(os).push(baton, poignee);
     }
   }
   if (c.equipement.includes("gilet-givre") || c.equipement.includes("gilet-everest")) {
     for (const cote of [-1, 1]) {
       const flasque = new THREE.Mesh(new THREE.CapsuleGeometry(0.028, 0.08, 6, 12), new THREE.MeshStandardMaterial({ color: "#CFE3EE", roughness: 0.2, transparent: true, opacity: 0.85 }));
       flasque.position.set(cote * 0.085, r.tete.y - r.rayonTete * 3.2, r.tete.z + r.rayonTete * 1.05);
-      objets.push(flasque);
+      sur("poitrine").push(flasque);
     }
   }
   if (c.equipement.includes("montre-cadran")) {
     const montre = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.009, 8, 20), matiere("#111", 0.4, 0.3));
     montre.position.copy(r.poignetG);
     montre.lookAt(r.mainG);
-    objets.push(montre);
+    sur("avantbrasG").push(montre);
   }
-  return objets;
+  return liste;
 }
 
-export type Rendu = { scene: THREE.Scene; camera: THREE.PerspectiveCamera; pivot: THREE.Group; regler: (c: Corps) => void; hauteur: () => number };
+export type Rendu = {
+  scene: THREE.Scene; camera: THREE.PerspectiveCamera; pivot: THREE.Group; regler: (c: Corps) => void; hauteur: () => number;
+  /** pose (debout ou en course) ; `phase` : instant du cycle de course, en radians */
+  poser: (pose: Pose, phase?: number) => void;
+};
 
 /** Construit la scène pour un coureur ; `regler` la met à jour quand un réglage change. */
 export function creerScene(d: DonneesCorps, c0: Corps, aspect: number): Rendu {
@@ -153,7 +178,8 @@ export function creerScene(d: DonneesCorps, c0: Corps, aspect: number): Rendu {
   const pivot = new THREE.Group();
   scene.add(pivot);
   const geo = new THREE.BufferGeometry();
-  const positions = new Float32Array(d.positions.length);
+  const repos = new Float32Array(d.positions.length); // corps réglé, au repos (bras en « A »)
+  const positions = new Float32Array(d.positions.length); // corps posé, affiché
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(d.positions.length), 3));
   geo.setIndex(new THREE.BufferAttribute(d.indices, 1));
@@ -165,18 +191,54 @@ export function creerScene(d: DonneesCorps, c0: Corps, aspect: number): Rendu {
   ombre.rotation.x = -Math.PI / 2;
   scene.add(ombre);
 
-  let objets: THREE.Object3D[] = [];
+  // un groupe par os qui porte des accessoires ; sa matrice suit l'os (repère en mètres)
+  const accroches = new Map<string, THREE.Group>();
+  for (const nom of ["tete", "poitrine", "mainG", "mainD", "avantbrasG"]) {
+    const g = new THREE.Group();
+    g.matrixAutoUpdate = false;
+    pivot.add(g);
+    accroches.set(nom, g);
+  }
+  const echelle = new THREE.Matrix4().makeScale(DM, DM, DM);
+  const echelleInv = new THREE.Matrix4().makeScale(1 / DM, 1 / DM, 1 / DM);
+  let pivotsOs: Float32Array = new Float32Array(d.pivots);
+  let poseActuelle: Pose = "debout";
+  let phaseActuelle = Math.PI / 2;
+
   let hauteur = 1.7;
+  const poserCorps = (pose: Pose, phase = phaseActuelle) => {
+    poseActuelle = pose;
+    phaseActuelle = phase;
+    if (!d.os.length) { positions.set(repos); return; }
+    const m = matricesOs(d, pivotsOs, rotationsPose(d, pivotsOs, pose, phase));
+    const bas = poser(d, repos, m, positions);
+    geo.attributes.position.needsUpdate = true;
+    geo.computeVertexNormals();
+    for (const [nom, g] of accroches) {
+      const i = d.os.findIndex((o) => o.nom === nom);
+      if (i >= 0) g.matrix.copy(echelle).multiply(m[i]).multiply(echelleInv);
+    }
+    pivot.position.y = -bas * DM; // les pieds touchent le sol à chaque instant de la foulée
+  };
+
   const regler = (c: Corps) => {
-    morphoser(d, poidsCibles(c, d.nomsCibles), positions);
+    const poids = poidsCibles(c, d.nomsCibles);
+    morphoser(d, poids, repos);
+    if (d.os.length) pivotsOs = pivotsMorphoses(d, poids);
+    // épaisseur de la chaussure et volume de la barbe : le maillage est « gonflé » le long de ses normales
+    positions.set(repos);
     geo.attributes.position.needsUpdate = true;
     geo.computeVertexNormals();
     const pied = d.zones.indexOf("pied");
+    const barbe = d.zones.indexOf("barbe");
+    const epaisseurBarbe = c.barbe === "fournie" ? 0.05 : c.barbe === "courte" ? 0.015 : 0;
     const normales = geo.attributes.normal.array as Float32Array;
     for (let i = 0; i < d.sommets; i++) {
-      if (d.zoneDe[i] !== pied) continue;
-      for (let k = 0; k < 3; k++) positions[i * 3 + k] += normales[i * 3 + k] * 0.11; // ≈ 1 cm d'épaisseur de chaussure
+      const e = d.zoneDe[i] === pied ? 0.11 : d.zoneDe[i] === barbe ? epaisseurBarbe : 0; // 1 cm de chaussure
+      if (!e) continue;
+      for (let k = 0; k < 3; k++) repos[i * 3 + k] += normales[i * 3 + k] * e;
     }
+    positions.set(repos);
     geo.computeVertexNormals();
     // couleurs par zone (semelle plus sombre : les sommets les plus bas du pied)
     const couleurs = geo.attributes.color.array as Float32Array;
@@ -189,17 +251,20 @@ export function creerScene(d: DonneesCorps, c0: Corps, aspect: number): Rendu {
       couleurs[i * 3] = col.r; couleurs[i * 3 + 1] = col.g; couleurs[i * 3 + 2] = col.b;
     }
     geo.attributes.color.needsUpdate = true;
-    const r = reperes(positions, d);
-    for (const o of objets) { pivot.remove(o); (o as THREE.Mesh).geometry?.dispose(); }
-    objets = accessoires(c, r);
-    objets.forEach((o) => pivot.add(o));
+    const r = reperes(repos, d);
+    for (const g of accroches.values()) {
+      for (const o of [...g.children]) { g.remove(o); (o as THREE.Mesh).geometry?.dispose(); }
+    }
+    for (const [os, o] of accessoires(c, r)) accroches.get(os)!.add(o);
     // le coureur posé au sol, centré ; la caméra cadre tout le corps
     pivot.position.y = -r.sol;
+    poserCorps(poseActuelle);
     ombre.position.y = 0.001;
     hauteur = r.hauteur;
-    camera.position.set(0, hauteur * 0.56, hauteur * 2.35);
-    camera.lookAt(0, hauteur * 0.5, 0);
+    // champ vertical de 26° : à 2,75 hauteurs de distance, on voit 1,27 hauteur (marge pour la tête et le sol)
+    camera.position.set(0, hauteur * 0.58, hauteur * 2.75);
+    camera.lookAt(0, hauteur * 0.52, 0);
   };
   regler(c0);
-  return { scene, camera, pivot, regler, hauteur: () => hauteur };
+  return { scene, camera, pivot, regler, hauteur: () => hauteur, poser: poserCorps };
 }

@@ -14,7 +14,8 @@
 
 export type Sexe = "femme" | "homme";
 export type Morpho = "fine" | "athletique" | "puissante";
-export type Coupe = "courts" | "attaches" | "rases";
+export type Coupe = "courts" | "attaches" | "chignon" | "longs" | "rases";
+export type Barbe = "aucune" | "courte" | "fournie";
 export type Haut = "tshirt" | "debardeur" | "brassiere";
 export type Bas = "short" | "cuissard" | "collant";
 export type Tete = "casquette" | "visiere" | "bandeau" | "rien";
@@ -22,6 +23,8 @@ export type Tete = "casquette" | "visiere" | "bandeau" | "rien";
 export type Corps = {
   sexe: Sexe; tailleCm: number; poidsKg: number; morpho: Morpho; age: number;
   peau: number; coupe: Coupe; cheveux: number; yeux: number;
+  /** barbe (absente des anciens profils : « aucune ») */
+  barbe?: Barbe;
   profil: "trail" | "route";
   haut: Haut; bas: Bas; couleurHaut: number; couleurBas: number; couleurChaussures: number;
   tete: Tete; couleurTete: number; lunettes: boolean;
@@ -90,6 +93,8 @@ export function poidsCibles(c: Corps, noms: string[]): number[] {
 export type DonneesCorps = {
   sommets: number; triangles: number; zones: string[]; nomsCibles: string[];
   positions: Float32Array; indices: Uint16Array; zoneDe: Uint8Array; cibles: { donnees: Int8Array; echelle: number }[];
+  /** squelette (version 2) : os, os et poids de chaque sommet (4 par sommet, total 255), pivots */
+  os: { nom: string; parent: number }[]; osDe: Uint8Array; poidsOs: Uint8Array; pivots: Float32Array; pivotsCibles: Float32Array[];
 };
 
 /** Lit le fichier corps.bin (format décrit dans scripts/avatar_corps.py). */
@@ -98,6 +103,7 @@ export function lireCorps(tampon: ArrayBuffer): DonneesCorps {
   const l = vue.getUint32(0, true);
   const entete = JSON.parse(new TextDecoder().decode(new Uint8Array(tampon, 4, l))) as {
     sommets: number; triangles: number; zones: string[]; cibles: { nom: string; echelle: number }[];
+    os?: { nom: string; parent: string | null }[];
   };
   let o = 4 + l;
   const aligner = () => { o += (4 - (o % 4)) % 4; };
@@ -111,7 +117,16 @@ export function lireCorps(tampon: ArrayBuffer): DonneesCorps {
     const donnees = new Int8Array(tampon.slice(o, o + n * 3)); o += n * 3;
     return { donnees, echelle: c.echelle };
   });
-  return { sommets: n, triangles: entete.triangles, zones: entete.zones, nomsCibles: entete.cibles.map((c) => c.nom), positions, indices, zoneDe, cibles };
+  const noms = (entete.os ?? []).map((o) => o.nom);
+  const os = (entete.os ?? []).map((o) => ({ nom: o.nom, parent: o.parent ? noms.indexOf(o.parent) : -1 }));
+  const nb = os.length;
+  aligner();
+  const osDe = new Uint8Array(tampon.slice(o, o + n * 4)); o += n * 4; aligner();
+  const poidsOs = new Uint8Array(tampon.slice(o, o + n * 4)); o += n * 4; aligner();
+  const pivots = new Float32Array(tampon.slice(o, o + nb * 12)); o += nb * 12;
+  const pivotsCibles = cibles.map(() => { const p = new Float32Array(tampon.slice(o, o + nb * 12)); o += nb * 12; return p; });
+  return { sommets: n, triangles: entete.triangles, zones: entete.zones, nomsCibles: entete.cibles.map((c) => c.nom), positions, indices, zoneDe, cibles,
+           os, osDe, poidsOs, pivots, pivotsCibles };
 }
 
 /** Sommets du corps réglé : base + somme pondérée des cibles. */
@@ -126,6 +141,15 @@ export function morphoser(d: DonneesCorps, poids: number[], sortie = new Float32
   return sortie;
 }
 
+/** Pivots des os du corps réglé (même mélange que les sommets). */
+export function pivotsMorphoses(d: DonneesCorps, poids: number[]): Float32Array {
+  const sortie = new Float32Array(d.pivots);
+  d.pivotsCibles.forEach((pc, k) => {
+    if (!poids[k]) return;
+    for (let i = 0; i < pc.length; i++) sortie[i] += pc[i] * poids[k];
+  });
+  return sortie;
+}
 /**
  * Couleur de chaque zone selon la tenue : la peau là où le corps est nu, le tissu là où il est
  * habillé (t-shirt jusqu'au milieu du bras, short jusqu'à mi-cuisse, cuissard jusqu'au genou,
@@ -149,6 +173,7 @@ export function couleurZone(zone: string, c: Corps): string {
     case "oeil_blanc": return "#F3F0EA";
     case "iris": return YEUX[c.yeux]?.[0] ?? YEUX[0][0];
     case "pupille": return "#0E0B09";
+    case "barbe": return c.barbe === "fournie" ? CHEVEUX[c.cheveux][0] : c.barbe === "courte" ? melange(peau, CHEVEUX[c.cheveux][0], 0.55) : peau;
     default: return peau;
   }
 }

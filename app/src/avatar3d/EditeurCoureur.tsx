@@ -12,8 +12,9 @@ import { C, OMBRE, S } from "../theme.ts";
 import { Avatar3D } from "./Avatar3D.tsx";
 import {
   CHEVEUX, corpsPour, imc, MORPHOS, PEAUX, resumeCorps, TISSUS, YEUX,
-  type Bas, type Corps, type Coupe, type Haut, type Tete,
+  type Barbe, type Bas, type Corps, type Coupe, type Haut, type Tete,
 } from "./corps.ts";
+import type { Pose } from "./pose.ts";
 
 /** Objets visibles sur le coureur (les autres restent dans l'inventaire). */
 const VISIBLES = ["batons-cretal", "frontale-lumen", "gilet-givre", "gilet-everest", "montre-cadran"];
@@ -52,12 +53,34 @@ function Pastilles({ etiquette, couleurs, valeur, onChange }: {
   );
 }
 
+/** Choix en pastilles qui passent à la ligne (pour les listes trop longues pour des onglets). */
+function Choix<T extends string>({ etiquette, options, valeur, onChange }: { etiquette: string; options: [T, string][]; valeur: T; onChange: (v: T) => void }) {
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={[S.fort, { fontWeight: "600" }]}>{etiquette}</Text>
+      <View accessibilityRole="radiogroup" accessibilityLabel={etiquette} style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {options.map(([v, nom]) => {
+          const actif = v === valeur;
+          return (
+            <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="radio" aria-checked={actif} accessibilityLabel={`${etiquette} : ${nom}`}
+                       style={{ minHeight: 44, paddingHorizontal: 16, borderRadius: 22, justifyContent: "center", borderWidth: 2,
+                                borderColor: actif ? C.montee : C.sable, backgroundColor: actif ? C.monteeClair : C.blanc }}>
+              <Text style={{ fontSize: 15, fontWeight: actif ? "800" : "600", color: C.encre }}>{nom}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, action, onValider, onAnnuler }: {
   prenomInitial: string; corpsInitial: Corps; achats: string[]; titre: string; action: string;
   onValider: (prenom: string, corps: Corps) => void; onAnnuler: () => void;
 }) {
   const [prenom, setPrenom] = useState(prenomInitial);
   const [c, setC] = useState<Corps>(corpsInitial);
+  const [pose, setPose] = useState<Pose>("course");
   const maj = (p: Partial<Corps>) => setC({ ...c, ...p });
   const { width } = useWindowDimensions();
   const large = width >= 900;
@@ -65,9 +88,13 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
 
   const apercu = (
     <View style={{ backgroundColor: C.sable, borderRadius: 28, overflow: "hidden", ...OMBRE }}>
-      <Avatar3D corps={c} hauteur={large ? 620 : 380} />
+      <Avatar3D corps={c} hauteur={large ? 620 : 380} pose={pose} />
       <View style={{ position: "absolute", left: 16, bottom: 14, backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 6 }}>
         <Text style={{ fontWeight: "800", color: C.encre }}>{resumeCorps(c)}</Text>
+      </View>
+      {/* en course pour voir la tenue en mouvement ; debout pour bien voir la silhouette */}
+      <View style={{ position: "absolute", right: 12, bottom: 10, width: 200 }}>
+        <Segments options={[["course", "En course"], ["debout", "Debout"]] as [Pose, string][]} valeur={pose} onChange={setPose} />
       </View>
     </View>
   );
@@ -105,7 +132,10 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
         <Pastilles etiquette="Peau" couleurs={PEAUX} valeur={c.peau} onChange={(peau) => maj({ peau })} />
         <Pastilles etiquette="Yeux" couleurs={YEUX} valeur={c.yeux} onChange={(yeux) => maj({ yeux })} />
         <Pastilles etiquette="Cheveux" couleurs={CHEVEUX} valeur={c.cheveux} onChange={(cheveux) => maj({ cheveux })} />
-        <Segments options={[["courts", "Courts"], ["attaches", "Attachés"], ["rases", "Rasés"]] as [Coupe, string][]} valeur={c.coupe} onChange={(coupe) => maj({ coupe })} />
+        <Choix etiquette="Coiffure" options={[["courts", "Courts"], ["attaches", "Queue de cheval"], ["chignon", "Chignon"], ["longs", "Longs détachés"], ["rases", "Rasés"]] as [Coupe, string][]}
+               valeur={c.coupe} onChange={(coupe) => maj({ coupe })} />
+        <Choix etiquette="Barbe" options={[["aucune", "Sans"], ["courte", "Courte"], ["fournie", "Fournie"]] as [Barbe, string][]}
+               valeur={c.barbe ?? "aucune"} onChange={(barbe) => maj({ barbe })} />
       </Bloc>
 
       <Bloc titre="Ta tenue">

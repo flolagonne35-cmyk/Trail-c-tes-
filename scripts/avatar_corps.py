@@ -16,7 +16,9 @@ morceaux) à partir de la taille en cm, du poids en kg et de la morphologie choi
 
 Format : 4 octets (longueur L de l'en-tête), L octets d'en-tête JSON, puis, alignés sur 4 octets,
 positions Float32 (n×3), triangles Uint16 (t×3), zones Uint8 (n), puis chaque cible Int8 (n×3),
-à multiplier par son « echelle ».
+à multiplier par son « echelle » ; puis le squelette (version 2) : os de chaque sommet Uint8 (n×4),
+poids Uint8 (n×4, total 255), pivots des os Float32 (os×3), décalage des pivots par cible Float32
+(cibles×os×3). Le squelette et ses poids viennent aussi de MakeHuman (rigs/default.*, CC0).
 
     python scripts/avatar_corps.py --data <makehuman/data> --sortie app/public/avatar/corps.bin
 """
@@ -36,7 +38,7 @@ ORIGINES = ("african", "asian", "caucasian")
 
 # zones (même liste dans app/src/avatar3d/zones.ts)
 ZONES = ["visage", "crane", "cou", "torse_haut", "torse_bas", "hanches", "cuisse_haut", "cuisse_bas", "mollet_haut",
-         "mollet_bas", "pied", "bras_haut", "bras_bas", "avant_bras", "main", "oeil_blanc", "iris", "pupille"]
+         "mollet_bas", "pied", "bras_haut", "bras_bas", "avant_bras", "main", "oeil_blanc", "iris", "pupille", "barbe"]
 Z = {nom: i for i, nom in enumerate(ZONES)}
 
 
@@ -82,6 +84,16 @@ def distance_segment(p, a, b) -> tuple[float, float]:
     return math.dist(p, q), t
 
 
+def est_barbe(p, oeil) -> bool:
+    """Bas du visage où pousse la barbe : sous le nez (moustache comprise), sans les lèvres, plus les
+    favoris devant les oreilles. Repères pris sur le maillage de base (bouche ≈ 0,7 dm sous les yeux)."""
+    x, y, z = abs(p[0]), p[1], p[2]
+    sous_nez = y < oeil[1] - 0.36
+    levres = x < 0.24 and oeil[1] - 0.9 < y < oeil[1] - 0.5 and z > oeil[2] + 0.12
+    favoris = y < oeil[1] + 0.05 and x > 0.58 and oeil[2] - 0.75 < z < oeil[2] - 0.2
+    return (sous_nez and not levres) or favoris
+
+
 def zones(sommets, faces, ids: list[int]) -> list[int]:
     """Zone de chaque sommet retenu : segment osseux le plus proche, puis position le long du segment."""
     j = lambda g: centre(sommets, faces, g)  # noqa: E731
@@ -116,8 +128,13 @@ def zones(sommets, faces, ids: list[int]) -> list[int]:
         y = p[1]
         if meilleur == "tete" or y > cou[1] + 0.35:
             # cuir chevelu : haut du crâne et arrière de la tête, au-dessus de la nuque
-            crane = y > oeil_g[1] + 0.55 or (p[2] < tete[2] - 0.15 and y > oeil_g[1] - 0.9)
-            res.append(Z["crane"] if crane else Z["visage"] if y > cou[1] + 0.35 else Z["cou"])
+            # cuir chevelu : dessus, arrière, et côtés au-dessus des oreilles (tempes)
+            crane = (y > oeil_g[1] + 0.55 or (p[2] < tete[2] - 0.15 and y > oeil_g[1] - 0.9)
+                     or (abs(p[0]) > 0.55 and y > oeil_g[1] + 0.1 and p[2] < oeil_g[2] - 0.3))
+            zone = Z["crane"] if crane else Z["visage"] if y > cou[1] + 0.35 else Z["cou"]
+            if zone == Z["visage"] and est_barbe(p, oeil_g):
+                zone = Z["barbe"]
+            res.append(zone)
         elif meilleur == "tronc":
             taille = bassin[1] + 0.25 * (cou[1] - bassin[1])  # hauteur de la ceinture
             aisselle = bassin[1] + 0.72 * (cou[1] - bassin[1])
@@ -133,6 +150,57 @@ def zones(sommets, faces, ids: list[int]) -> list[int]:
         else:
             res.append(Z["pied"])
     return res
+
+
+# Squelette simplifié pour la pose de course : 19 os, chacun regroupant des os de MakeHuman
+# (rigs/default.mhskel, CC0). (nom, parent, os MakeHuman dont la tête sert de pivot, os regroupés)
+OS = [("bassin", None, "spine05", ["root", "spine05", "pelvis.L", "pelvis.R"]),
+      ("dos", "bassin", "spine04", ["spine04", "spine03", "spine02"]),
+      ("poitrine", "dos", "spine01", ["spine01", "breast.L", "breast.R", "clavicle.L", "clavicle.R"]),
+      ("cou", "poitrine", "neck01", ["neck01", "neck02", "neck03"]),
+      ("tete", "cou", "head", ["head"])]
+for _c, _C in (("G", "L"), ("D", "R")):
+    OS += [(f"epaule{_c}", "poitrine", f"shoulder01.{_C}", [f"shoulder01.{_C}"]),
+           (f"bras{_c}", f"epaule{_c}", f"upperarm01.{_C}", [f"upperarm01.{_C}", f"upperarm02.{_C}"]),
+           (f"avantbras{_c}", f"bras{_c}", f"lowerarm01.{_C}", [f"lowerarm01.{_C}", f"lowerarm02.{_C}"]),
+           (f"main{_c}", f"avantbras{_c}", f"wrist.{_C}", [f"wrist.{_C}"]),
+           (f"cuisse{_c}", "bassin", f"upperleg01.{_C}", [f"upperleg01.{_C}", f"upperleg02.{_C}"]),
+           (f"jambe{_c}", f"cuisse{_c}", f"lowerleg01.{_C}", [f"lowerleg01.{_C}", f"lowerleg02.{_C}"]),
+           (f"pied{_c}", f"jambe{_c}", f"foot.{_C}", [f"foot.{_C}"])]
+
+
+def squelette(data: Path, nouvel: dict[int, int], n: int):
+    """Os simplifiés : pivots (moyenne des sommets de l'articulation, comme MakeHuman) et, pour chaque
+    sommet gardé, ses 4 os les plus influents (poids sur 255)."""
+    sq = json.loads((data / "rigs/default.mhskel").read_text())
+    poids_mh = json.loads((data / "rigs/default_weights.mhw").read_text())["weights"]
+    direct = {mh: k for k, (_, _, _, groupe) in enumerate(OS) for mh in groupe}
+
+    def os_simple(nom: str) -> int:
+        # doigts, orteils, visage… : on remonte les parents jusqu'à un os gardé
+        while nom not in direct:
+            nom = sq["bones"][nom]["parent"]
+        return direct[nom]
+
+    influences = [dict() for _ in range(n)]
+    for nom, liste in poids_mh.items():
+        k = os_simple(nom)
+        for ancien, w in liste:
+            if ancien in nouvel:
+                d = influences[nouvel[ancien]]
+                d[k] = d.get(k, 0.0) + w
+    indices, poids = bytearray(), bytearray()
+    for d in influences:
+        top = sorted(d.items(), key=lambda kv: -kv[1])[:4] or [(OS.index(next(o for o in OS if o[0] == "tete")), 1.0)]
+        total = sum(w for _, w in top)
+        q = [round(255 * w / total) for _, w in top]
+        q[0] += 255 - sum(q)
+        top += [(0, 0.0)] * (4 - len(top))
+        q += [0] * (4 - len(q))
+        indices += bytes(k for k, _ in top)
+        poids += bytes(q)
+    articulations = [sq["joints"][f"{pivot}____head"] for _, _, pivot, _ in OS]
+    return indices, poids, articulations
 
 
 def construire(data: Path) -> bytes:
@@ -168,6 +236,12 @@ def construire(data: Path) -> bytes:
             cibles.append((f"{g}-{h}height", lire_cible(macro / f"height/{g}-young-averagemuscle-averageweight-{h}height.target")))
 
     n = len(garder)
+    indices_os, poids_os, articulations = squelette(data, nouvel, n)
+    centre_art = lambda pos, ids: [sum(pos(i)[k] for i in ids) / len(ids) for k in range(3)]  # noqa: E731
+    pivots = [c for ids in articulations for c in centre_art(lambda i: sommets[i], ids)]
+    # décalage des pivots par cible : la moyenne des décalages des sommets de l'articulation
+    pivots_cibles = [[c for ids in articulations for c in centre_art(lambda i, cb=cb: cb.get(i, (0.0, 0.0, 0.0)), ids)]
+                     for _, cb in cibles]
     morceaux = [struct.pack(f"<{n * 3}f", *[c for i in garder for c in sommets[i]]),
                 struct.pack(f"<{len(triangles)}H", *triangles),
                 bytes(zones(sommets, faces, garder))]
@@ -177,7 +251,10 @@ def construire(data: Path) -> bytes:
         echelle = max(1e-6, max(abs(x) for v in vals for x in v)) / 127
         morceaux.append(struct.pack(f"<{n * 3}b", *[max(-127, min(127, round(x / echelle))) for v in vals for x in v]))
         infos.append({"nom": nom, "echelle": echelle})
-    entete = json.dumps({"version": 1, "sommets": n, "triangles": len(triangles) // 3, "zones": ZONES, "cibles": infos,
+    morceaux += [bytes(indices_os), bytes(poids_os), struct.pack(f"<{len(pivots)}f", *pivots),
+                 struct.pack(f"<{len(pivots) * len(cibles)}f", *[c for pc in pivots_cibles for c in pc])]
+    entete = json.dumps({"version": 2, "sommets": n, "triangles": len(triangles) // 3, "zones": ZONES, "cibles": infos,
+                         "os": [{"nom": nom, "parent": parent} for nom, parent, _, _ in OS],
                          "source": "MakeHuman (CC0), makehumancommunity/makehuman"}, ensure_ascii=False).encode()
     sortie = bytearray(struct.pack("<I", len(entete)) + entete)
     for m in morceaux:

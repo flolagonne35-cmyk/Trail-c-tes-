@@ -30,3 +30,16 @@ def test_corps_bin_livre():
     assert h["zones"] == ac.ZONES
     assert len(h["cibles"]) == 22
     assert h["sommets"] > 10000 and h["triangles"] > 20000
+
+
+def test_squelette_et_barbe():
+    """Version 2 : squelette simplifié (19 os) et zone de barbe sous le nez, sans les lèvres."""
+    b = (Path(__file__).resolve().parents[1] / "app/public/avatar/corps.bin").read_bytes()
+    (n,) = struct.unpack("<I", b[:4])
+    h = json.loads(b[4:4 + n])
+    assert h["version"] == 2 and len(h["os"]) == len(ac.OS) == 19
+    assert h["os"][0] == {"nom": "bassin", "parent": None}
+    oeil = (0.31, 7.28, 1.25)
+    assert ac.est_barbe((0.0, 6.2, 1.3), oeil)          # menton
+    assert not ac.est_barbe((0.05, 6.6, 1.55), oeil)    # lèvres
+    assert not ac.est_barbe((0.4, 7.6, 1.2), oeil)      # front
