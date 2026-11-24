@@ -36,9 +36,11 @@ export function ObjectifLibre({ onObjectif }: { onObjectif: (c: CourseCible) => 
  * Plan ou jour J sans course choisie : une phrase et un bouton vers « Trouver », rien d'autre
  * (le choix de la course ne se fait qu'à un seul endroit).
  */
-export function SansCourse({ titre, texte, onTrouver, onImporter, onExemple, etatImport }: {
+export function SansCourse({ titre, texte, onTrouver, onImporter, onExemple, etatImport, onCapture }: {
   titre: string; texte: string; onTrouver: () => void;
   onImporter?: () => void; onExemple?: () => void; etatImport?: React.ReactNode;
+  /** capture d'écran du profil de la course, lue par l'IA (quand on n'a pas le GPX) */
+  onCapture?: () => void;
 }) {
   return (
     <View style={{ gap: 24, paddingTop: 20 }}>
@@ -55,6 +57,11 @@ export function SansCourse({ titre, texte, onTrouver, onImporter, onExemple, eta
           <Pressable onPress={onImporter} accessibilityRole="button" style={S.boutonClair}>
             <Text style={S.boutonClairTexte}>J'ai le GPX de ma course</Text>
           </Pressable>
+          {onCapture && (
+            <Pressable onPress={onCapture} accessibilityRole="button" style={S.boutonClair}>
+              <Text style={S.boutonClairTexte}>J'ai une capture d'écran du profil</Text>
+            </Pressable>
+          )}
           {onExemple && (
             <Pressable onPress={onExemple} accessibilityRole="button" hitSlop={8} style={{ alignItems: "center", minHeight: 44, justifyContent: "center" }}>
               <Text style={{ color: C.gris, fontWeight: "700", fontSize: 15 }}>Voir avec un exemple (montée de l'Alpe d'Huez)</Text>

@@ -11,6 +11,9 @@ import { kmLisibles, type Cote, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { tempsPrevu, type Modele } from "../calcul/allure.ts";
 import { analyserGpx } from "../calcul/parcours.ts";
+import { parcoursDepuisCapture, type LectureProfil } from "../calcul/capture.ts";
+import { lireHeure } from "../calcul/jourj.ts";
+import { choisirImage, lireCapture } from "../capture.ts";
 import { passagesCles } from "../calcul/seances.ts";
 import type { CourseCible } from "../calcul/plan.ts";
 import { EnTeteCourse } from "./Plan.tsx";
@@ -26,7 +29,7 @@ export type VueCourse = "jourj" | "parcours" | "passages" | "nutrition" | "prepa
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 46, fontSize: 16,
                 color: C.encre } as const;
 
-export function useImport(onParcours: (p: Parcours) => void) {
+export function useImport(onParcours: (p: Parcours) => void, onCapture?: (l: LectureProfil) => void) {
   const [etat, setEtat] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   async function importer() {
@@ -45,7 +48,29 @@ export function useImport(onParcours: (p: Parcours) => void) {
       setEtat(null);
     }
   }
-  return { etat, erreur, importer };
+  // capture d'écran du profil (site de la course, affiche) quand on n'a pas le GPX : lue par l'IA
+  async function importerCapture() {
+    setErreur(null);
+    try {
+      const img = await choisirImage();
+      if (!img) return;
+      setEtat("Lecture de la capture du profil…");
+      const l = await lireCapture("profil", img.donnees);
+      const p = parcoursDepuisCapture(l);
+      if (!p) {
+        setErreur(`Courbe du profil illisible${l.distance_km ? ` (lu : ${l.distance_km} km${l.dplus_m ? `, ${l.dplus_m} m D+` : ""})` : ""} : essaie une capture plus nette, recadrée sur le graphique avec ses axes.`);
+        return;
+      }
+      onParcours(p);
+      // ravitos et barrières lus sur l'image, posés après le changement de parcours (qui les remet à zéro)
+      if (onCapture) setTimeout(() => onCapture(l), 50);
+    } catch (e) {
+      setErreur(e instanceof Error ? e.message : String(e));
+    } finally {
+      setEtat(null);
+    }
+  }
+  return { etat, erreur, importer, importerCapture };
 }
 
 export function EtatImport({ etat, erreur }: { etat: string | null; erreur: string | null }) {
@@ -174,30 +199,42 @@ function VuePrepa({ parcours, cotes, position, nomDepart, onChoisir }: {
   );
 }
 
-function SansGpx({ texte, onImporter }: { texte: string; onImporter: () => void }) {
+function SansGpx({ texte, onImporter, onCapture }: { texte: string; onImporter: () => void; onCapture: () => void }) {
   return (
     <View style={[S.carte, { gap: 10 }]}>
       <Text style={[S.petit, { fontSize: 14, lineHeight: 20, color: C.encre }]}>{texte}</Text>
       <Pressable onPress={onImporter} accessibilityRole="button" style={S.boutonClair}>
         <Text style={S.boutonClairTexte}>Importer le GPX de la course</Text>
       </Pressable>
+      <Pressable onPress={onCapture} accessibilityRole="button" style={S.boutonClair}>
+        <Text style={S.boutonClairTexte}>Pas de GPX ? Importer une capture du profil</Text>
+      </Pressable>
+      <Text style={S.petit}>
+        Une capture d'écran du profil (site de la course, affiche) : l'IA lit la courbe, la distance, le D+, les ravitos et les barrières
+        horaires. Plus précis avec le GPX ; la capture est envoyée seulement quand tu la choisis, et n'est pas gardée.
+      </Text>
     </View>
   );
 }
 
 export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObjectif, cotes, position, nomDepart, onChoisir,
-                              modele, cible, setCible, onTrouver, vueInitiale, nutrition, ravitos, prefs, reglagesJourJ, setReglagesJourJ }: {
+                              modele, cible, setCible, onTrouver, vueInitiale, nutrition, ravitos, prefs, reglagesJourJ, setReglagesJourJ, setRavitos }: {
   parcours: Parcours | null; onParcours: (p: Parcours | null) => void; onExemple: () => void;
   objectif: string; setObjectif: (v: string) => void;
   cotes: Cote[]; position: Position; nomDepart: string; onChoisir: (c: CoteProche, rang: number) => void;
   modele: Modele | null; cible: CourseCible | null; setCible: (c: CourseCible | null) => void; onTrouver: () => void;
-  vueInitiale?: VueCourse; ravitos: Ravito[]; prefs: Preferences;
+  vueInitiale?: VueCourse; ravitos: Ravito[]; prefs: Preferences; setRavitos?: (r: Ravito[]) => void;
   reglagesJourJ: ReglagesJourJ; setReglagesJourJ: (r: ReglagesJourJ) => void;
   /** Écran nutrition de la course (rendu avec l'en-tête de Ma course). */
   nutrition: (entete: React.ReactNode, onImporter: () => void) => React.ReactNode;
 }) {
   const [vue, setVue] = useState<VueCourse>(vueInitiale ?? "jourj");
-  const { etat, erreur, importer } = useImport((p) => { onParcours(p); });
+  const { etat, erreur, importer, importerCapture } = useImport((p) => { onParcours(p); }, (l) => {
+    if (l.ravitos.length) setRavitos?.(l.ravitos);
+    if (l.barrieres.length) {
+      setReglagesJourJ({ ...reglagesJourJ, barrieres: l.barrieres.map((b) => ({ km: b.km, heureMin: lireHeure(b.heure), nom: `km ${String(b.km).replace(".", ",")}` })) });
+    }
+  });
   const course: CourseCible | null = cible
     ? (parcours ? { ...cible, distance_km: Math.round(parcours.distance_km * 10) / 10, dplus_m: Math.round(parcours.dplus_m) } : cible)
     : parcours ? { nom: parcours.nom, distance_km: Math.round(parcours.distance_km * 10) / 10, dplus_m: Math.round(parcours.dplus_m) } : null;
@@ -226,7 +263,7 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
           </View>
           <Icone nom="fleche" couleur={C.monteeFonce} taille={18} />
         </Pressable>
-        <SansCourse titre="Ta course, le jour J" onTrouver={onTrouver} onImporter={importer} onExemple={onExemple}
+        <SansCourse titre="Ta course, le jour J" onTrouver={onTrouver} onImporter={importer} onExemple={onExemple} onCapture={importerCapture}
                     etatImport={etatImport}
                     texte="Choisis ta course, ou importe son GPX : l'appli prépare ta feuille de course (temps de passage, ravitos, matériel) et ta nutrition." />
       </ScrollView>
@@ -252,7 +289,7 @@ export function EcranCourse({ parcours, onParcours, onExemple, objectif, setObje
       {entete}
 
       {!parcours && (
-        <SansGpx onImporter={importer}
+        <SansGpx onImporter={importer} onCapture={importerCapture}
                  texte={vue === "jourj" ? "La feuille de course (sections, heures de passage, ravitos, barrières horaires) se calcule sur le tracé exact."
                    : vue === "parcours" ? "Le profil découpé (montées, descentes, plats) demande le tracé exact de la course."
                    : vue === "passages" ? "Les temps de passage se calculent sur le tracé exact, pente par pente."

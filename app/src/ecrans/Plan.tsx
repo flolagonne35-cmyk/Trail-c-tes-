@@ -10,13 +10,16 @@ import type { CourseInscrite } from "../calcul/calendrier.ts";
 import { chercherCourses, type CourseCatalogue } from "../calcul/catalogue.ts";
 import {
   allures, allureTexte, faisabilite, genererPlan, JOURS, kmEffort, lireFormat, meilleurVdot, NIVEAUX, RECORDS, semainesAffutage,
-  type CleRecord, type CourseCible, type Questionnaire, type Seance,
+  type CleRecord, type CourseCible, type Questionnaire, type Seance, type Semaine,
 } from "../calcul/plan.ts";
 import { lireTemps, tempsLisible } from "../calcul/allures.ts";
 import { dateValide, joursAvant } from "../calcul/calendrier.ts";
 import { Ajusteur, Icone, nombre, Section, Segments } from "../composants/communs.tsx";
 import { C, S } from "../theme.ts";
 import { AGENDA } from "./Agenda.tsx";
+import { partagerFichier } from "../fichiers.ts";
+import { exporterPdf, pageHtml, tableau } from "../pdf.ts";
+import { Repli } from "./RechercheCotes.tsx";
 
 const champ = { backgroundColor: C.blanc, borderRadius: 12, paddingHorizontal: 14, minHeight: 48, fontSize: 16, color: C.encre } as const;
 
@@ -247,6 +250,53 @@ function heuresMin(min: number) {
   return h ? `${h} h ${String(min % 60).padStart(2, "0")}` : `${min} min`;
 }
 
+/** Comment le plan est construit (retour du 24/11 : « tu te bases par rapport à quoi ? quelle source ? »). */
+const METHODE: [string, string, string][] = [
+  ["1. Ta course fixe la cible", "La distance et le D+ de la course donnent le volume de pointe à atteindre, mesuré en km-effort (km + D+ / 100), selon ton niveau et ton objectif (finir ou performer).",
+   "km-effort de l'ITRA (International Trail Running Association)"],
+  ["2. Tes réponses fixent le départ", "Ton volume actuel, ta plus longue sortie récente, tes séances par semaine et tes jours disponibles : le plan part de là où tu es, pas d'un modèle tout fait.",
+   "principe de progressivité de la charge (ACSM, recommandations sur l'entraînement)"],
+  ["3. On monte de 10 % par semaine au plus", "Volume et sortie longue progressent doucement, avec une semaine allégée (− 30 %) toutes les 4 pour assimiler. Une hausse brutale (plus de 30 % en deux semaines) augmente le risque de blessure.",
+   "Nielsen et al. 2014, Journal of Orthopaedic & Sports Physical Therapy"],
+  ["4. La sortie longue ne dépasse jamais de plus de 10 % la plus longue récente", "Au-delà, le risque de blessure augmente nettement : c'est pour ça que ta plus longue sortie récente compte.",
+   "Schuster Frandsen, Nielsen et al. 2025, British Journal of Sports Medicine (5 200 coureurs)"],
+  ["5. 80 % facile, 20 % intense", "La plupart du temps en endurance facile ; les séances dures (côtes, seuil, VMA) sont dosées et espacées.",
+   "Seiler 2010, International Journal of Sports Physiology and Performance"],
+  ["6. Les allures viennent de tes chronos", "Si tu as donné un record (5 km, 10 km, semi, marathon), tes allures facile, seuil et VMA sont calculées avec la méthode VDOT.",
+   "Daniels, « Daniels' Running Formula » (tables VDOT)"],
+  ["7. Base, spécifique, affûtage", "D'abord l'endurance et la force en côte, puis le terrain de la course (D+, descentes), puis 1 à 3 semaines où le volume baisse de 40 à 60 % en gardant un peu d'intensité.",
+   "Bosquet et al. 2007 (Medicine & Science in Sports & Exercise) ; Wang et al. 2023, méta-analyses sur l'affûtage"],
+  ["8. Renforcement deux fois par semaine", "Deux courtes séances (gainage, squats, mollets) : elles réduisent de près de moitié les blessures de surcharge.",
+   "Lauersen et al. 2014, British Journal of Sports Medicine (méta-analyse)"],
+];
+
+const heuresTexte = (m: number) => `${Math.floor(m / 60) ? `${Math.floor(m / 60)} h ` : ""}${String(Math.round(m % 60)).padStart(2, "0")} min`;
+
+/** Plan en tableau pour Excel (CSV avec séparateur « ; » et accents lisibles par Excel). */
+function exporterPlanCsv(course: CourseCible, plan: Semaine[]) {
+  const lignes = [["Semaine", "Début", "Phase", "Km", "D+ (m)", "Km-effort", "Jour", "Séance", "Détail", "Durée"]];
+  for (const s of plan) {
+    for (const x of s.seances) {
+      lignes.push([String(s.n), s.debut, s.phase + (s.allegee ? " (allégée)" : ""), String(s.km), String(s.dplus_m), String(s.km_effort),
+                   x.jour !== undefined ? JOURS[x.jour] : "", x.titre + (x.seance ? ` : ${x.seance}` : ""), x.detail, heuresTexte(x.minutes)]);
+    }
+    lignes.push([String(s.n), s.debut, s.phase, "", "", "", "", "Renforcement", s.complement, ""]);
+  }
+  const csv = "\uFEFF" + lignes.map((l) => l.map((c) => `"${c.replace(/"/g, '""')}"`).join(";")).join("\r\n");
+  partagerFichier(`plan-${course.nom.replace(/[^\w-]+/g, "-").slice(0, 40)}.csv`, csv, "text/csv");
+}
+
+function exporterPlanPdf(course: CourseCible, q: Questionnaire, plan: Semaine[]) {
+  const corps = `<div class="chiffres"><div>Course<b>${course.distance_km} km · ${course.dplus_m} m D+</b></div>`
+    + `<div>Semaines<b>${plan.length}</b></div><div>Séances / semaine<b>${q.seances}</b></div></div>`
+    + plan.map((s) => `<h2>Semaine ${s.n} · ${s.phase}${s.allegee ? " (allégée)" : ""} · dès le ${new Date(`${s.debut}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} — ${s.km} km, ${s.dplus_m} m D+</h2>`
+      + tableau(["Jour", "Séance", "Détail", "Durée"], s.seances.map((x) => [x.jour !== undefined ? JOURS[x.jour] : "", x.titre + (x.seance ? ` : ${x.seance}` : ""), x.detail, heuresTexte(x.minutes)]))
+      + `<p>💪 ${s.complement}</p>`).join("")
+    + `<h2>Comment ce plan est construit</h2>${tableau(["Règle", "Source"], METHODE.map(([t, , src]) => [t, src]))}`;
+  exporterPdf(pageHtml(`Mon plan : ${course.nom}`, course.date ? `Jour J le ${new Date(`${course.date}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}` : "", corps),
+              "plan.pdf");
+}
+
 export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSeance, onSortie }: {
   course: CourseCible; questionnaire: Questionnaire; allureMinKm: number; onModifier: () => void;
   onSeance: (texte: string) => void; onSortie: (p: PresetSortie) => void;
@@ -260,6 +310,7 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
   const pointe = Math.max(...plan.map((s) => s.km_effort));
   const alerte = useMemo(() => faisabilite(course, questionnaire, plan, allureMinKm), [course, questionnaire, plan, allureMinKm]);
   const longue = Math.max(...plan.flatMap((s) => s.seances.filter((x) => x.type === "longue").map((x) => x.minutes)));
+  const [methodeOuverte, setMethodeOuverte] = useState(false);
   return (
     <View style={{ marginTop: 12, gap: 10 }}>
       <View style={[S.carte, { marginTop: 0, gap: 6 }]}>
@@ -285,7 +336,26 @@ export function VuePlan({ course, questionnaire, allureMinKm, onModifier, onSean
         <Pressable onPress={onModifier} accessibilityRole="button" hitSlop={8}>
           <Text style={{ fontSize: 14, fontWeight: "700", color: C.montee }}>Modifier mes réponses</Text>
         </Pressable>
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
+          <Pressable onPress={() => exporterPlanCsv(course, plan)} accessibilityRole="button" style={[S.boutonClair, { flex: 1, minHeight: 46 }]}>
+            <Text style={S.boutonClairTexte}>Excel</Text>
+          </Pressable>
+          <Pressable onPress={() => exporterPlanPdf(course, questionnaire, plan)} accessibilityRole="button" style={[S.boutonClair, { flex: 1, minHeight: 46 }]}>
+            <Text style={S.boutonClairTexte}>PDF</Text>
+          </Pressable>
+        </View>
       </View>
+      <Repli titre="Comment ce plan est construit" resume="Les règles et les études sur lesquelles il repose"
+             ouvert={methodeOuverte} onBasculer={() => setMethodeOuverte(!methodeOuverte)}>
+        {METHODE.map(([titre, texte, source]) => (
+          <View key={titre} style={{ gap: 2 }}>
+            <Text style={S.fort}>{titre}</Text>
+            <Text style={S.petit}>{texte}</Text>
+            <Text style={[S.petit, { fontStyle: "italic" }]}>Source : {source}</Text>
+          </View>
+        ))}
+        <Text style={S.petit}>Ce plan est un cadre construit sur ces repères, pas un avis médical : en cas de douleur qui dure, de blessure ou de doute, un coach ou un médecin du sport.</Text>
+      </Repli>
       {plan.map((s, i) => {
         const ouverteIci = ouverte === i;
         const fonce = s.phase === "Course";

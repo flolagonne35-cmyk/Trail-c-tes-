@@ -373,7 +373,7 @@ function Contenu() {
                          objectif={objectif} setObjectif={setObjectif}
                          cotes={COTES} position={depart.position} nomDepart={depart.nom} onChoisir={ouvrirCote} modele={modele}
                          cible={monPlan.cible} setCible={(cible) => majPlan({ cible })} onTrouver={() => setModeCourses("trouver")}
-                         ravitos={ravitos} prefs={prefs} reglagesJourJ={reglagesJourJ} setReglagesJourJ={setReglagesJourJ}
+                         ravitos={ravitos} setRavitos={setRavitos} prefs={prefs} reglagesJourJ={reglagesJourJ} setReglagesJourJ={setReglagesJourJ}
                          nutrition={(entete, importer) => (
                            <EcranNutrition entete={entete} parcours={parcours} objectif={objectif} setObjectif={setObjectif}
                                            ravitos={ravitos} setRavitos={setRavitos} prefs={prefs} setPrefs={setPrefs} onPreparer={importer} />
