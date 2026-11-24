@@ -1,5 +1,5 @@
 {
-  "date_utc": "2026-11-24T17:32:33+00:00",
+  "date_utc": "2026-11-24T17:34:33+00:00",
   "statut": "ok",
   "source": "IGN Géoplateforme : BDTOPO_V3:troncon_de_route + ign_rge_alti_wld",
   "parametres": {
@@ -139,17 +139,28 @@
     }
   ],
   "osm": {
-    "statut": "échec",
-    "url": "",
-    "nb_voies": 0,
-    "valeurs_surface": {},
-    "erreurs": [
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a",
-      "https://overpass-api.de/api/interpreter HTTP 502 : # 502 Gateway Timeout\n\nThis Overpass API server is currently at capacity. All query workers are busy\nand the request queue is full.\n\n## What to do\n\nRetry your request using exponential backoff: wait a",
-      "https://overpass.kumi.systems/api/interpreter HTTP 502 : <html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>\r\n<center><h1>502 Bad Gateway</h1></center>\r\n<hr><center>nginx/1.30.7</center>\r\n</body>\r\n</html>\r\n",
-      "https://overpass.kumi.systems/api/interpreter ReadTimeout : HTTPSConnectionPool(host='overpass.kumi.systems', port=443): Read timed out. (read timeout=180)"
-    ],
-    "duree_s": 338.4
+    "statut": "ok",
+    "url": "https://overpass-api.de/api/interpreter",
+    "nb_voies": 14908,
+    "valeurs_surface": {
+      "asphalt": 7016,
+      "—": 4116,
+      "paving_stones": 1019,
+      "concrete": 849,
+      "compacted": 620,
+      "sett": 337,
+      "fine_gravel": 215,
+      "wood": 158,
+      "concrete:plates": 122,
+      "ground": 91,
+      "grass": 65,
+      "dirt": 56,
+      "metal": 53,
+      "gravel": 51,
+      "paved": 38
+    },
+    "erreurs": [],
+    "duree_s": 55.7
   },
   "fond_erreurs": [],
   "wfs": {
@@ -268,7 +279,7 @@
       "id_ban_odonyme_droite": null,
       "id_ban_odonyme_gauche": null
     },
-    "duree_s": 4.0
+    "duree_s": 4.5
   },
   "api": {
     "ressource": "ign_rge_alti_wld",
@@ -279,7 +290,7 @@
     "replis_get": 0,
     "points_demandes": 30824,
     "points_nodata": 0,
-    "duree_s": 22.7,
+    "duree_s": 29.5,
     "codes_http": {
       "200": 7
     },
