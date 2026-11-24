@@ -29,6 +29,8 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
+from courses_ouvertes import prix_dans
+
 RACINE = Path(__file__).resolve().parents[1]
 API_JEU = "https://www.data.gouv.fr/api/1/datasets/datatourisme-la-plateforme-nationale-des-donnees-touristiques/"
 COURSES = RACINE / "app/assets/data/courses.json"
