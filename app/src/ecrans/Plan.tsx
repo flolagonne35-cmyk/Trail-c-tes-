@@ -143,8 +143,8 @@ export function FormulaireQuestionnaire({ initial, course, onValider }: {
         <Text style={S.petit}>{niveau[2]}.</Text>
       </View>
       <Ajusteur etiquette="Séances par semaine" valeur={q.seances} unite="" pas={1} min={2} max={6} onChange={(seances) => maj({ seances })} />
-      <Ajusteur etiquette="Km par semaine aujourd'hui" valeur={q.volume_km} unite="km" pas={5} min={0} max={150} onChange={(volume_km) => maj({ volume_km })} />
-      <Ajusteur etiquette="Plus longue sortie récente" valeur={q.plus_longue_km} unite="km" pas={1} min={0} max={80} onChange={(plus_longue_km) => maj({ plus_longue_km })} />
+      <Ajusteur etiquette="Km par semaine aujourd'hui" valeur={q.volume_km} unite="km" pas={5} min={0} max={400} onChange={(volume_km) => maj({ volume_km })} />
+      <Ajusteur etiquette="Plus longue sortie récente" valeur={q.plus_longue_km} unite="km" pas={1} min={0} max={250} onChange={(plus_longue_km) => maj({ plus_longue_km })} />
       <View style={{ gap: 6 }}>
         <Text style={S.fort}>Ton objectif</Text>
         <Segments options={[["finir", "Finir bien"], ["performance", "Un chrono"]]} valeur={q.objectif}

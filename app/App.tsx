@@ -4,10 +4,11 @@
 // avec leurs sous-onglets toujours visibles en haut ; un écran de détail par côte, et la création du
 // coureur au premier lancement. Pas de menu caché : tout est dans les rubriques (voir docs/refonte.md).
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, Text, useWindowDimensions, View } from "react-native";
+import { BackHandler, Platform, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import parcoursDemo from "./assets/data/parcours_demo.json";
@@ -30,6 +31,7 @@ import { RechercheLieu } from "./src/composants/RechercheLieu.tsx";
 import { EcranAccueil } from "./src/ecrans/Accueil.tsx";
 import { EcranBienvenue } from "./src/ecrans/Bienvenue.tsx";
 import { EcranCotes, FILTRES_DEFAUT, type Localisation, type PointDepart } from "./src/ecrans/Cotes.tsx";
+import { DEPART_INCONNU, estInconnu } from "./src/composants/BarreDepart.tsx";
 import { EcranCourse, type VueCourse } from "./src/ecrans/Course.tsx";
 import { EcranDetail } from "./src/ecrans/Detail.tsx";
 import { EcranEntrainement } from "./src/ecrans/Entrainement.tsx";
@@ -48,13 +50,25 @@ import { EcranSources } from "./src/ecrans/Sources.tsx";
 import { chargerCourses, enregistrerCourses } from "./src/mesCourses.ts";
 import { chargerPlan, enregistrerPlan, type MonPlan } from "./src/monPlan.ts";
 import type { PresetSortie } from "./src/ecrans/Plan.tsx";
-import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
+import { ajouterRecent, basculerFavori, chargerFavoris, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
 import { C, type Rubrique } from "./src/theme.ts";
 import { cotesAutour } from "./src/cotesFrance.ts";
 import { useEnLigne } from "./src/zoneHorsLigne.ts";
 
-const DEPART_DEFAUT: PointDepart = { position: { lat: 48.1113, lon: -1.68 }, nom: "Rennes", detail: "Point de départ par défaut", gps: false };
+const DEPART_DEFAUT: PointDepart = DEPART_INCONNU;
+
+// web : pas de contour bleu du navigateur quand on touche ou clique un élément (retour du 24/11) ;
+// au clavier (touche Tab), un contour aux couleurs de l'appli reste visible pour savoir où l'on est
+if (Platform.OS === "web" && typeof document !== "undefined" && !document.getElementById("trailcotes-focus")) {
+  const style = document.createElement("style");
+  style.id = "trailcotes-focus";
+  style.textContent = "*:focus:not(:focus-visible){outline:none!important}"
+    + "*:focus-visible{outline:2px solid #D9541E!important;outline-offset:2px}"
+    + "input:focus,textarea:focus{outline:none!important}";
+  document.head.appendChild(style);
+}
+const CLE_DEPART = "trailcotes.depart.v1";
 const ALLURE_PLAT_MIN_KM = 5.5;
 const TITRES: Record<Page, string> = {
   accueil: "Aujourd'hui", cotes: "Explorer", courses: "Ma course", monde: "Mon monde",
@@ -86,6 +100,7 @@ function Contenu() {
   const [localisation, setLocalisation] = useState<Localisation>("inactive");
   const [filtres, setFiltres] = useState<Filtres>(FILTRES_DEFAUT);
   const [recents, setRecents] = useState<Lieu[]>([]);
+  const [favoris, setFavoris] = useState<Lieu[]>([]);
   const [detail, setDetail] = useState<{ cote: CoteProche; rang: number } | null>(null);
   const [modeCotes, setModeCotes] = useState<Sens>("montee");
   const [resultatsCotes, setResultatsCotes] = useState(false); // les côtes n'apparaissent qu'après la recherche
@@ -113,6 +128,7 @@ function Contenu() {
       if (!p) setAccueil("bienvenue");
     });
     chargerRecents().then(setRecents);
+    chargerFavoris().then(setFavoris);
     chargerCourses().then(setCoursesEtat);
     chargerPlan().then(setMonPlanEtat);
   }, []);
@@ -140,30 +156,52 @@ function Contenu() {
     const numero = ++demande.current;
     const aJour = () => numero === demande.current;
     setLocalisation("en_cours");
-    // certains navigateurs ne répondent jamais à la demande : on abandonne après 8 s
+    const appliquer = (lat: number, lon: number, precision?: number | null) => {
+      if (!aJour()) return;
+      setDepart({ position: { lat, lon }, nom: "Ma position", detail: precision ? `GPS, à ± ${Math.round(precision)} m` : "GPS", gps: true });
+      setLocalisation("inactive");
+    };
+    // sur le web, on demande directement au navigateur (Safari et Firefox répondent mal au module
+    // d'Expo, d'où « localisation refusée » sans que la question soit posée) ; code 1 = refus
+    if (Platform.OS === "web") {
+      if (typeof navigator === "undefined" || !navigator.geolocation) { setLocalisation("indisponible"); return; }
+      navigator.geolocation.getCurrentPosition(
+        (p) => appliquer(p.coords.latitude, p.coords.longitude, p.coords.accuracy),
+        (e) => { if (aJour()) setLocalisation(dansUnCadre() ? "apercu" : e.code === 1 ? "refusee" : "indisponible"); },
+        { enableHighAccuracy: false, timeout: 12000, maximumAge: 120000 });
+      return;
+    }
+    // certains téléphones ne répondent jamais à la demande : on abandonne après 10 s
     const delai = <T,>(p: Promise<T>) =>
-      Promise.race([p, new Promise<never>((_, non) => setTimeout(() => non(new Error("délai")), 8000))]);
+      Promise.race([p, new Promise<never>((_, non) => setTimeout(() => non(new Error("délai")), 10000))]);
     try {
       const { status } = await delai(Location.requestForegroundPermissionsAsync());
       if (status !== "granted") {
-        if (aJour()) setLocalisation(dansUnCadre() ? "apercu" : "refusee");
+        if (aJour()) setLocalisation("refusee");
         return;
       }
       const p = await delai(Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
-      if (!aJour()) return;
-      setDepart({ position: { lat: p.coords.latitude, lon: p.coords.longitude }, nom: "Ma position",
-                  detail: p.coords.accuracy ? `GPS, à ± ${Math.round(p.coords.accuracy)} m` : "GPS", gps: true });
-      setLocalisation("inactive");
+      appliquer(p.coords.latitude, p.coords.longitude, p.coords.accuracy);
     } catch {
-      if (aJour()) setLocalisation(dansUnCadre() ? "apercu" : "indisponible");
+      if (aJour()) setLocalisation("indisponible");
     }
   }, []);
+
+  // le point de départ choisi est gardé sur le téléphone : à la prochaine ouverture, on repart de là
+  useEffect(() => {
+    AsyncStorage.getItem(CLE_DEPART).then((brut) => {
+      if (brut && demande.current === 0) setDepart(JSON.parse(brut) as PointDepart);
+    }).catch(() => undefined);
+  }, []);
+  useEffect(() => {
+    if (!estInconnu(depart)) AsyncStorage.setItem(CLE_DEPART, JSON.stringify(depart)).catch(() => undefined);
+  }, [depart]);
 
   // première ouverture d'une page qui part d'un lieu : on tente la localisation, sauf si un lieu a déjà été choisi
   const dejaLocalise = useRef(false);
   useEffect(() => {
     const autour = page === "cotes" || (page === "courses" && modeCourses === "trouver");
-    if (autour && !dejaLocalise.current && depart === DEPART_DEFAUT) {
+    if (autour && !dejaLocalise.current && estInconnu(depart)) {
       dejaLocalise.current = true;
       localiser();
     }
@@ -172,7 +210,7 @@ function Contenu() {
   // confirmation brève à chaque nouveau point de départ (GPS ou lieu choisi)
   const [annonce, setAnnonce] = useState<string | null>(null);
   useEffect(() => {
-    if (depart === DEPART_DEFAUT) return;
+    if (estInconnu(depart)) return;
     setAnnonce(depart.gps ? `Position mise à jour${depart.detail.includes("±") ? ` (${depart.detail.replace("GPS, à ", "")})` : ""}`
       : `Départ : ${depart.nom}`);
     const t = setTimeout(() => setAnnonce(null), 2500);
@@ -185,6 +223,48 @@ function Contenu() {
 
 
   useEffect(() => { setRavitos([]); setReglagesJourJ(JOURJ_DEFAUT); }, [parcours]);
+
+  // historique de navigation : « ‹ » en haut, retour du navigateur, retour Android
+  type Instantane = { page: Page; ex: ModeExplorer; co: ModeCourses; mo: ModeMonde; detail: typeof detail; fiche: CourseProche | null; res: boolean };
+  const pile = useRef<Instantane[]>([]);
+  const [, rafraichir] = useState(0);
+  const restauration = useRef(false);
+  const instantane: Instantane = { page, ex: modeExplorer, co: modeCourses, mo: modeMonde, detail, fiche: ficheCourse, res: resultatsCotes };
+  const cleNav = `${page}|${modeExplorer}|${modeCourses}|${modeMonde}|${detail?.cote.id ?? ""}|${ficheCourse?.id ?? ""}|${resultatsCotes}`;
+  const precedent = useRef<{ cle: string; etat: Instantane } | null>(null);
+  useEffect(() => {
+    const avant = precedent.current;
+    precedent.current = { cle: cleNav, etat: instantane };
+    if (!avant || avant.cle === cleNav) return;
+    if (restauration.current) { restauration.current = false; return; }
+    pile.current.push(avant.etat);
+    if (pile.current.length > 60) pile.current.shift();
+    if (Platform.OS === "web" && typeof window !== "undefined") window.history.pushState({ trailcotes: pile.current.length }, "");
+    rafraichir((n) => n + 1);
+  }, [cleNav]); // eslint-disable-line react-hooks/exhaustive-deps
+  const restaurer = useCallback(() => {
+    const e = pile.current.pop();
+    if (!e) return false;
+    restauration.current = true;
+    setPage(e.page); setModeExplorer(e.ex); setModeCourses(e.co); setModeMonde(e.mo);
+    setDetail(e.detail); setFicheCourse(e.fiche); setResultatsCotes(e.res); setRecherche(false);
+    rafraichir((n) => n + 1);
+    return true;
+  }, []);
+  // sur le web, le bouton « ‹ » passe par l'historique du navigateur, pour que les deux restent d'accord
+  const retour = useCallback(() => {
+    if (Platform.OS === "web" && typeof window !== "undefined" && pile.current.length) window.history.back();
+    else restaurer();
+  }, [restaurer]);
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+      const surRetour = () => { restaurer(); };
+      window.addEventListener("popstate", surRetour);
+      return () => window.removeEventListener("popstate", surRetour);
+    }
+    const abo = BackHandler.addEventListener("hardwareBackPress", () => restaurer());
+    return () => abo.remove();
+  }, [restaurer]);
 
   const aller = (d: Destination) => {
     setDetail(null);
@@ -240,12 +320,25 @@ function Contenu() {
 
   const commun = { toutes: COTES, depart, localisation, onLocaliser: localiser, onRecherche: () => setRecherche(true),
                    onLieu: choisirLieu, chargement, allurePlat: ALLURE_PLAT_MIN_KM, onChoisir: ouvrirCote };
-  let ecran;
+  // fiche d'une côte ou d'une course : posée PAR-DESSUS l'écran d'où l'on vient, qui reste en place
+  // (filtres, défilement) pour y revenir tel quel
+  let dessus = null;
   if (detail) {
-    ecran = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} depart={depart.position}
-                         nomDepart={depart.nom} retour={() => setDetail(null)}
-                         passages={mesPassages(profil.activites, detail.cote)} />;
-  } else if (page === "accueil") {
+    dessus = <EcranDetail cote={detail.cote} rang={detail.rang} allurePlat={ALLURE_PLAT_MIN_KM} depart={depart.position}
+                          nomDepart={depart.nom} retour={retour}
+                          passages={mesPassages(profil.activites, detail.cote)} />;
+  } else if (page === "courses" && modeCourses === "trouver" && ficheCourse) {
+    const c = ficheCourse;
+    dessus = <EcranFicheComplete course={c} depart={depart} onRetour={retour}
+                                 deja={courses.some((m) => m.id === `agenda-${c.id}` || (m.nom === c.nom && m.date === c.date))}
+                                 onAjouter={() => setCourses([...courses, {
+                                   id: `agenda-${c.id}`, nom: c.nom, date: c.date, lieu: c.commune, distance_km: c.distances_km.at(-1) ?? 0,
+                                   dplus_m: c.dplus_m ?? 0, dossard_eur: c.prix_eur?.at(-1) ?? 0, logement_eur: 0, lien: c.site,
+                                   statut: "envisagee", objectif: "", temps: "" }])}
+                                 onPreparer={(cible) => { majPlan({ cible, questionnaire: null }); setFicheCourse(null); aller({ page: "courses", mode: "plan" }); }} />;
+  }
+  let ecran;
+  if (page === "accueil") {
     ecran = <EcranAccueil profil={profil} aller={aller} monPlan={monPlan} allurePlat={ALLURE_PLAT_MIN_KM} mesCourses={courses} position={depart.position}
                           onSeance={versSeance} onSortie={versSortie} onMaCourse={versMaCourse} />;
   } else if (page === "cotes" && modeExplorer === "cotes") {
@@ -263,15 +356,6 @@ function Contenu() {
                                filtres={filtres} activites={profil.activites} modele={modele}
                                onAjouterSortie={() => aller({ page: "monde", mode: "coureur" })}
                                demandeSeance={demandeSeance} demandeSortie={demandeSortie} onSecurite={() => aller({ page: "securite" })} />;
-  } else if (page === "courses" && modeCourses === "trouver" && ficheCourse) {
-    const c = ficheCourse;
-    ecran = <EcranFicheComplete course={c} depart={depart} onRetour={() => setFicheCourse(null)}
-                                deja={courses.some((m) => m.id === `agenda-${c.id}` || (m.nom === c.nom && m.date === c.date))}
-                                onAjouter={() => setCourses([...courses, {
-                                  id: `agenda-${c.id}`, nom: c.nom, date: c.date, lieu: c.commune, distance_km: c.distances_km.at(-1) ?? 0,
-                                  dplus_m: c.dplus_m ?? 0, dossard_eur: c.prix_eur?.at(-1) ?? 0, logement_eur: 0, lien: c.site,
-                                  statut: "envisagee", objectif: "", temps: "" }])}
-                                onPreparer={(cible) => { majPlan({ cible, questionnaire: null }); setFicheCourse(null); aller({ page: "courses", mode: "plan" }); }} />;
   } else if (page === "courses" && modeCourses === "trouver") {
     ecran = <EcranTrouverCourse depart={depart} localisation={localisation} onLocaliser={localiser} onRecherche={() => setRecherche(true)}
                                 onOuvrir={setFicheCourse} mesCourses={courses} cible={monPlan.cible}
@@ -314,11 +398,11 @@ function Contenu() {
       <View style={{ flex: 1, width: "100%", maxWidth: large ? 880 : 680, alignSelf: "center" }}>
       <StatusBar style="dark" />
       {!detail && (
-        <BarreHaut titre={TITRES[page]} rubrique={rubrique} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
+        <BarreHaut titre={TITRES[page]} rubrique={rubrique} onRetour={pile.current.length ? retour : undefined} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
                    surProfil={page === "monde" && modeMonde === "aventure"} points={score(profil.activites).valides} />
       )}
       {!detail && page === "cotes" && <SousOnglets rubrique="cotes" options={SOUS_EXPLORER} valeur={modeExplorer} onChange={setModeExplorer} />}
-      {!detail && page === "courses" && !ficheCourse && modeCourses !== "saison" && (
+      {!detail && page === "courses" && modeCourses !== "saison" && (
         <SousOnglets rubrique="courses" options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />
       )}
       {!detail && page === "monde" && <SousOnglets rubrique="monde" options={SOUS_MONDE} valeur={modeMonde} onChange={setModeMonde} />}
@@ -329,7 +413,10 @@ function Contenu() {
           </Text>
         </View>
       )}
-      <View style={{ flex: 1 }}>{ecran}</View>
+      <View style={{ flex: 1 }}>
+        {ecran}
+        {dessus && <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: C.fond }}>{dessus}</View>}
+      </View>
       </View>
       {!large && <Navigation actif={page} basSur={bords.bottom} onChange={(o: Onglet) => aller({ page: o })} />}
       </View>
@@ -342,7 +429,8 @@ function Contenu() {
       )}
       {recherche && (
         <View style={{ position: "absolute", left: 0, right: 0, top: bords.top, bottom: 0 }}>
-          <RechercheLieu pres={depart.position} recents={recents} onLieu={choisirLieu} onLocaliser={localiser}
+          <RechercheLieu pres={depart.position} recents={recents} favoris={favoris} onFavori={(l) => setFavoris((f) => basculerFavori(f, l))}
+                         onLieu={choisirLieu} onLocaliser={localiser}
                          onFermer={() => setRecherche(false)} />
         </View>
       )}

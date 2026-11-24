@@ -1,7 +1,7 @@
 // Briques d'interface communes aux écrans : en-tête, tuiles de chiffres, puces, ajusteur, navigation.
 
-import type { ReactNode } from "react";
-import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import { useState, type ReactNode } from "react";
+import { Pressable, Text, TextInput, useWindowDimensions, View } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 import { C, OMBRE, RUBRIQUES, S, type Rubrique } from "../theme.ts";
@@ -53,10 +53,21 @@ export function Puce({ texte, actif, onPress }: { texte: string; actif?: boolean
   );
 }
 
+/**
+ * Réglage d'un chiffre : − et + pour ajuster, et le chiffre lui-même se touche pour l'écrire au clavier
+ * (retour du 24/11 : « je viens de faire 70 km, je ne vais pas appuyer 60 fois sur + »).
+ */
 export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, onChange }: {
   etiquette: string; valeur: number; unite: string; pas: number; min?: number; max?: number;
   onChange: (v: number) => void;
 }) {
+  const [saisie, setSaisie] = useState<string | null>(null);
+  const valider = () => {
+    if (saisie === null) return;
+    const v = parseFloat(saisie.replace(",", ".").replace(/[^\d.]/g, ""));
+    if (Number.isFinite(v)) onChange(Math.min(max, Math.max(min, v)));
+    setSaisie(null);
+  };
   const bouton = (signe: -1 | 1) => {
     // en butée (ex. 1 personne minimum), le bouton est grisé et désactivé
     const bute = signe < 0 ? valeur <= min : valeur >= max;
@@ -70,13 +81,24 @@ export function Ajusteur({ etiquette, valeur, unite, pas, min = 0, max = 10000, 
     </Pressable>
     );
   };
+  const texte = nombre(valeur, pas < 1 && valeur % 1 ? 2 : 0);
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <Text style={[S.fort, { flex: 1, fontWeight: "600" }]}>{etiquette}</Text>
       {bouton(-1)}
-      <Text style={{ fontSize: 16, fontWeight: "700", color: C.encre, minWidth: 76, textAlign: "center" }}>
-        {nombre(valeur, pas < 1 && valeur % 1 ? 2 : 0)} {unite}
-      </Text>
+      {saisie === null ? (
+        <Pressable onPress={() => setSaisie(String(valeur).replace(".", ","))} accessibilityRole="button"
+                   accessibilityLabel={`${etiquette} : ${texte} ${unite}. Toucher pour écrire un chiffre`}
+                   style={{ minWidth: 84, minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: C.sable, borderStyle: "dashed",
+                            alignItems: "center", justifyContent: "center", paddingHorizontal: 6 }}>
+          <Text style={{ fontSize: 16, fontWeight: "700", color: C.encre }}>{texte} {unite}</Text>
+        </Pressable>
+      ) : (
+        <TextInput value={saisie} onChangeText={setSaisie} onBlur={valider} onSubmitEditing={valider} autoFocus selectTextOnFocus
+                   keyboardType="decimal-pad" returnKeyType="done" accessibilityLabel={`${etiquette} en ${unite || "nombre"}`}
+                   style={{ minWidth: 84, minHeight: 44, borderRadius: 12, borderWidth: 2, borderColor: C.encre, textAlign: "center",
+                            fontSize: 16, fontWeight: "700", color: C.encre, backgroundColor: C.blanc, paddingHorizontal: 6 }} />
+      )}
       {bouton(1)}
     </View>
   );
@@ -282,8 +304,10 @@ function Motif({ rubrique, couleur }: { rubrique: Rubrique; couleur: string }) {
   );
 }
 
-export function BarreHaut({ titre, onProfil, avatar, surProfil, points, rubrique = "autre" }: {
+export function BarreHaut({ titre, onProfil, avatar, surProfil, points, rubrique = "autre", onRetour }: {
   titre: string; onProfil: () => void; avatar: ReactNode; surProfil: boolean; points: number; rubrique?: Rubrique;
+  /** page précédente (historique) : un « ‹ » à gauche du titre */
+  onRetour?: () => void;
 }) {
   const r = RUBRIQUES[rubrique];
   // le motif ne se montre que s'il a la place de ne rien chevaucher (tablette, ordinateur)
@@ -293,7 +317,13 @@ export function BarreHaut({ titre, onProfil, avatar, surProfil, points, rubrique
       {rubrique !== "autre" && width >= 600 && (
         <View pointerEvents="none" style={{ position: "absolute", right: 64, bottom: -6 }}><Motif rubrique={rubrique} couleur={r.accent} /></View>
       )}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24, paddingTop: 14, paddingBottom: r.phrase ? 6 : 14 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: onRetour ? 12 : 24, paddingTop: 14, paddingBottom: r.phrase ? 6 : 14 }}>
+        {onRetour && (
+          <Pressable onPress={onRetour} accessibilityRole="button" accessibilityLabel="Retour à la page précédente" hitSlop={8}
+                     style={{ width: 40, height: 44, alignItems: "center", justifyContent: "center", marginRight: -6 }}>
+            <Text style={{ fontSize: 34, lineHeight: 38, color: C.encre, fontWeight: "300" }}>‹</Text>
+          </Pressable>
+        )}
         <Text style={{ flex: 1, fontSize: 30, fontWeight: "900", color: C.encre, letterSpacing: -0.5 }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
         <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button"
                    accessibilityLabel={`Mon monde, ${points} points`}

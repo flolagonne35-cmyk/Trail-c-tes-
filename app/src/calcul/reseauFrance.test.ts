@@ -28,5 +28,5 @@ test("blocs chargés selon la distance de la boucle", () => {
   assert.deepEqual(blocsAutour(idx, { lat: 48.12, lon: -1.7 }, rayonPourBoucle(10)), ["pres.json"]);
   assert.deepEqual(blocsAutour(idx, { lat: 48.12, lon: -1.7 }, rayonPourBoucle(80)).sort(), ["loin.json", "pres.json"]);
   assert.equal(rayonPourBoucle(2), 3);
-  assert.equal(rayonPourBoucle(200), 20);
+  assert.equal(rayonPourBoucle(200), 30);
 });

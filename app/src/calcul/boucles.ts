@@ -102,7 +102,7 @@ export function composerBoucles(g: Graphe, cotes: Cote[], depart: Position, d: D
       && pied.noeud !== sommet.noeud && arbreDepart.longueur[pied.noeud] + 1 > 0
       && Number.isFinite(arbreDepart.cumul[pied.noeud]) && arbreDepart.longueur[pied.noeud] <= cible / 2)
     .sort((a, b) => arbreDepart.longueur[a.pied.noeud] - arbreDepart.longueur[b.pied.noeud])
-    .slice(0, 14);
+    .slice(0, Math.max(14, d.nbCotes + 4));
   for (const { c, pied, sommet } of triees) {
     candidates.push({ cote: c, pied: pied.noeud, sommet: sommet.noeud, arbre: dijkstra(g, sommet.noeud, prefs, coutMax) });
   }
@@ -120,8 +120,29 @@ export function composerBoucles(g: Graphe, cotes: Cote[], depart: Position, d: D
     const penibilite = (r.cumul - r.longueur) / r.longueur; // part de routes / trafic évités
     essais.push({ seq, r, score: 2 * eDist + eDplus + 0.3 * penibilite });
   };
-  for (const combo of k ? combinaisons(candidates, k) : [[] as Candidate[]]) {
-    for (const ordre of permutations(combo)) noter(ordre);
+  if (k <= 4) {
+    // jusqu'à 4 côtes : tous les choix et tous les ordres (au plus 1 001 × 24 essais)
+    for (const combo of k ? combinaisons(candidates, k) : [[] as Candidate[]]) {
+      for (const ordre of permutations(combo)) noter(ordre);
+    }
+  } else {
+    // au-delà, le nombre d'ordres explose (14 côtes, 8 à enchaîner : 121 millions) : on enchaîne de
+    // proche en proche (la côte suivante est celle dont le pied est le plus près du sommet de la
+    // précédente), en essayant chaque côte comme première
+    for (const premiere of candidates) {
+      const seq: Candidate[] = [premiere];
+      while (seq.length < k) {
+        const derniere = seq[seq.length - 1];
+        let meilleure: Candidate | null = null;
+        for (const c of candidates) {
+          if (seq.includes(c)) continue;
+          if (!meilleure || derniere.arbre.longueur[c.pied] < derniere.arbre.longueur[meilleure.pied]) meilleure = c;
+        }
+        if (!meilleure || !Number.isFinite(derniere.arbre.longueur[meilleure.pied])) break;
+        seq.push(meilleure);
+      }
+      if (seq.length === k) noter(seq);
+    }
   }
   essais.sort((a, b) => a.score - b.score);
 

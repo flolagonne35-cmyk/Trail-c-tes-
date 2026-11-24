@@ -17,7 +17,7 @@ import { zoomAjuste } from "../calcul/tuiles.ts";
 import { Carte, couleurPente, type Marqueur } from "../composants/Carte.tsx";
 import { Icone, nombre, Segments } from "../composants/communs.tsx";
 import { CarteHorsLigne } from "../composants/HorsLigne.tsx";
-import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
+import { BarreDepart, estInconnu, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { pointsEauAutour } from "../pointsEau.ts";
 import { C, S } from "../theme.ts";
 import { FILTRES_DEFAUT, RechercheCotes, titreResultats } from "./RechercheCotes.tsx";
@@ -126,6 +126,17 @@ function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; 
 }
 
 export function HorsZone({ depart, distance, chargement }: { depart: PointDepart; distance: number; chargement: boolean }) {
+  if (estInconnu(depart)) {
+    return (
+      <View style={[S.carte, { gap: 8, padding: 18 }]}>
+        <Text style={[S.h2, { fontSize: 19 }]}>D'où pars-tu ?</Text>
+        <Text style={[S.petit, { fontSize: 14, lineHeight: 20 }]}>
+          Touche la barre ci-dessus pour écrire une ville, un code postal ou une adresse, ou le bouton de position pour te localiser.
+          L'appli retient ce lieu pour la prochaine fois.
+        </Text>
+      </View>
+    );
+  }
   if (chargement) {
     return (
       <View style={[S.carte, { gap: 10, padding: 18, alignItems: "center" }]}>
@@ -172,7 +183,7 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   const position = depart.position;
 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
-  const horsZone = couverture > RAYON_COUVERTURE_M;
+  const horsZone = estInconnu(depart) || couverture > RAYON_COUVERTURE_M;
   // toutes les côtes qui correspondent, puis les « meilleures » selon le tri et le nombre choisis
   const trouvees = useMemo(() => cotesProches(base, position, filtres), [base, position, filtres]);
   const total = trouvees.length;

@@ -2,13 +2,16 @@
 // quel dénivelé, trail ou route, jusqu'où), et les courses qui collent s'affichent, de la plus
 // proche dans le temps à la plus lointaine. Chaque course ouvre sa fiche complète.
 
+import type React from "react";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { coursesAVenir, FILTRES_AGENDA, prochainsMois, type CourseProche } from "../calcul/agenda.ts";
+import { coursesAVenir, FILTRES_AGENDA, type CourseProche } from "../calcul/agenda.ts";
 import { kmLisibles } from "../calcul/cotes.ts";
-import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
-import { nombre } from "../composants/communs.tsx";
+import { BarreDepart, estInconnu, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
+import { ChampDate, ChampNombre, Raccourcis } from "../composants/Champs.tsx";
+import { nombre, Segments } from "../composants/communs.tsx";
+import { useEtatGarde } from "../memoire.ts";
 import type { CourseInscrite } from "../calcul/calendrier.ts";
 import type { CourseCible } from "../calcul/plan.ts";
 import { ObjectifLibre } from "../composants/SansCourse.tsx";
@@ -16,34 +19,29 @@ import { C, S } from "../theme.ts";
 import { AGENDA } from "./Agenda.tsx";
 
 type Choix<T extends string> = [T, string][];
-type Distance = "toutes" | "court" | "moyen" | "long" | "ultra";
-type Denivele = "tous" | "plat" | "vallonne" | "montagne";
 type Type = "toutes" | "trail" | "route";
-type Rayon = "30" | "100" | "300" | "france";
-
-const DISTANCES: Choix<Distance> = [["toutes", "Toutes"], ["court", "Moins de 15 km"], ["moyen", "15 à 30 km"], ["long", "30 à 60 km"], ["ultra", "Plus de 60 km"]];
-const BORNES: Record<Distance, [number, number]> = { toutes: [0, Infinity], court: [0, 15], moyen: [15, 30], long: [30, 60], ultra: [60, Infinity] };
-const DENIVELES: Choix<Denivele> = [["tous", "Tous"], ["plat", "Plat (moins de 300 m)"], ["vallonne", "300 à 1 500 m"], ["montagne", "Plus de 1 500 m"]];
-const DPLUS: Record<Denivele, [number, number]> = { tous: [0, Infinity], plat: [0, 300], vallonne: [300, 1500], montagne: [1500, Infinity] };
 const TYPES: Choix<Type> = [["toutes", "Trail et route"], ["trail", "Trail"], ["route", "Route"]];
-const RAYONS: Choix<Rayon> = [["30", "30 km"], ["100", "100 km"], ["300", "300 km"], ["france", "Toute la France"]];
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const dansMois = (n: number) => { const d = new Date(); d.setMonth(d.getMonth() + n); return iso(d); };
+const RACCOURCIS_QUAND: [string, () => [string, string]][] = [
+  ["Ce mois-ci", () => { const d = new Date(); return [iso(d), iso(new Date(d.getFullYear(), d.getMonth() + 1, 0, 12))]; }],
+  ["3 prochains mois", () => [iso(new Date()), dansMois(3)]],
+  ["6 prochains mois", () => [iso(new Date()), dansMois(6)]],
+  ["Toutes les dates", () => [iso(new Date()), ""]],
+];
+const RACCOURCIS_KM: [string, [number | undefined, number | undefined]][] = [
+  ["Toutes", [undefined, undefined]], ["Moins de 15 km", [undefined, 15]], ["15 à 30 km", [15, 30]], ["30 à 60 km", [30, 60]], ["Plus de 60 km", [60, undefined]]];
+const RACCOURCIS_DPLUS: [string, [number | undefined, number | undefined]][] = [
+  ["Tous", [undefined, undefined]], ["Plat (moins de 300 m)", [undefined, 300]], ["300 à 1 500 m", [300, 1500]], ["Plus de 1 500 m", [1500, undefined]]];
+const RACCOURCIS_RAYON: [string, number | undefined][] = [["30 km", 30], ["100 km", 100], ["300 km", 300], ["Toute la France", undefined]];
 
-function Puces<T extends string>({ titre, options, valeur, onChange }: { titre: string; options: Choix<T>; valeur: T; onChange: (v: T) => void }) {
+/** Une question de la recherche : un titre, des champs, des raccourcis. */
+function Question({ titre, aide, children }: { titre: string; aide?: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: 10 }}>
-      <Text style={S.surtitre}>{titre}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 24 }}>
-        {options.map(([v, nom]) => {
-          const actif = v === valeur;
-          return (
-            <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="radio" aria-checked={actif}
-                       style={{ minHeight: 44, paddingHorizontal: 16, borderRadius: 22, justifyContent: "center",
-                                backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>
-              <Text style={{ fontSize: 15, fontWeight: "700", color: actif ? C.fond : C.encre }}>{nom}</Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <Text style={S.fort}>{titre}</Text>
+      {children}
+      {aide ? <Text style={S.petit}>{aide}</Text> : null}
     </View>
   );
 }
@@ -84,22 +82,26 @@ export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocali
   depart: PointDepart; localisation: Localisation; onRecherche: () => void; onLocaliser: () => void; onOuvrir: (c: CourseProche) => void;
   mesCourses: CourseInscrite[]; cible: CourseCible | null; onMesCourses: () => void; onVoirPlan: () => void; onObjectif: (c: CourseCible) => void;
 }) {
-  const [mois, setMois] = useState("");
-  const [distance, setDistance] = useState<Distance>("toutes");
-  const [denivele, setDenivele] = useState<Denivele>("tous");
-  const [type, setType] = useState<Type>("toutes");
-  const [rayon, setRayon] = useState<Rayon>("100");
+  // filtres gardés quand on ouvre une fiche ou change d'onglet, puis qu'on revient
+  const [du, setDu] = useEtatGarde("trouver.du", iso(new Date()));
+  const [au, setAu] = useEtatGarde("trouver.au", "");
+  const [km, setKm] = useEtatGarde<[number | undefined, number | undefined]>("trouver.km", [undefined, undefined]);
+  const [dplus, setDplus] = useEtatGarde<[number | undefined, number | undefined]>("trouver.dplus", [undefined, undefined]);
+  const [type, setType] = useEtatGarde<Type>("trouver.type", "toutes");
+  const [rayonChoisi, setRayon] = useEtatGarde<number | undefined>("trouver.rayon", 100);
   const [combien, setCombien] = useState(20);
+  // sans point de départ, on cherche dans toute la France
+  const rayon = estInconnu(depart) ? undefined : rayonChoisi;
   const ici = depart.gps ? "toi" : depart.nom.split(",")[0];
 
-  const resultats = useMemo(() => {
-    const [kmMin, kmMax] = BORNES[distance];
-    const [dMin, dMax] = DPLUS[denivele];
-    return coursesAVenir(AGENDA, depart.position, {
-      ...FILTRES_AGENDA, rayonKm: rayon === "france" ? Infinity : Number(rayon), moisMax: 14, type, tri: "date", mois: mois || undefined,
-      kmMin: distance === "toutes" ? undefined : kmMin, kmMax: distance === "toutes" ? undefined : kmMax,
-    }).filter((c) => denivele === "tous" || (c.dplus_m === null ? denivele === "plat" && c.type === "route" : c.dplus_m >= dMin && c.dplus_m < dMax));
-  }, [depart.position, mois, distance, denivele, type, rayon]);
+  const resultats = useMemo(() => coursesAVenir(AGENDA, depart.position, {
+    ...FILTRES_AGENDA, rayonKm: rayon ?? Infinity, moisMax: 36, type, tri: "date", kmMin: km[0], kmMax: km[1],
+  }).filter((c) => c.date >= (du || "0") && (!au || c.date <= au)
+    && (dplus[0] === undefined && dplus[1] === undefined ? true
+      : c.dplus_m === null ? !dplus[0] && c.type === "route"
+      : c.dplus_m >= (dplus[0] ?? 0) && c.dplus_m <= (dplus[1] ?? Infinity))),
+  [depart.position, du, au, km, dplus, type, rayon]);
+  const nomRaccourci = <T,>(liste: [string, T][], v: T) => liste.find(([, x]) => JSON.stringify(x) === JSON.stringify(v))?.[0];
 
   return (
     <ScrollView style={S.ecran} contentContainerStyle={[S.contenu, { gap: 26, paddingTop: 8 }]} keyboardShouldPersistTaps="handled">
@@ -121,11 +123,39 @@ export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocali
         <Text style={{ fontSize: 22, color: C.gris }}>›</Text>
       </Pressable>
       <BarreDepart titre="Autour de" depart={depart} localisation={localisation} onRecherche={onRecherche} onLocaliser={onLocaliser} />
-      <Puces titre="Quand" options={[["", "Tous les mois"], ...prochainsMois().map((m) => [m.cle, m.nom] as [string, string])]} valeur={mois} onChange={setMois} />
-      <Puces titre="Distance" options={DISTANCES} valeur={distance} onChange={setDistance} />
-      <Puces titre="Dénivelé" options={DENIVELES} valeur={denivele} onChange={setDenivele} />
-      <Puces titre="Type" options={TYPES} valeur={type} onChange={setType} />
-      <Puces titre="Jusqu'à" options={RAYONS} valeur={rayon} onChange={setRayon} />
+      <View style={[S.carte, { marginTop: 0, gap: 26 }]}>
+        <Question titre="Quand ?" aide="Les organisateurs publient souvent leur date 3 à 6 mois avant la course.">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={S.petit}>Du</Text><ChampDate valeur={du} onChange={setDu} etiquette="Courses à partir du" />
+            <Text style={S.petit}>au</Text><ChampDate valeur={au} onChange={setAu} etiquette="Courses jusqu'au" min={du} />
+          </View>
+          <Raccourcis options={RACCOURCIS_QUAND} actif={undefined} onChoisir={(f) => { const [d, a] = f(); setDu(d); setAu(a); }} />
+        </Question>
+        <Question titre="Quelle distance ?" aide="Une course qui propose plusieurs formats s'affiche si l'un d'eux est dans cette plage.">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={S.petit}>De</Text><ChampNombre valeur={km[0]} onChange={(v) => setKm([v, km[1]])} unite="km" etiquette="Distance minimale en km" />
+            <Text style={S.petit}>à</Text><ChampNombre valeur={km[1]} onChange={(v) => setKm([km[0], v])} unite="km" etiquette="Distance maximale en km" />
+          </View>
+          <Raccourcis options={RACCOURCIS_KM} actif={nomRaccourci(RACCOURCIS_KM, km)} onChoisir={(v) => setKm(v)} />
+        </Question>
+        <Question titre="Quel dénivelé ?" aide="Le D+ total de la course, quand l'organisateur l'indique (sinon la course n'apparaît que sans filtre de dénivelé).">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={S.petit}>De</Text><ChampNombre valeur={dplus[0]} onChange={(v) => setDplus([v, dplus[1]])} unite="m" etiquette="Dénivelé minimal en mètres" />
+            <Text style={S.petit}>à</Text><ChampNombre valeur={dplus[1]} onChange={(v) => setDplus([dplus[0], v])} unite="m" etiquette="Dénivelé maximal en mètres" />
+          </View>
+          <Raccourcis options={RACCOURCIS_DPLUS} actif={nomRaccourci(RACCOURCIS_DPLUS, dplus)} onChoisir={(v) => setDplus(v)} />
+        </Question>
+        <Question titre="Trail ou route ?">
+          <Segments options={TYPES} valeur={type} onChange={setType} />
+        </Question>
+        <Question titre={`Jusqu'à combien de km de ${estInconnu(depart) ? "chez toi" : ici} ?`}
+                  aide={estInconnu(depart) ? "Choisis ton point de départ ci-dessus pour chercher autour de toi ; en attendant, toute la France." : "À vol d'oiseau. Vide : toute la France."}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <ChampNombre valeur={rayonChoisi} onChange={setRayon} unite="km" etiquette="Rayon de recherche en km" indice="France" />
+          </View>
+          <Raccourcis options={RACCOURCIS_RAYON} actif={nomRaccourci(RACCOURCIS_RAYON, rayonChoisi)} onChoisir={(v) => setRayon(v)} />
+        </Question>
+      </View>
 
       <View style={{ gap: 12 }}>
         <Text style={S.h2} accessibilityRole="header">

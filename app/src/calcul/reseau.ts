@@ -221,7 +221,8 @@ export function blocsAutour(idx: IndexReseau, p: Position, rayonKm: number): str
 }
 
 /** Rayon de réseau à charger pour une boucle de `km` : on ne s'éloigne jamais de plus de la moitié. */
-export const rayonPourBoucle = (km: number) => Math.min(20, Math.max(3, km / 2 + 1));
+// au plus 30 km autour du départ : au-delà, les longues sorties (70 km et plus) restent dans ce rayon
+export const rayonPourBoucle = (km: number) => Math.min(30, Math.max(3, km / 2 + 1));
 
 /**
  * Plusieurs blocs → un seul réseau. Les carrefours en limite de bloc (mêmes coordonnées entières)

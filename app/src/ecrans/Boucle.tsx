@@ -73,7 +73,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
   // une sortie du plan d'entraînement arrive avec sa distance et son relief
   const [objectif, setObjectif] = useState<"duree" | "distance">(preset ? "distance" : "duree");
   const [heures, setHeures] = useState(1.25);
-  const [kmSaisis, setKmSaisis] = useState(preset ? Math.min(40, Math.max(3, preset.km)) : 10);
+  const [kmSaisis, setKmSaisis] = useState(preset ? Math.min(150, Math.max(3, preset.km)) : 10);
   const [relief, setRelief] = useState<Relief>(preset?.relief ?? "plat");
   // allure du plat : la mienne (apprise de mes GPX) sinon l'allure par défaut ; un peu plus lente en vallonné
   const allureMinKm = modele ? (modele.secondesParMetre(0) * 1000) / 60 : allurePlat;
@@ -163,29 +163,30 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
         <Segments options={[["duree", "Une durée"], ["distance", "Une distance"]]} valeur={objectif} onChange={setObjectif} />
         {objectif === "duree" ? (
           <>
-            <Ajusteur etiquette="Durée" valeur={heures} unite="h" pas={0.25} min={0.5} max={6} onChange={setHeures} />
+            <Ajusteur etiquette="Durée" valeur={heures} unite="h" pas={0.25} min={0.5} max={24} onChange={setHeures} />
             <Text style={S.petit}>
               ≈ {nombre(kmDeDuree, 1)} km à {Math.floor(allureMinKm)}:{String(Math.round((allureMinKm % 1) * 60)).padStart(2, "0")} /km
               {modele ? " (ton allure, apprise de tes sorties)" : " (allure par défaut ; ajoute tes sorties GPX pour la tienne)"}.
             </Text>
           </>
         ) : (
-          <Ajusteur etiquette="Distance" valeur={kmSaisis} unite="km" pas={1} min={3} max={40} onChange={setKmSaisis} />
+          <Ajusteur etiquette="Distance" valeur={kmSaisis} unite="km" pas={1} min={3} max={150} onChange={setKmSaisis} />
         )}
+        <Text style={S.petit}>Touche le chiffre pour l'écrire. Jusqu'à 150 km ou 24 h : au-delà de 60 km environ, la boucle reste dans un rayon de 30 km autour du départ (elle passe plusieurs fois par les mêmes secteurs).</Text>
       </Etape>
       <Etape n={3} titre="Quel relief ?">
         <Segments options={RELIEFS} valeur={relief} onChange={setRelief} />
         <Text style={S.petit}>
           {relief === "plat" ? "Le moins de dénivelé possible : sortie d'endurance, allure régulière."
             : relief === "vallonne" ? "Ça monte et ça descend, sans chercher les côtes (environ 15 m de D+ par km si tu ne fixes rien)."
-            : "Enchaîne des côtes mesurées de l'appli."}
+            : "Enchaîne des côtes mesurées de l'appli (jusqu'à 20 ; au-delà de 4, elles s'enchaînent de proche en proche)."}
         </Text>
         {relief === "cotes" && (
-          <Ajusteur etiquette="Côtes à enchaîner" valeur={nbCotes} unite="" pas={1} min={1} max={5} onChange={setNbCotes} />
+          <Ajusteur etiquette="Côtes à enchaîner" valeur={nbCotes} unite="" pas={1} min={1} max={20} onChange={setNbCotes} />
         )}
         {relief !== "plat" && (
           <View style={{ gap: 6 }}>
-            <Ajusteur etiquette="Dénivelé visé (D+)" valeur={dplus} unite="m" pas={50} min={0} max={2000} onChange={setDplus} />
+            <Ajusteur etiquette="Dénivelé visé (D+)" valeur={dplus} unite="m" pas={50} min={0} max={10000} onChange={setDplus} />
             <Text style={S.petit}>
               {dplus ? `Les parcours visent ${dplus} m de D+ (± 15 %). En Bretagne, au-delà de 20 m par km, il faut répéter des côtes.`
                 : "0 = libre : l'appli prend le relief qui vient."}

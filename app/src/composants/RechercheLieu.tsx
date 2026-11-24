@@ -9,6 +9,7 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, Vi
 import { chercherCommunes, indexCommunes, normaliser } from "../calcul/communes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { rechercherLieux, type Lieu } from "../calcul/geoservices.ts";
+import { estFavori } from "../lieux.ts";
 import { C, S } from "../theme.ts";
 import { Icone } from "./communs.tsx";
 
@@ -24,27 +25,37 @@ function Groupe({ titre, children }: { titre: string; children: React.ReactNode 
   );
 }
 
-function Ligne({ icone, titre, detail, onPress, premier }: {
+function Ligne({ icone, titre, detail, onPress, premier, favori, onFavori }: {
   icone: Parameters<typeof Icone>[0]["nom"]; titre: string; detail?: string; onPress: () => void; premier?: boolean;
+  favori?: boolean; onFavori?: () => void;
 }) {
   return (
+    <View style={{ flexDirection: "row", alignItems: "center", borderTopWidth: premier ? 0 : 1, borderTopColor: C.aire }}>
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={detail ? `${titre}, ${detail}` : titre}
-               style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52,
-                                          paddingHorizontal: 14, paddingVertical: 8, borderTopWidth: premier ? 0 : 1,
-                                          borderTopColor: C.aire, backgroundColor: pressed ? C.aire : C.blanc })}>
+               style={({ pressed }) => ({ flex: 1, flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52,
+                                          paddingHorizontal: 14, paddingVertical: 8, backgroundColor: pressed ? C.aire : C.blanc })}>
       <Icone nom={icone} couleur={C.gris} taille={20} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontSize: 15, color: C.encre, fontWeight: "600" }} numberOfLines={1}>{titre}</Text>
         {detail ? <Text style={S.petit} numberOfLines={1}>{detail}</Text> : null}
       </View>
     </Pressable>
+    {onFavori && (
+      <Pressable onPress={onFavori} accessibilityRole="button" hitSlop={6}
+                 accessibilityLabel={favori ? `Retirer ${titre} des favoris` : `Ajouter ${titre} aux favoris`}
+                 style={{ width: 48, minHeight: 52, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 22, color: favori ? "#E0A100" : C.sable }}>{favori ? "★" : "☆"}</Text>
+      </Pressable>
+    )}
+    </View>
   );
 }
 
-export function RechercheLieu({ pres, recents, onLieu, onLocaliser, onFermer }: {
-  pres: Position; recents: Lieu[];
+export function RechercheLieu({ pres, recents, favoris, onFavori, onLieu, onLocaliser, onFermer }: {
+  pres: Position; recents: Lieu[]; favoris: Lieu[]; onFavori: (l: Lieu) => void;
   onLieu: (l: Lieu) => void; onLocaliser: () => void; onFermer: () => void;
 }) {
+  const etoile = (l: Lieu) => ({ favori: estFavori(favoris, l), onFavori: () => onFavori(l) });
   const [q, setQ] = useState("");
   const [adresses, setAdresses] = useState<Lieu[]>([]);
   const [etatAdresses, setEtatAdresses] = useState<"repos" | "en_cours" | "indisponible">("repos");
@@ -114,15 +125,22 @@ export function RechercheLieu({ pres, recents, onLieu, onLocaliser, onFermer }: 
               <Ligne premier icone="position" titre="Ma position" detail="Utiliser le GPS du téléphone"
                      onPress={() => { onLocaliser(); onFermer(); }} />
             </Groupe>
-            {recents.length > 0 && (
+            {favoris.length > 0 && (
+              <Groupe titre="Favoris">
+                {favoris.map((l, i) => <Ligne key={`f${l.label}${i}`} premier={!i} icone="position" titre={l.label} detail={l.detail}
+                                              onPress={() => choisir(l)} {...etoile(l)} />)}
+              </Groupe>
+            )}
+            {recents.filter((l) => !estFavori(favoris, l)).length > 0 && (
               <Groupe titre="Récents">
-                {recents.map((l, i) => <Ligne key={`${l.label}${i}`} premier={!i} icone="chrono" titre={l.label} detail={l.detail}
-                                              onPress={() => choisir(l)} />)}
+                {recents.filter((l) => !estFavori(favoris, l)).map((l, i) => <Ligne key={`${l.label}${i}`} premier={!i} icone="chrono"
+                                              titre={l.label} detail={l.detail} onPress={() => choisir(l)} {...etoile(l)} />)}
               </Groupe>
             )}
             <Text style={[S.petit, { marginTop: 14 }]}>
-              Toutes les communes de France (35 000) se cherchent sans réseau. Les adresses précises utilisent le
-              géocodage de l'IGN.
+              Écris une ville, un code postal (35000), une adresse (12 rue de la Gare, Vannes) ou un lieu (gare, stade,
+              lac, sommet…). Les 35 000 communes se cherchent sans réseau ; adresses et lieux utilisent le géocodage de
+              l'IGN. Touche l'étoile ☆ pour garder un lieu en favori.
             </Text>
           </>
         ) : (
@@ -130,13 +148,13 @@ export function RechercheLieu({ pres, recents, onLieu, onLocaliser, onFermer }: 
             {villes.length > 0 && (
               <Groupe titre="Villes">
                 {villes.map((l, i) => <Ligne key={`${l.label}${l.detail}`} premier={!i} icone="accueil" titre={l.label}
-                                             detail={l.detail} onPress={() => choisir(l)} />)}
+                                             detail={l.detail} onPress={() => choisir(l)} {...etoile(l)} />)}
               </Groupe>
             )}
             {(adresses.length > 0 || etatAdresses !== "repos") && (
-              <Groupe titre="Adresses">
+              <Groupe titre="Adresses et lieux">
                 {adresses.map((l, i) => <Ligne key={`${l.label}${i}`} premier={!i} icone="position" titre={l.label}
-                                               detail={l.detail} onPress={() => choisir(l)} />)}
+                                               detail={l.detail} onPress={() => choisir(l)} {...etoile(l)} />)}
                 {etatAdresses === "en_cours" && (
                   <View style={{ flexDirection: "row", gap: 8, alignItems: "center", padding: 14 }}>
                     <ActivityIndicator color={C.gris} /><Text style={S.petit}>Recherche des adresses…</Text>

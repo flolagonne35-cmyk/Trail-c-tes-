@@ -8,7 +8,7 @@ import { allureLisible, TRANCHES, type Modele } from "../calcul/allure.ts";
 import { distanceCouverture, RAYON_COUVERTURE_M, type Cote, type CoteProche, type Filtres } from "../calcul/cotes.ts";
 import { distanceM } from "../calcul/geo.ts";
 import { cleCote, mesPassages, vitesseAscensionnelle, type Activite } from "../calcul/points.ts";
-import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
+import { BarreDepart, estInconnu, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { nombre, Section } from "../composants/communs.tsx";
 import { couleurPente } from "../composants/Carte.tsx";
 import { C, S } from "../theme.ts";
@@ -111,7 +111,7 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
 }) {
   const position = depart.position;
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
-  const horsZone = mode !== "progres" && couverture > RAYON_COUVERTURE_M;
+  const horsZone = mode !== "progres" && (estInconnu(depart) || couverture > RAYON_COUVERTURE_M);
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
       {mode !== "progres" && (
