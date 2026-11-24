@@ -61,3 +61,20 @@ export const S = StyleSheet.create({
                  justifyContent: "center", paddingHorizontal: 20 },
   boutonClairTexte: { color: C.encre, fontSize: 16, fontWeight: "700" },
 });
+
+/**
+ * Identité de chaque rubrique (retour du 23/11 : « chaque page un truc vraiment spécifique ») :
+ * une couleur d'accent, un fond d'en-tête, une phrase et un motif dessiné, repris par les onglets.
+ * - Aujourd'hui : l'orange du lever de soleil (la journée qui commence) ;
+ * - Explorer : le vert des cartes topographiques (courbes de niveau) ;
+ * - Ma course : le bleu du dossard et de la ligne d'arrivée ;
+ * - Mon monde : l'or des médailles.
+ */
+export type Rubrique = "accueil" | "cotes" | "courses" | "monde" | "autre";
+export const RUBRIQUES: Record<Rubrique, { accent: string; fond: string; clair: string; phrase: string }> = {
+  accueil: { accent: C.montee, fond: "#FBEBDD", clair: C.monteeClair, phrase: "Ta séance, ta semaine, ta prochaine course" },
+  cotes: { accent: "#2E7A4F", fond: "#E4ECDC", clair: "#D6E6CF", phrase: "Côtes, parcours et lieux de séance autour de toi" },
+  courses: { accent: "#2F6F9F", fond: "#E2ECF5", clair: C.descenteClair, phrase: "Choisir, préparer et courir ta course" },
+  monde: { accent: "#A8741A", fond: "#F5ECD6", clair: "#F1E0B8", phrase: "Ta progression, ton coureur, tes chronos" },
+  autre: { accent: C.encre, fond: C.fond, clair: C.sable, phrase: "" },
+};

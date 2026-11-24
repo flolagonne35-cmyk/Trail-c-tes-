@@ -19,7 +19,7 @@ import type { CourseCible } from "../calcul/plan.ts";
 import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
 import { Icone, Segments } from "../composants/communs.tsx";
 import { indiceDe, Plage } from "../composants/Plage.tsx";
-import { C, S } from "../theme.ts";
+import { C, RUBRIQUES, S } from "../theme.ts";
 import agendaBrut from "../../assets/data/courses.json";
 import { champ, ChoixDepartement, jour, LigneCourse } from "./FicheCourse.tsx";
 import { VueVoyage } from "./Voyage.tsx";
@@ -121,7 +121,7 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
           <View style={{ gap: 12 }}>
             <BarreDepart titre="Autour de (ville, adresse ou ta position)" depart={depart} localisation={localisation}
                          onRecherche={onRecherche} onLocaliser={onLocaliser} />
-            <Plage etiquette="Jusqu'à" valeurs={ECH_RAYON} unique bas={0} haut={bR}
+            <Plage accent={RUBRIQUES.courses.accent} etiquette="Jusqu'à" valeurs={ECH_RAYON} unique bas={0} haut={bR}
                    format={(v) => (Number.isFinite(v) ? `${v} km` : "France")} resume={Number.isFinite(f.rayonKm) ? `${f.rayonKm} km` : "Toute la France"}
                    onChange={(_, h) => maj({ rayonKm: ECH_RAYON[h] })}
                    raccourcis={[{ nom: "15 km", bas: 0, haut: 15 }, { nom: "30 km", bas: 0, haut: 30 }, { nom: "50 km", bas: 0, haut: 50 },
@@ -171,7 +171,7 @@ export function EcranAgenda({ depart, localisation, onRecherche, onLocaliser, me
                 <Segments options={[["1", "1 mois"], ["3", "3 mois"], ["6", "6 mois"], ["12", "1 an"]]} valeur={String(f.moisMax)}
                           onChange={(v) => maj({ moisMax: Number(v) })} />
               </View>
-              <Plage etiquette="Format (distance de course)" valeurs={ECH_KM} bas={bMin} haut={bMax} format={km}
+              <Plage accent={RUBRIQUES.courses.accent} etiquette="Format (distance de course)" valeurs={ECH_KM} bas={bMin} haut={bMax} format={km}
                      resume={resumeFormat === "tous formats" ? "Tous" : resumeFormat}
                      onChange={(b, h) => maj({ kmMin: b ? ECH_KM[b] : undefined, kmMax: h < ECH_KM.length - 1 ? ECH_KM[h] : undefined })}
                      raccourcis={[{ nom: "Tous", bas: 0, haut: Infinity }, { nom: "5 km", bas: 4, haut: 6 }, { nom: "10 km", bas: 9, haut: 12 },

@@ -20,12 +20,13 @@ export function indiceDe(valeurs: number[], v: number | undefined, defaut: numbe
   return meilleur;
 }
 
-export function Plage({ etiquette, valeurs, bas, haut, unique, format, resume, raccourcis, aide, onChange }: {
+export function Plage({ etiquette, valeurs, bas, haut, unique, format, resume, raccourcis, aide, onChange, accent = C.montee }: {
   etiquette: string; valeurs: number[]; bas: number; haut: number; unique?: boolean;
   format: (v: number) => string; // une valeur de l'échelle : « 6,5 % »
   resume: string; // la plage choisie, en clair : « 6,5 à 9 % », « Toutes »
   raccourcis?: Raccourci[]; aide?: string;
   onChange: (bas: number, haut: number) => void; // indices
+  accent?: string; // couleur de la rubrique (curseur, valeur choisie)
 }) {
   const [largeur, setLargeur] = useState(0);
   const n = valeurs.length;
@@ -74,7 +75,7 @@ export function Plage({ etiquette, valeurs, bas, haut, unique, format, resume, r
             accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
             onAccessibilityAction={(a) => pas(a.nativeEvent.actionName === "increment" ? 1 : -1)}
             style={{ position: "absolute", left: position(i) - 14, top: 8, width: 28, height: 28, borderRadius: 14,
-                     backgroundColor: C.blanc, borderWidth: 3, borderColor: C.montee,
+                     backgroundColor: C.blanc, borderWidth: 3, borderColor: accent,
                      shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 3, elevation: 2 }} />
     );
   };
@@ -83,7 +84,7 @@ export function Plage({ etiquette, valeurs, bas, haut, unique, format, resume, r
     <View style={{ gap: 6 }}>
       <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
         <Text style={[S.fort, { flex: 1 }]}>{etiquette}</Text>
-        <Text style={{ fontSize: 16, fontWeight: "800", color: C.montee }}>{resume}</Text>
+        <Text style={{ fontSize: 16, fontWeight: "800", color: accent }}>{resume}</Text>
       </View>
       <View style={{ paddingHorizontal: 14 }}>
         <View onLayout={(e: LayoutChangeEvent) => setLargeur(e.nativeEvent.layout.width)} {...geste.panHandlers}
@@ -91,7 +92,7 @@ export function Plage({ etiquette, valeurs, bas, haut, unique, format, resume, r
           <View pointerEvents="none" style={{ height: 6, borderRadius: 3, backgroundColor: C.sable }} />
           {largeur > 0 && (
             <>
-              <View pointerEvents="none" style={{ position: "absolute", height: 6, borderRadius: 3, backgroundColor: C.montee,
+              <View pointerEvents="none" style={{ position: "absolute", height: 6, borderRadius: 3, backgroundColor: accent,
                                                   left: unique ? 0 : position(bas), width: position(haut) - (unique ? 0 : position(bas)) }} />
               {!unique && poignee("bas")}
               {poignee("haut")}

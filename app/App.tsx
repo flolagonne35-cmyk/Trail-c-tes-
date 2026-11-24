@@ -50,7 +50,7 @@ import { chargerPlan, enregistrerPlan, type MonPlan } from "./src/monPlan.ts";
 import type { PresetSortie } from "./src/ecrans/Plan.tsx";
 import { ajouterRecent, chargerRecents } from "./src/lieux.ts";
 import { chargerProfil, enregistrerProfil, type Profil } from "./src/profil.ts";
-import { C } from "./src/theme.ts";
+import { C, type Rubrique } from "./src/theme.ts";
 import { cotesAutour } from "./src/cotesFrance.ts";
 import { useEnLigne } from "./src/zoneHorsLigne.ts";
 
@@ -305,6 +305,7 @@ function Contenu() {
     ecran = <EcranSources />;
   }
   const avatar = <Monogramme prenom={profil.prenom} />;
+  const rubrique: Rubrique = page === "accueil" || page === "cotes" || page === "courses" || page === "monde" ? page : "autre";
   return (
     <View style={{ flex: 1, flexDirection: large ? "row" : "column", backgroundColor: C.fond }}>
       {large && <Navigation laterale actif={page} basSur={0} onChange={(o: Onglet) => aller({ page: o })} />}
@@ -313,14 +314,14 @@ function Contenu() {
       <View style={{ flex: 1, width: "100%", maxWidth: large ? 880 : 680, alignSelf: "center" }}>
       <StatusBar style="dark" />
       {!detail && (
-        <BarreHaut titre={TITRES[page]} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
+        <BarreHaut titre={TITRES[page]} rubrique={rubrique} onProfil={() => aller({ page: "monde", mode: "aventure" })} avatar={avatar}
                    surProfil={page === "monde" && modeMonde === "aventure"} points={score(profil.activites).valides} />
       )}
-      {!detail && page === "cotes" && <SousOnglets options={SOUS_EXPLORER} valeur={modeExplorer} onChange={setModeExplorer} />}
+      {!detail && page === "cotes" && <SousOnglets rubrique="cotes" options={SOUS_EXPLORER} valeur={modeExplorer} onChange={setModeExplorer} />}
       {!detail && page === "courses" && !ficheCourse && modeCourses !== "saison" && (
-        <SousOnglets options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />
+        <SousOnglets rubrique="courses" options={SOUS_COURSES} valeur={modeCourses} onChange={setModeCourses} />
       )}
-      {!detail && page === "monde" && <SousOnglets options={SOUS_MONDE} valeur={modeMonde} onChange={setModeMonde} />}
+      {!detail && page === "monde" && <SousOnglets rubrique="monde" options={SOUS_MONDE} valeur={modeMonde} onChange={setModeMonde} />}
       {!enLigne && (
         <View style={{ backgroundColor: C.encre, paddingHorizontal: 16, paddingVertical: 6 }} accessibilityRole="alert">
           <Text style={{ color: C.blanc, fontSize: 12 }}>

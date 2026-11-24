@@ -1,6 +1,10 @@
 // Programme → Parcours : « 2 h, environ 13 km, sur du plat », « 10 km vallonné par les chemins » ou
 // « 10 km avec 3 côtes ». La boucle est composée sur le téléphone, sans réseau, puis exportée en GPX.
+// Retour du 23/11 (« la feuille de sortie, c'est oppressant ») : trois questions numérotées, chacune
+// dans sa carte (départ, durée ou distance, relief), les options repliées ; une fois les parcours
+// trouvés, les réglages se replient en une ligne et les parcours passent devant.
 
+import type React from "react";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Switch, Text, View } from "react-native";
 
@@ -18,7 +22,8 @@ import { Ajusteur, nombre, Segments, Tuiles } from "../composants/communs.tsx";
 import { partagerFichier } from "../fichiers.ts";
 import { pointsEauAutour } from "../pointsEau.ts";
 import { grapheAutour } from "../reseauZones.ts";
-import { C, S } from "../theme.ts";
+import { C, OMBRE, RUBRIQUES, S } from "../theme.ts";
+import { Repli } from "./RechercheCotes.tsx";
 
 /** Combien de parcours proposer : 3 pour choisir vite, 10 pour varier ses sorties. */
 const NOMBRES: [string, string][] = [["3", "3"], ["5", "5"], ["10", "10"]];
@@ -35,6 +40,22 @@ function Interrupteur({ nom, detail, valeur, onChange }: { nom: string; detail: 
         <Text style={S.petit}>{detail}</Text>
       </View>
       <Switch value={valeur} onValueChange={onChange} accessibilityLabel={nom} />
+    </View>
+  );
+}
+
+/** Une question du réglage, numérotée, dans sa carte. */
+function Etape({ n, titre, children }: { n: number; titre: string; children: React.ReactNode }) {
+  const r = RUBRIQUES.cotes;
+  return (
+    <View style={{ backgroundColor: C.blanc, borderRadius: 22, padding: 18, gap: 14, ...OMBRE }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: r.clair, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontWeight: "900", color: r.accent }}>{n}</Text>
+        </View>
+        <Text style={[S.fort, { flex: 1 }]} accessibilityRole="header">{titre}</Text>
+      </View>
+      {children}
     </View>
   );
 }
@@ -71,6 +92,8 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
   const reglages = JSON.stringify([position.lat, position.lon, km, relief, nbCotes, dplus, eviterRoutes, eviterPassant, nombreParcours]);
   const [dernier, setDernier] = useState<string | null>(null);
   const aJour = dernier === reglages && resultat !== null;
+  const [reglagesOuverts, setReglagesOuverts] = useState(true);
+  const [optionsOuvertes, setOptionsOuvertes] = useState(false);
 
   const composer = () => {
     setEnCours(true);
@@ -90,6 +113,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
         setResultat(composerBoucles(g, toutes, position, { distanceKm: km, ...demande, eviterRoutes, eviterPassant }, Number(nombreParcours)));
         setChoix(0);
         setDernier(reglages);
+        setReglagesOuverts(false);
       } catch (e) {
         setResultat(e instanceof Error ? e.message : String(e));
       } finally {
@@ -98,6 +122,11 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
     }, 30);
   };
 
+  const resumeReglages = [
+    objectif === "duree" ? `${dureeLisible(heures * 60)} (≈ ${nombre(kmDeDuree, 1)} km)` : `${kmSaisis} km`,
+    relief === "cotes" ? `${nbCotes} côte${nbCotes > 1 ? "s" : ""}` : RELIEFS.find(([r]) => r === relief)![1].toLowerCase(),
+    dplus && relief !== "plat" ? `${dplus} m de D+` : "", `depuis ${nomDepart}`,
+  ].filter(Boolean).join(" · ");
   const b = Array.isArray(resultat) ? resultat[choix] : null;
   const pts = b ? pointsBoucle(b) : [];
   // points d'eau (OpenStreetMap) le long de la boucle affichée ; null pendant le chargement
@@ -115,9 +144,22 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
   const minutes = b ? (b.distance_m / 1000 + b.dplus_m / 100) * allureMinKm : 0;
 
   return (
-    <View style={{ marginTop: 14, gap: 10 }}>
-      <View style={[S.carte, { marginTop: 0, gap: 12 }]}>
-        <Text style={S.petit}>Départ et arrivée : {nomDepart} (ta voiture, ta porte). Change-le avec la barre de recherche.</Text>
+    <View style={{ marginTop: 18, gap: 20 }}>
+      {!reglagesOuverts ? (
+        <Pressable onPress={() => setReglagesOuverts(true)} accessibilityRole="button" accessibilityLabel={`Modifier les réglages : ${resumeReglages}`}
+                   style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: RUBRIQUES.cotes.fond, borderRadius: 18, padding: 16 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={S.petit}>Ta sortie</Text>
+            <Text style={S.fort} numberOfLines={2}>{resumeReglages}</Text>
+          </View>
+          <Text style={{ fontWeight: "800", color: RUBRIQUES.cotes.accent }}>Modifier</Text>
+        </Pressable>
+      ) : (<>
+      <Etape n={1} titre="D'où pars-tu ?">
+        <Text style={S.texte}>{nomDepart}</Text>
+        <Text style={S.petit}>Départ et arrivée au même endroit (ta porte, ta voiture). Pour partir d'ailleurs, cherche un lieu dans la barre de recherche en haut d'Explorer.</Text>
+      </Etape>
+      <Etape n={2} titre="Combien de temps, ou combien de km ?">
         <Segments options={[["duree", "Une durée"], ["distance", "Une distance"]]} valeur={objectif} onChange={setObjectif} />
         {objectif === "duree" ? (
           <>
@@ -130,15 +172,14 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
         ) : (
           <Ajusteur etiquette="Distance" valeur={kmSaisis} unite="km" pas={1} min={3} max={40} onChange={setKmSaisis} />
         )}
-        <View style={{ gap: 6 }}>
-          <Text style={[S.fort, { fontWeight: "600" }]}>Relief</Text>
-          <Segments options={RELIEFS} valeur={relief} onChange={setRelief} />
-          <Text style={S.petit}>
-            {relief === "plat" ? "Le moins de dénivelé possible : sortie d'endurance, allure régulière."
-              : relief === "vallonne" ? "Ça monte et ça descend, sans chercher les côtes (environ 15 m de D+ par km si tu ne fixes rien)."
-              : "Enchaîne des côtes mesurées de l'appli."}
-          </Text>
-        </View>
+      </Etape>
+      <Etape n={3} titre="Quel relief ?">
+        <Segments options={RELIEFS} valeur={relief} onChange={setRelief} />
+        <Text style={S.petit}>
+          {relief === "plat" ? "Le moins de dénivelé possible : sortie d'endurance, allure régulière."
+            : relief === "vallonne" ? "Ça monte et ça descend, sans chercher les côtes (environ 15 m de D+ par km si tu ne fixes rien)."
+            : "Enchaîne des côtes mesurées de l'appli."}
+        </Text>
         {relief === "cotes" && (
           <Ajusteur etiquette="Côtes à enchaîner" valeur={nbCotes} unite="" pas={1} min={1} max={5} onChange={setNbCotes} />
         )}
@@ -151,19 +192,23 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
             </Text>
           </View>
         )}
+      </Etape>
+      <Repli titre="Options" ouvert={optionsOuvertes} onBasculer={() => setOptionsOuvertes(!optionsOuvertes)}
+             resume={[`${nombreParcours} parcours proposés`, eviterRoutes ? "le moins de route possible" : "", eviterPassant ? "sans routes passantes" : ""].filter(Boolean).join(" · ")}>
         <View style={{ gap: 6 }}>
           <Text style={[S.fort, { fontWeight: "600" }]}>Combien de parcours me proposer ?</Text>
           <Segments options={NOMBRES} valeur={nombreParcours} onChange={setNombreParcours} />
           <Text style={S.petit}>3 pour choisir vite ; 10 pour varier tes sorties de la semaine. Plus il y en a, plus le calcul est long.</Text>
         </View>
         <Interrupteur nom="Le moins de route possible" detail="Préfère chemins, sentiers et voies vertes" valeur={eviterRoutes} onChange={setEviterRoutes} />
-        <Interrupteur nom="Éviter les routes passantes" detail="Grands axes et routes rapides" valeur={eviterPassant} onChange={setEviterPassant} />
-        <Pressable onPress={composer} disabled={enCours || aJour} accessibilityRole="button"
-                   style={[S.bouton, { flexDirection: "row", gap: 8, opacity: aJour ? 0.45 : 1 }]}>
-          {enCours && <ActivityIndicator color={C.fond} />}
-          <Text style={S.boutonTexte}>{enCours ? "Calcul des parcours…" : aJour ? "Parcours à jour : change un réglage" : "Trouver mes parcours"}</Text>
-        </Pressable>
-      </View>
+        <Interrupteur nom="Éviter les routes passantes" detail="Grands axes et routes rapides : plus sûr, surtout de nuit (voir la page Sécurité)" valeur={eviterPassant} onChange={setEviterPassant} />
+      </Repli>
+      <Pressable onPress={composer} disabled={enCours || aJour} accessibilityRole="button"
+                 style={[S.bouton, { flexDirection: "row", gap: 8, opacity: aJour ? 0.45 : 1 }]}>
+        {enCours && <ActivityIndicator color={C.fond} />}
+        <Text style={S.boutonTexte}>{enCours ? "Calcul des parcours…" : aJour ? "Parcours à jour : change un réglage" : "Trouver mes parcours"}</Text>
+      </Pressable>
+      </>)}
 
       {typeof resultat === "string" && <Text style={{ color: C.monteeFonce, fontWeight: "600" }}>{resultat}</Text>}
       {Array.isArray(resultat) && resultat.length === 0 && (
@@ -179,9 +224,9 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
               <Pressable key={i} onPress={() => setChoix(i)} accessibilityRole="radio" aria-checked={actif}
                          accessibilityLabel={`Parcours ${i + 1} : ${nombre(x.distance_m / 1000, 1)} kilomètres, ${x.dplus_m} mètres de D+`}
                          style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 2,
-                                  borderColor: actif ? C.montee : C.blanc, backgroundColor: C.blanc }}>
+                                  borderColor: actif ? RUBRIQUES.cotes.accent : C.blanc, backgroundColor: C.blanc, ...OMBRE }}>
                 <View style={{ width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
-                               backgroundColor: actif ? C.montee : C.aire }}>
+                               backgroundColor: actif ? RUBRIQUES.cotes.accent : C.aire }}>
                   <Text style={{ fontWeight: "800", fontSize: 15, color: actif ? C.blanc : C.encre }}>{i + 1}</Text>
                 </View>
                 <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
@@ -191,7 +236,7 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
                     {x.partPassant > 0.02 ? " · ⚠ route passante" : ""}
                   </Text>
                 </View>
-                {actif && <Text style={{ fontWeight: "800", color: C.montee }}>Choisi</Text>}
+                {actif && <Text style={{ fontWeight: "800", color: RUBRIQUES.cotes.accent }}>Choisi</Text>}
               </Pressable>
             );
           })}

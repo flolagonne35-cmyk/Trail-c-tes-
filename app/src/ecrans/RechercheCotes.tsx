@@ -1,6 +1,9 @@
-// « Que cherches-tu ? » (onglet Côtes) : critères en plages min–max (pente, longueur, D+, distance),
-// sol, type de voie, trafic ; puis l'ordre des résultats et leur nombre.
+// « Que cherches-tu ? » (onglet Côtes). Retour du 23/11 (« tout est superposé, ça m'oppresse ») :
+// deux questions essentielles en clair (jusqu'où, quelle pente), chacune dans sa carte ; les autres
+// critères (longueur, D+, sol, voie, trafic) et l'ordre des résultats sont repliés, avec un résumé
+// de ce qui est choisi ; le nombre de côtes trouvées est visible en haut, mis à jour en direct.
 
+import type React from "react";
 import { useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -8,7 +11,7 @@ import { cotesProches, TRIS, TRIS_PROPOSES, type Cote, type Filtres, type Sol, t
 import type { Position } from "../calcul/geo.ts";
 import { nombre, Segments } from "../composants/communs.tsx";
 import { indiceDe, Plage } from "../composants/Plage.tsx";
-import { C, S } from "../theme.ts";
+import { C, OMBRE, RUBRIQUES, S } from "../theme.ts";
 
 export const FILTRES_DEFAUT: Filtres = {
   rayonM: 5000, penteMin: 4, types: ["route", "piste cyclable", "chemin", "sentier"], dplusMin: 0, eviterPassant: false,
@@ -40,6 +43,30 @@ function Case({ actif }: { actif: boolean }) {
     <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, alignItems: "center", justifyContent: "center",
                    borderColor: actif ? C.encre : C.sable, backgroundColor: actif ? C.encre : C.blanc }}>
       {actif && <Text style={{ color: C.fond, fontWeight: "800", fontSize: 14 }}>✓</Text>}
+    </View>
+  );
+}
+
+/** Carte d'un critère : fond blanc, beaucoup d'air. */
+function Bloc({ children }: { children: React.ReactNode }) {
+  return <View style={{ backgroundColor: C.blanc, borderRadius: 22, padding: 18, gap: 14, ...OMBRE }}>{children}</View>;
+}
+
+/** Bloc repliable : un titre, ce qui est choisi en une ligne, et le détail au toucher. */
+export function Repli({ titre, resume, ouvert, onBasculer, children }: {
+  titre: string; resume: string; ouvert: boolean; onBasculer: () => void; children: React.ReactNode;
+}) {
+  return (
+    <View style={{ backgroundColor: C.blanc, borderRadius: 22, ...OMBRE }}>
+      <Pressable onPress={onBasculer} accessibilityRole="button" aria-expanded={ouvert} accessibilityLabel={`${titre} : ${resume}. ${ouvert ? "Replier" : "Déplier"}`}
+                 style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 18, minHeight: 64 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={S.fort}>{titre}</Text>
+          <Text style={S.petit} numberOfLines={2}>{resume}</Text>
+        </View>
+        <Text style={{ fontSize: 20, color: C.gris, transform: [{ rotate: ouvert ? "180deg" : "0deg" }] }}>⌄</Text>
+      </Pressable>
+      {ouvert && <View style={{ paddingHorizontal: 18, paddingBottom: 18, gap: 18 }}>{children}</View>}
     </View>
   );
 }
@@ -116,96 +143,119 @@ export function RechercheCotes({ filtres, toutes, position, mot, ici, onValider 
     const groupe: TypeVoie[] = t === "route" ? ["route", "piste cyclable"] : [t]; // pistes cyclables avec les routes
     setF({ ...f, types: f.types.includes(t) ? f.types.filter((x) => !groupe.includes(x)) : [...f.types, ...groupe] });
   };
+  const accent = RUBRIQUES.cotes.accent;
+  // critères avancés : résumé de ce qui s'écarte du réglage par défaut
+  const sols = f.sols ?? ["goudronne", "terre"];
+  const avances = [
+    f.longueurMin || f.longueurMax !== undefined ? `longueur ${resumePlage(ECH_LONGUEUR, indiceDe(ECH_LONGUEUR, f.longueurMin, 0), indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1), metres, "")}` : "",
+    f.dplusMin || f.dplusMax !== undefined ? `D+ ${resumePlage(ECH_DPLUS, indiceDe(ECH_DPLUS, f.dplusMin, 0), indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1), (v) => `${v} m`, "")}` : "",
+    sols.length < 2 ? (sols[0] === "terre" ? "non goudronné" : sols[0] === "goudronne" ? "goudronné" : "aucun sol") : "",
+    TYPES.some(([t]) => !f.types.includes(t)) ? TYPES.filter(([t]) => f.types.includes(t)).map(([, nom]) => nom.toLowerCase()).join(", ") || "aucune voie" : "",
+    f.eviterPassant ? "sans routes passantes" : "",
+  ].filter(Boolean);
+  const [plusOuvert, setPlusOuvert] = useState(avances.length > 0);
+  const [ordreOuvert, setOrdreOuvert] = useState(false);
+  const cle = f.tri ?? "distance";
+  const resumeOrdre = `${TRIS[cle].nom} (${(f.croissant ?? cle === "distance") ? TRIS[cle].croissant : TRIS[cle].decroissant})${f.nombre ? ` · les ${f.nombre} premières` : " · toutes"}`;
   return (
-    <View style={{ marginTop: 14, gap: 18 }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={[S.h2, { flex: 1, fontSize: 20 }]} accessibilityRole="header">Que cherches-tu ?</Text>
+    <View style={{ marginTop: 18, gap: 20 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Text style={[S.h2, { flex: 1, fontSize: 22 }]} accessibilityRole="header">Que cherches-tu ?</Text>
           <Pressable onPress={() => setF(FILTRES_DEFAUT)} disabled={parDefaut} aria-disabled={parDefaut} accessibilityRole="button" hitSlop={10}>
-            <Text style={{ fontSize: 14, fontWeight: "700", color: parDefaut ? C.gris : C.montee }}>Réinitialiser</Text>
+            <Text style={{ fontSize: 14, fontWeight: "700", color: parDefaut ? C.gris : accent }}>Réinitialiser</Text>
           </Pressable>
         </View>
-        <Plage etiquette={mot === "descente" ? "Pente moyenne (en descente)" : "Pente moyenne"} valeurs={ECH_PENTE}
-               bas={indiceDe(ECH_PENTE, f.penteMin, 0)} haut={indiceDe(ECH_PENTE, f.penteMax, ECH_PENTE.length - 1)}
-               format={etPlus(ECH_PENTE, (v) => `${fr(v)} %`)} resume={resumePlage(ECH_PENTE, indiceDe(ECH_PENTE, f.penteMin, 0), indiceDe(ECH_PENTE, f.penteMax, ECH_PENTE.length - 1), (v) => `${fr(v)} %`, "Toutes")}
-               onChange={(b, h) => setF({ ...f, penteMin: ECH_PENTE[b], penteMax: borne(ECH_PENTE, h) })}
-               raccourcis={[{ nom: "Toutes", bas: 4, haut: Infinity }, { nom: "4 à 6 %", bas: 4, haut: 6 },
-                            { nom: "6 à 10 %", bas: 6, haut: 10 }, { nom: "≥ 10 %", bas: 10, haut: Infinity }]}
-               aide="Moyenne du pied au sommet. 4 à 6 % : on court, allure soutenue ; 6 à 10 % : côtes classiques, puissance ; ≥ 10 % : souvent marche active, comme en trail de montagne." />
-        <Plage etiquette="Longueur" valeurs={ECH_LONGUEUR}
-               bas={indiceDe(ECH_LONGUEUR, f.longueurMin, 0)} haut={indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1)}
-               format={etPlus(ECH_LONGUEUR, metres)} resume={resumePlage(ECH_LONGUEUR, indiceDe(ECH_LONGUEUR, f.longueurMin, 0), indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1), metres, "Toutes")}
-               onChange={(b, h) => setF({ ...f, longueur: undefined, longueurMin: b ? ECH_LONGUEUR[b] : undefined, longueurMax: borne(ECH_LONGUEUR, h) })}
-               raccourcis={[{ nom: "Toutes", bas: 0, haut: Infinity }, { nom: "< 300 m", bas: 0, haut: 300 },
-                            { nom: "300 à 800 m", bas: 300, haut: 800 }, { nom: "≥ 800 m", bas: 800, haut: Infinity }]}
-               aide="Courtes (< 300 m) : répétitions, puissance ; moyennes (300 à 800 m) : séries classiques ; longues (≥ 800 m) : endurance en montée." />
-        <Plage etiquette="Dénivelé (D+)" valeurs={ECH_DPLUS}
-               bas={indiceDe(ECH_DPLUS, f.dplusMin, 0)} haut={indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1)}
-               format={etPlus(ECH_DPLUS, (v) => `${v} m`)} resume={resumePlage(ECH_DPLUS, indiceDe(ECH_DPLUS, f.dplusMin, 0), indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1), (v) => `${v} m`, "Tout")}
-               onChange={(b, h) => setF({ ...f, dplusMin: ECH_DPLUS[b], dplusMax: borne(ECH_DPLUS, h) })}
-               raccourcis={[{ nom: "Tout", bas: 0, haut: Infinity }, { nom: "≥ 20 m", bas: 20, haut: Infinity },
-                            { nom: "≥ 40 m", bas: 40, haut: Infinity }, { nom: "≥ 80 m", bas: 80, haut: Infinity }]}
-               aide="Mètres gagnés du pied au sommet : c'est lui qui compte pour préparer une course (D+ total ÷ D+ de la côte = nombre de montées)." />
-        <Plage etiquette={`Jusqu'à combien de km de ${ici} ?`} valeurs={ECH_RAYON} unique bas={0}
+        <View accessibilityLiveRegion="polite" style={{ alignSelf: "flex-start", backgroundColor: RUBRIQUES.cotes.clair, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}>
+          <Text style={{ fontWeight: "800", color: accent }}>{n ? `${n} ${mot}${n > 1 ? "s" : ""} correspondent` : `Aucune ${mot} avec ces critères`}</Text>
+        </View>
+        <Bloc>
+        <Plage accent={accent} etiquette={`Jusqu'à combien de km de ${ici} ?`} valeurs={ECH_RAYON} unique bas={0}
                haut={indiceDe(ECH_RAYON, f.rayonM / 1000, 9)} format={(v) => `${fr(v)} km`}
                resume={`≤ ${fr(f.rayonM / 1000)} km`}
                onChange={(_, h) => setF({ ...f, rayonM: ECH_RAYON[h] * 1000 })}
                raccourcis={[{ nom: "2 km", bas: 0, haut: 2 }, { nom: "5 km", bas: 0, haut: 5 },
                             { nom: "10 km", bas: 0, haut: 10 }, { nom: "25 km", bas: 0, haut: 25 }]}
                aide="À vol d'oiseau. 2 km : en footing depuis chez toi ; 10 km et plus : en voiture ou à vélo." />
+        </Bloc>
+        <Bloc>
+        <Plage accent={accent} etiquette={mot === "descente" ? "Pente moyenne (en descente)" : "Pente moyenne"} valeurs={ECH_PENTE}
+               bas={indiceDe(ECH_PENTE, f.penteMin, 0)} haut={indiceDe(ECH_PENTE, f.penteMax, ECH_PENTE.length - 1)}
+               format={etPlus(ECH_PENTE, (v) => `${fr(v)} %`)} resume={resumePlage(ECH_PENTE, indiceDe(ECH_PENTE, f.penteMin, 0), indiceDe(ECH_PENTE, f.penteMax, ECH_PENTE.length - 1), (v) => `${fr(v)} %`, "Toutes")}
+               onChange={(b, h) => setF({ ...f, penteMin: ECH_PENTE[b], penteMax: borne(ECH_PENTE, h) })}
+               raccourcis={[{ nom: "Toutes", bas: 4, haut: Infinity }, { nom: "4 à 6 %", bas: 4, haut: 6 },
+                            { nom: "6 à 10 %", bas: 6, haut: 10 }, { nom: "≥ 10 %", bas: 10, haut: Infinity }]}
+               aide="Moyenne du pied au sommet. 4 à 6 % : on court, allure soutenue ; 6 à 10 % : côtes classiques, puissance ; ≥ 10 % : souvent marche active, comme en trail de montagne." />
+        </Bloc>
+        <Repli titre="Plus de critères" resume={avances.length ? avances.join(" · ") : "Longueur, dénivelé, sol, type de voie, trafic : tout est accepté"}
+               ouvert={plusOuvert} onBasculer={() => setPlusOuvert(!plusOuvert)}>
+        <Plage accent={accent} etiquette="Longueur" valeurs={ECH_LONGUEUR}
+               bas={indiceDe(ECH_LONGUEUR, f.longueurMin, 0)} haut={indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1)}
+               format={etPlus(ECH_LONGUEUR, metres)} resume={resumePlage(ECH_LONGUEUR, indiceDe(ECH_LONGUEUR, f.longueurMin, 0), indiceDe(ECH_LONGUEUR, f.longueurMax, ECH_LONGUEUR.length - 1), metres, "Toutes")}
+               onChange={(b, h) => setF({ ...f, longueur: undefined, longueurMin: b ? ECH_LONGUEUR[b] : undefined, longueurMax: borne(ECH_LONGUEUR, h) })}
+               raccourcis={[{ nom: "Toutes", bas: 0, haut: Infinity }, { nom: "< 300 m", bas: 0, haut: 300 },
+                            { nom: "300 à 800 m", bas: 300, haut: 800 }, { nom: "≥ 800 m", bas: 800, haut: Infinity }]}
+               aide="Courtes (< 300 m) : répétitions, puissance ; moyennes (300 à 800 m) : séries classiques ; longues (≥ 800 m) : endurance en montée." />
+        <Plage accent={accent} etiquette="Dénivelé (D+)" valeurs={ECH_DPLUS}
+               bas={indiceDe(ECH_DPLUS, f.dplusMin, 0)} haut={indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1)}
+               format={etPlus(ECH_DPLUS, (v) => `${v} m`)} resume={resumePlage(ECH_DPLUS, indiceDe(ECH_DPLUS, f.dplusMin, 0), indiceDe(ECH_DPLUS, f.dplusMax, ECH_DPLUS.length - 1), (v) => `${v} m`, "Tout")}
+               onChange={(b, h) => setF({ ...f, dplusMin: ECH_DPLUS[b], dplusMax: borne(ECH_DPLUS, h) })}
+               raccourcis={[{ nom: "Tout", bas: 0, haut: Infinity }, { nom: "≥ 20 m", bas: 20, haut: Infinity },
+                            { nom: "≥ 40 m", bas: 40, haut: Infinity }, { nom: "≥ 80 m", bas: 80, haut: Infinity }]}
+               aide="Mètres gagnés du pied au sommet : c'est lui qui compte pour préparer une course (D+ total ÷ D+ de la côte = nombre de montées)." />
         <View style={{ gap: 8 }}>
-          <Text style={S.fort}>Sol</Text>
-          <View style={{ backgroundColor: C.blanc, borderRadius: 14, overflow: "hidden" }}>
-            {SOLS.map(([sol, nom, detail], i) => {
-              const sols = f.sols ?? ["goudronne", "terre"];
-              const actif = sols.includes(sol);
-              return (
-                <Pressable key={sol} onPress={() => setF({ ...f, sols: actif ? sols.filter((x) => x !== sol) : [...sols, sol] })}
-                           accessibilityRole="checkbox" aria-checked={actif}
-                           style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
-                                    borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[S.fort, { fontWeight: "600" }]}>{nom}</Text>
-                    <Text style={S.petit}>{detail}</Text>
-                  </View>
-                  <Case actif={actif} />
-                </Pressable>
-              );
-            })}
+            <Text style={S.fort}>Sol</Text>
+            <View style={{ backgroundColor: C.fond, borderRadius: 14, overflow: "hidden" }}>
+              {SOLS.map(([sol, nom, detail], i) => {
+                const sols = f.sols ?? ["goudronne", "terre"];
+                const actif = sols.includes(sol);
+                return (
+                  <Pressable key={sol} onPress={() => setF({ ...f, sols: actif ? sols.filter((x) => x !== sol) : [...sols, sol] })}
+                             accessibilityRole="checkbox" aria-checked={actif}
+                             style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
+                                      borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[S.fort, { fontWeight: "600" }]}>{nom}</Text>
+                      <Text style={S.petit}>{detail}</Text>
+                    </View>
+                    <Case actif={actif} />
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
-        <View style={{ gap: 8 }}>
-          <Text style={S.fort}>Type de voie</Text>
-          <View style={{ backgroundColor: C.blanc, borderRadius: 14, overflow: "hidden" }}>
-            {TYPES.map(([t, nom, detail], i) => {
-              const actif = f.types.includes(t);
-              return (
-                <Pressable key={t} onPress={() => basculer(t)} accessibilityRole="checkbox" aria-checked={actif}
-                           style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
-                                    borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[S.fort, { fontWeight: "600" }]}>{nom}</Text>
-                    <Text style={S.petit}>{detail}</Text>
-                  </View>
-                  <Case actif={actif} />
-                </Pressable>
-              );
-            })}
+          <View style={{ gap: 8 }}>
+            <Text style={S.fort}>Type de voie</Text>
+            <View style={{ backgroundColor: C.fond, borderRadius: 14, overflow: "hidden" }}>
+              {TYPES.map(([t, nom, detail], i) => {
+                const actif = f.types.includes(t);
+                return (
+                  <Pressable key={t} onPress={() => basculer(t)} accessibilityRole="checkbox" aria-checked={actif}
+                             style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
+                                      borderTopWidth: i ? 1 : 0, borderTopColor: C.aire }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[S.fort, { fontWeight: "600" }]}>{nom}</Text>
+                      <Text style={S.petit}>{detail}</Text>
+                    </View>
+                    <Case actif={actif} />
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
-        <Pressable onPress={() => setF({ ...f, eviterPassant: !f.eviterPassant })} accessibilityRole="switch"
-                   aria-checked={!!f.eviterPassant}
-                   style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
-                            backgroundColor: C.blanc, borderRadius: 14 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={[S.fort, { fontWeight: "600" }]}>Éviter les routes passantes</Text>
-            <Text style={S.petit}>Grands axes, routes rapides (≥ 60 km/h) ou à 3 voies et plus</Text>
-          </View>
-          <Case actif={!!f.eviterPassant} />
-        </Pressable>
-        <View style={{ gap: 8, paddingTop: 4, borderTopWidth: 1, borderTopColor: C.sable }}>
-          <Text style={[S.h2, { fontSize: 18, marginTop: 12 }]} accessibilityRole="header">Résultats</Text>
+          <Pressable onPress={() => setF({ ...f, eviterPassant: !f.eviterPassant })} accessibilityRole="switch"
+                     aria-checked={!!f.eviterPassant}
+                     style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 52, paddingHorizontal: 14,
+                              backgroundColor: C.fond, borderRadius: 14 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[S.fort, { fontWeight: "600" }]}>Éviter les routes passantes</Text>
+              <Text style={S.petit}>Grands axes, routes rapides (≥ 60 km/h) ou à 3 voies et plus</Text>
+            </View>
+            <Case actif={!!f.eviterPassant} />
+          </Pressable>
+        </Repli>
+        <Repli titre="Ordre des résultats" resume={resumeOrdre} ouvert={ordreOuvert} onBasculer={() => setOrdreOuvert(!ordreOuvert)}>
           <ChoixResultats f={f} setF={setF} total={n} mot={mot} />
-        </View>
+        </Repli>
         <Pressable onPress={() => onValider({ ...f, raideMin: undefined, raideMax: undefined })} disabled={!n} accessibilityRole="button" style={[S.bouton, { minHeight: 54, opacity: n ? 1 : 0.45 }]}>
           <Text style={[S.boutonTexte, { fontSize: 16 }]}>
             {!n ? `Aucune ${mot} avec ces critères`

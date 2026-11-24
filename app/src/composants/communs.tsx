@@ -1,10 +1,10 @@
 // Briques d'interface communes aux écrans : en-tête, tuiles de chiffres, puces, ajusteur, navigation.
 
 import type { ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-import Svg, { Circle, Path } from "react-native-svg";
+import { Pressable, Text, useWindowDimensions, View } from "react-native";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
-import { C, OMBRE, S } from "../theme.ts";
+import { C, OMBRE, RUBRIQUES, S, type Rubrique } from "../theme.ts";
 
 export function EnTete({ surtitre, titre, sousTitre, retour }: {
   surtitre: string; titre: string; sousTitre?: string; retour?: () => void;
@@ -139,20 +139,21 @@ export const NOMS: Record<Onglet, string> = {
  * Sous-onglets d'une rubrique, posés en haut de l'écran, hors de la zone qui défile : toujours
  * visibles, on sait où l'on est.
  */
-export function SousOnglets<T extends string>({ options, valeur, onChange }: {
-  options: [T, string][]; valeur: T; onChange: (v: T) => void;
+export function SousOnglets<T extends string>({ options, valeur, onChange, rubrique = "autre" }: {
+  options: [T, string][]; valeur: T; onChange: (v: T) => void; rubrique?: Rubrique;
 }) {
+  const r = RUBRIQUES[rubrique];
   // onglets soulignés (différents des choix en pastilles à l'intérieur des pages) : on voit
   // tout de suite qu'on change de page, pas de réglage
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: "row", gap: 24, paddingHorizontal: 24, backgroundColor: C.fond,
+    <View accessibilityRole="tablist" style={{ flexDirection: "row", gap: 24, paddingHorizontal: 24, backgroundColor: r.fond,
                                                borderBottomWidth: 1, borderBottomColor: C.sable }}>
       {options.map(([v, nom]) => {
         const actif = v === valeur;
         return (
           <Pressable key={v} onPress={() => onChange(v)} accessibilityRole="tab" aria-selected={actif}
                      style={{ paddingTop: 4, paddingBottom: 12, minHeight: 44, justifyContent: "flex-end",
-                              borderBottomWidth: 3, borderBottomColor: actif ? C.montee : "transparent", marginBottom: -1 }}>
+                              borderBottomWidth: 3, borderBottomColor: actif ? r.accent : "transparent", marginBottom: -1 }}>
             <Text style={{ fontSize: 16, fontWeight: actif ? "800" : "600", color: actif ? C.encre : C.gris }}>{nom}</Text>
           </Pressable>
         );
@@ -219,7 +220,7 @@ export function Navigation({ actif, onChange, basSur, laterale = false }: {
             <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={sel}
                        style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 14, minHeight: 50,
                                 borderRadius: 14, backgroundColor: sel ? "rgba(255,255,255,0.12)" : pressed ? "rgba(255,255,255,0.06)" : "transparent" })}>
-              <Icone nom={o} couleur={sel ? C.montee : "#C9D3CC"} />
+              <Icone nom={o} couleur={sel ? RUBRIQUES[o as Rubrique]?.clair ?? C.montee : "#C9D3CC"} />
               <Text style={{ fontSize: 16, color: sel ? C.blanc : "#C9D3CC", fontWeight: sel ? "800" : "600" }}>{NOMS[o]}</Text>
             </Pressable>
           );
@@ -236,8 +237,8 @@ export function Navigation({ actif, onChange, basSur, laterale = false }: {
         return (
           <Pressable key={o} onPress={() => onChange(o)} accessibilityRole="tab" aria-selected={sel}
                      style={{ flex: 1, alignItems: "center", gap: 4, paddingVertical: 6, minHeight: 52 }}>
-            <View style={{ paddingHorizontal: 16, paddingVertical: 4, borderRadius: 14, backgroundColor: sel ? C.monteeClair : "transparent" }}>
-              <Icone nom={o} couleur={sel ? C.montee : couleur} />
+            <View style={{ paddingHorizontal: 16, paddingVertical: 4, borderRadius: 14, backgroundColor: sel ? RUBRIQUES[o as Rubrique]?.clair ?? C.monteeClair : "transparent" }}>
+              <Icone nom={o} couleur={sel ? RUBRIQUES[o as Rubrique]?.accent ?? C.montee : couleur} />
             </View>
             <Text style={{ fontSize: 12, color: couleur, fontWeight: sel ? "800" : "600" }} numberOfLines={1}>{NOMS[o]}</Text>
           </Pressable>
@@ -251,19 +252,57 @@ export const nombre = (v: number, decimales = 0) =>
   v.toLocaleString("fr-FR", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
 
 /** Barre du haut de chaque page : menu (toutes les sections), titre, accès au profil. */
-export function BarreHaut({ titre, onProfil, avatar, surProfil, points }: {
-  titre: string; onProfil: () => void; avatar: ReactNode; surProfil: boolean; points: number;
-}) {
+/** Motif dessiné de chaque rubrique, à droite de l'en-tête (décor, ignoré par les lecteurs d'écran). */
+function Motif({ rubrique, couleur }: { rubrique: Rubrique; couleur: string }) {
+  const trait = { stroke: couleur, strokeWidth: 2, fill: "none", strokeLinecap: "round" as const, opacity: 0.35 };
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24, paddingTop: 14, paddingBottom: 14,
-                   backgroundColor: C.fond }}>
-      <Text style={{ flex: 1, fontSize: 30, fontWeight: "900", color: C.encre, letterSpacing: -0.5 }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
-      <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button"
-                 accessibilityLabel={`Mon monde, ${points} points`}
-                 style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 12, borderRadius: 24, backgroundColor: C.blanc }}>
-        <Text style={{ fontSize: 14, fontWeight: "800", color: C.monteeFonce }}>{nombre(points)} pts</Text>
-        <View style={{ width: 44, height: 44, borderRadius: 22, overflow: "hidden" }}>{avatar}</View>
-      </Pressable>
+    <Svg width={170} height={96} viewBox="0 0 170 96" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {rubrique === "accueil" && (<>
+        <Circle cx={118} cy={62} r={22} fill={couleur} opacity={0.25} />
+        <Path d="M0 96 L40 58 L64 76 L102 36 L140 70 L170 50 L170 96 Z" fill={couleur} opacity={0.18} />
+      </>)}
+      {rubrique === "cotes" && [0, 1, 2, 3, 4].map((i) => (
+        <Path key={i} {...trait} d={`M${10 + i * 6} ${92 - i * 4} C ${40 + i * 4} ${40 - i * 2}, ${110 - i * 3} ${30 + i * 6}, ${165 - i * 8} ${70 - i * 6}`} />
+      ))}
+      {rubrique === "courses" && (<>
+        <Path {...trait} d="M6 84 L40 70 L62 78 L92 44 L118 58 L140 30" />
+        {[0, 1, 2, 3].map((i) => [0, 1].map((j) => (
+          <Rect key={`${i}${j}`} x={140 + i * 6} y={20 + j * 6 + (i % 2 ? 6 : 0)} width={6} height={6} fill={couleur} opacity={0.35} />
+        )))}
+        <Path {...trait} d="M140 20 L140 70" />
+      </>)}
+      {rubrique === "monde" && (<>
+        <Circle cx={120} cy={52} r={24} {...trait} />
+        <Circle cx={120} cy={52} r={14} fill={couleur} opacity={0.2} />
+        <Path {...trait} d="M106 30 L96 4 M134 30 L144 4" />
+        <Circle cx={60} cy={30} r={3} fill={couleur} opacity={0.3} />
+        <Circle cx={36} cy={60} r={2} fill={couleur} opacity={0.3} />
+      </>)}
+    </Svg>
+  );
+}
+
+export function BarreHaut({ titre, onProfil, avatar, surProfil, points, rubrique = "autre" }: {
+  titre: string; onProfil: () => void; avatar: ReactNode; surProfil: boolean; points: number; rubrique?: Rubrique;
+}) {
+  const r = RUBRIQUES[rubrique];
+  // le motif ne se montre que s'il a la place de ne rien chevaucher (tablette, ordinateur)
+  const { width } = useWindowDimensions();
+  return (
+    <View style={{ backgroundColor: r.fond, overflow: "hidden" }}>
+      {rubrique !== "autre" && width >= 600 && (
+        <View pointerEvents="none" style={{ position: "absolute", right: 64, bottom: -6 }}><Motif rubrique={rubrique} couleur={r.accent} /></View>
+      )}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 24, paddingTop: 14, paddingBottom: r.phrase ? 6 : 14 }}>
+        <Text style={{ flex: 1, fontSize: 30, fontWeight: "900", color: C.encre, letterSpacing: -0.5 }} numberOfLines={1} accessibilityRole="header">{titre}</Text>
+        <Pressable onPress={onProfil} disabled={surProfil} aria-disabled={surProfil} accessibilityRole="button"
+                   accessibilityLabel={`Mon monde, ${points} points`}
+                   style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 12, borderRadius: 24, backgroundColor: C.blanc }}>
+          <Text style={{ fontSize: 14, fontWeight: "800", color: C.monteeFonce }}>{nombre(points)} pts</Text>
+          <View style={{ width: 44, height: 44, borderRadius: 22, overflow: "hidden" }}>{avatar}</View>
+        </Pressable>
+      </View>
+      {!!r.phrase && <Text style={{ paddingHorizontal: 24, paddingBottom: 14, fontSize: 14, fontWeight: "600", color: r.accent }}>{r.phrase}</Text>}
     </View>
   );
 }
