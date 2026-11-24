@@ -114,6 +114,9 @@ def infos_course(graphe: dict[str, list[tuple[str, str]]], racine: str, profonde
                         prix.add(v)
                 except ValueError:
                     pass
+            elif nom == "textPriceSpecification":
+                # tarifs écrits en clair (« 12 € sur internet, 15 € sur place ») : même lecture que les annonces
+                prix.update(v for v in prix_dans(valeur(o)) if 0 < v < 2000)
             elif nom == "homepage" and "Booking" in via:
                 liens.append(valeur(o))
             elif nom == "validFrom":
@@ -152,10 +155,14 @@ def fusionner(courses: list[dict], infos: dict[str, dict]) -> int:
             c["prix_eur"] = i["prix_eur"]
         if i["reservation"]:
             c["reservation"] = i["reservation"]
-        if i["inscription_debut"]:
-            c["inscription_debut"] = i["inscription_debut"]
-        if i["inscription_fin"]:
-            c["inscription_fin"] = i["inscription_fin"]
+        # la période de validité d'une offre est le plus souvent le jour même de la course (vérifié
+        # sur le run du 24/11 : 185 fiches sur 190) : seule une date AVANT la course parle d'inscription
+        jour = c.get("date") or "9999"
+        for cle in ("inscription_debut", "inscription_fin"):
+            if i[cle] and i[cle] < jour:
+                c[cle] = i[cle]
+            else:
+                c.pop(cle, None)
         if i["complet"]:
             c["complet"] = True
         n += avant != json.dumps(c, sort_keys=True)

@@ -47,12 +47,21 @@ def test_prix_reservation_dates():
     assert dc.arbre(g, COURSE)["label"] == ["Trail des Crêtes"]
 
 
+def test_tarifs_en_texte_libre():
+    nt = NT + f'{COURSE} <{DT}offers> _:o2 .\n_:o2 <{DT}textPriceSpecification> "Adultes : 20 € en ligne, 25 € sur place"@fr .\n'
+    g = dc.extraire_graphe(lire(nt), {"aaaa-1111"})
+    assert {20.0, 25.0} <= set(dc.infos_course(g, COURSE)["prix_eur"])
+
+
 def test_fusion_garde_l_annonce_de_l_organisateur():
-    courses = [{"id": "dt-aaaa-1111", "prix_eur": [], "complet": False}, {"id": "dt-x", "prix_eur": [20]},
-               {"id": "dt-y", "prix_eur": [25]}]
+    courses = [{"id": "dt-aaaa-1111", "date": "2027-03-20", "prix_eur": [], "complet": False}, {"id": "dt-x", "prix_eur": [20]},
+               {"id": "dt-y", "date": "2027-01-10", "prix_eur": [25]}]
     infos = {"dt-aaaa-1111": {"prix_eur": [12.0], "reservation": "https://r", "inscription_debut": "", "inscription_fin": "2027-03-10", "complet": False},
-             "dt-y": {"prix_eur": [30.0], "reservation": "", "inscription_debut": "", "inscription_fin": "", "complet": False}}
+             # validité de l'offre = jour de la course : ce n'est pas une date d'inscription
+             "dt-y": {"prix_eur": [30.0], "reservation": "", "inscription_debut": "2027-01-10", "inscription_fin": "2027-01-10", "complet": False}}
     assert dc.fusionner(courses, infos) == 1
+    assert courses[0]["inscription_fin"] == "2027-03-10"
+    assert "inscription_debut" not in courses[2] and "inscription_fin" not in courses[2]
     assert courses[0]["prix_eur"] == [12.0] and courses[0]["reservation"] == "https://r"
     assert courses[2]["prix_eur"] == [25]  # le prix écrit par l'organisateur reste
 
