@@ -129,7 +129,8 @@ export function EcranTrouverCourse({ depart, localisation, onRecherche, onLocali
             <Text style={S.petit}>Du</Text><ChampDate valeur={du} onChange={setDu} etiquette="Courses à partir du" />
             <Text style={S.petit}>au</Text><ChampDate valeur={au} onChange={setAu} etiquette="Courses jusqu'au" min={du} />
           </View>
-          <Raccourcis options={RACCOURCIS_QUAND} actif={undefined} onChoisir={(f) => { const [d, a] = f(); setDu(d); setAu(a); }} />
+          <Raccourcis options={RACCOURCIS_QUAND} actif={RACCOURCIS_QUAND.find(([, f]) => { const [d, a] = f(); return d === du && a === au; })?.[0]}
+                      onChoisir={(f) => { const [d, a] = f(); setDu(d); setAu(a); }} />
         </Question>
         <Question titre="Quelle distance ?" aide="Une course qui propose plusieurs formats s'affiche si l'un d'eux est dans cette plage.">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
