@@ -26,7 +26,12 @@ jobs:
         run: npm run typecheck
       - name: Style et règles du code (ESLint)
         run: npm run lint
-      - name: Contrôle du projet Expo (expo-doctor)
-        run: npx -y expo-doctor@latest
+      # expo-doctor compare les paquets à la DERNIÈRE version publiée par Expo : chaque petite mise à
+      # jour d'Expo le ferait échouer (et t'enverrait un mail) alors que l'appli marche. On le garde
+      # comme avertissement ; la mise à jour se fait avec « npx expo install --fix ».
+      - name: Contrôle du projet Expo (expo-doctor, avertissement seulement)
+        continue-on-error: true
+        run: |
+          npx -y expo-doctor@latest || echo "::warning title=Paquets Expo à mettre à jour::Lancer « npx expo install --fix » dans app/ (voir le détail de cette étape)"
       - name: Compilation web
         run: npx expo export --platform web --output-dir dist
