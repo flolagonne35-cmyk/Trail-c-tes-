@@ -63,3 +63,12 @@ test("un mois en un appui : seulement les courses de ce mois, même au-delà de 
   assert.equal(mois[0].cle, "2026-11");
   assert.equal(mois[13].cle, "2027-12"); // jusqu'à fin 2027
 });
+
+test("période d'inscription (base complète DATAtourisme)", async () => {
+  const { periodeInscription } = await import("./agenda.ts");
+  assert.equal(periodeInscription({ inscription_fin: "2026-01-10" }, "2026-11-24"), "Inscriptions closes (selon l'office de tourisme)");
+  assert.equal(periodeInscription({ inscription_debut: "2027-01-05", inscription_fin: "2027-03-10" }, "2026-11-24"),
+               "Inscriptions à partir du 5 janvier, jusqu'au 10 mars");
+  assert.equal(periodeInscription({ inscription_fin: "2027-03-10" }, "2026-11-24"), "Inscriptions ouvertes jusqu'au 10 mars");
+  assert.equal(periodeInscription({}, "2026-11-24"), "");
+});

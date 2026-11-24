@@ -4,12 +4,12 @@
 
 import { Linking, Pressable, Text, View } from "react-native";
 
-import type { CourseProche } from "../calcul/agenda.ts";
+import { periodeInscription, type CourseProche } from "../calcul/agenda.ts";
 import { kmLisibles } from "../calcul/cotes.ts";
 import type { CourseCible } from "../calcul/plan.ts";
 import type { PointDepart } from "../composants/BarreDepart.tsx";
 import { nombre } from "../composants/communs.tsx";
-import { C, S } from "../theme.ts";
+import { C, RUBRIQUES, S } from "../theme.ts";
 import { VueVoyage } from "./Voyage.tsx";
 import { CheckList } from "../composants/CheckList.tsx";
 
@@ -30,6 +30,7 @@ export function EcranFicheComplete({ course: c, depart, deja, onRetour, onAjoute
   onPreparer: (cible: CourseCible) => void;
 }) {
   const ici = depart.gps ? "toi" : depart.nom.split(",")[0];
+  const periode = periodeInscription(c, new Date().toISOString().slice(0, 10));
   const preparer = (km: number | null) => onPreparer({
     nom: c.distances_km.length > 1 && km ? `${c.nom} (${String(km).replace(".", ",")} km)` : c.nom,
     distance_km: km ?? c.distances_km.at(-1) ?? 10, dplus_m: c.dplus_m ?? 0, date: c.date, site: c.site || undefined,
@@ -89,14 +90,20 @@ export function EcranFicheComplete({ course: c, depart, deja, onRetour, onAjoute
         {c.prix_eur?.length ? (
           <Text style={S.fort}>Dossard : {c.prix_eur.length > 1 ? `de ${euros(c.prix_eur[0])} à ${euros(c.prix_eur.at(-1)!)}` : euros(c.prix_eur[0])}</Text>
         ) : <Text style={S.fort}>Prix du dossard : pas encore publié</Text>}
-        {c.inscription ? <Text style={S.texte}>« {c.inscription} »</Text> : (
+        {!!periode && <Text style={[S.fort, { color: RUBRIQUES.courses.accent }]}>{periode}</Text>}
+        {c.inscription ? <Text style={S.texte}>« {c.inscription} »</Text> : periode ? null : (
           <Text style={S.texte}>Dates d'inscription pas encore annoncées. Les inscriptions ouvrent souvent 3 à 6 mois avant la course (plus tôt pour les grands trails).</Text>
         )}
         {c.complet && <Text style={[S.fort, { color: C.monteeFonce }]}>L'annonce indique que la course est complète : vérifie s'il existe une liste d'attente.</Text>}
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-          {!!c.site && (
-            <Pressable onPress={() => Linking.openURL(c.site).catch(() => undefined)} accessibilityRole="link" style={[S.bouton, { flexGrow: 1 }]}>
-              <Text style={S.boutonTexte}>S'inscrire sur le site officiel ↗</Text>
+          {!!(c.reservation || c.site) && (
+            <Pressable onPress={() => Linking.openURL(c.reservation || c.site).catch(() => undefined)} accessibilityRole="link" style={[S.bouton, { flexGrow: 1 }]}>
+              <Text style={S.boutonTexte}>{c.reservation ? "S'inscrire en ligne ↗" : "S'inscrire sur le site officiel ↗"}</Text>
+            </Pressable>
+          )}
+          {!!c.reservation && !!c.site && c.site !== c.reservation && (
+            <Pressable onPress={() => Linking.openURL(c.site).catch(() => undefined)} accessibilityRole="link" style={[S.boutonClair, { flexGrow: 1 }]}>
+              <Text style={S.boutonClairTexte}>Site de la course ↗</Text>
             </Pressable>
           )}
           <Pressable onPress={onAjouter} disabled={deja} accessibilityRole="button" aria-disabled={deja}
@@ -105,7 +112,7 @@ export function EcranFicheComplete({ course: c, depart, deja, onRetour, onAjoute
           </Pressable>
         </View>
         <Text style={S.petit}>
-          Prix et dates lus dans l'annonce de l'organisateur{c.maj ? ` (mise à jour le ${new Date(c.maj).toLocaleDateString("fr-FR")})` : ""} : le site officiel fait foi.
+          Prix et dates lus dans l'annonce de l'organisateur et sa fiche à l'office de tourisme{c.maj ? ` (mise à jour le ${new Date(c.maj).toLocaleDateString("fr-FR")})` : ""} : le site officiel fait foi.
           Source : {c.auteur ? `${c.auteur}, via ` : ""}{c.source}.
         </Text>
       </Bloc>

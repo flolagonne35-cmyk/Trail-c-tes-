@@ -9,6 +9,7 @@ on:
     paths:
       - "scripts/courses_ouvertes.py"
       - "scripts/enrichir_courses.py"
+      - "scripts/datatourisme_complet.py"
       - ".github/workflows/courses.yml"
   schedule:
     - cron: "17 5 * * *" # chaque jour à 5 h 17 UTC
@@ -19,7 +20,7 @@ permissions:
 jobs:
   courses:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,6 +28,12 @@ jobs:
           python-version: "3.12"
       - run: pip install requests
       - run: python scripts/courses_ouvertes.py
+      # prix, réservation et dates d'inscription : base complète DATAtourisme (≈ 2 Go, lue en flux) ;
+      # en cas d'échec, le calendrier garde les prix relevés dans les annonces
+      - name: Base complète DATAtourisme
+        continue-on-error: true
+        timeout-minutes: 60
+        run: python scripts/datatourisme_complet.py
       - name: Résumé
         if: always()
         run: |
@@ -35,6 +42,11 @@ jobs:
           r = json.load(open("resultats/courses/rapport.json"))
           print(f"## Courses : {r['statut']}, {r['courses']}\n")
           print("\n".join("- " + a for a in r.get("apercu", [])[:40]))
+          try:
+              c = json.load(open("resultats/courses/datatourisme_complet.json"))
+              print(f"\n## Base complète : {c.get('statut')}, {c.get('avec_prix')} avec prix, {c.get('avec_reservation')} avec réservation, {c.get('avec_dates_inscription')} avec dates")
+          except FileNotFoundError:
+              pass
           PY
       - name: Enregistrer
         if: always()

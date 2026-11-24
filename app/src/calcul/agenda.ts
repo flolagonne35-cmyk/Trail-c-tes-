@@ -14,6 +14,9 @@ export type CourseAVenir = {
   inscription?: string; // phrase de la description qui parle d'inscription
   complet?: boolean;
   wikidata?: string;
+  // base complète DATAtourisme (scripts/datatourisme_complet.py) : billetterie et période de vente
+  reservation?: string; // lien d'inscription en ligne donné par l'organisateur
+  inscription_debut?: string; inscription_fin?: string; // AAAA-MM-JJ
 };
 
 export type FiltresAgenda = {
@@ -132,4 +135,15 @@ export function nomZone(zone: Zone, lieu: { nom: string }): string {
   if (zone.mode === "departement") return `${DEPARTEMENTS[zone.code] ?? zone.code} (${zone.code})`;
   if (zone.mode === "region") return nomRegion(zone.code);
   return lieu.nom === "Ma position" ? "Autour de toi" : `Autour de ${lieu.nom}`;
+}
+
+/** « Inscriptions ouvertes jusqu'au 10 mars », « Inscriptions à partir du 1er septembre », « Inscriptions closes ». */
+export function periodeInscription(c: Pick<CourseAVenir, "inscription_debut" | "inscription_fin">, aujourdhui: string): string {
+  const jour = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const { inscription_debut: d, inscription_fin: f } = c;
+  if (f && f < aujourdhui) return "Inscriptions closes (selon l'office de tourisme)";
+  if (d && d > aujourdhui) return `Inscriptions à partir du ${jour(d)}${f ? `, jusqu'au ${jour(f)}` : ""}`;
+  if (f) return `Inscriptions ouvertes jusqu'au ${jour(f)}`;
+  if (d) return `Inscriptions ouvertes depuis le ${jour(d)}`;
+  return "";
 }
