@@ -20,6 +20,8 @@ import { C, S } from "../theme.ts";
 
 const CARBURANTS = carburantsBruts as Carburants;
 const euros = (v: number) => `${nombre(v, v < 100 ? 2 : 0)} €`;
+/** Prix de billet : sans centimes quand il n'y en a pas (« 25,50 € », « 51 € »). */
+const prix = (v: number) => `${nombre(v, Number.isInteger(v) ? 0 : 2)} €`;
 const ouvrir = (url: string) => Linking.openURL(url).catch(() => undefined);
 const jourLong = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
 
@@ -116,7 +118,7 @@ export function VueVoyage({ course, depart, onRetour, entete }: {
             <View style={{ backgroundColor: C.descenteClair, borderRadius: 14, padding: 12, gap: 4 }}>
               <Text style={[S.fort, { color: C.descenteFonce }]}>{train.gareDepart} → {train.gareArrivee}, sans changement</Text>
               <Text style={[S.fort, { color: C.descenteFonce, fontSize: 18 }]}>
-                {euros(train.prixMin)} à {euros(train.prixMax)} par trajet · aller-retour {euros(train.prixMin * 2)} à {euros(train.prixMax * 2)}
+                {prix(train.prixMin)} à {prix(train.prixMax)} par trajet · aller-retour {prix(train.prixMin * 2)} à {prix(train.prixMax * 2)}
               </Text>
               <Text style={S.petit}>
                 {train.transporteurs.join(", ")} · plein tarif 2de classe : le prix bas en réservant tôt ou en heure creuse, le haut
