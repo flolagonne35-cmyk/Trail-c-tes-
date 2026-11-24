@@ -31,3 +31,10 @@ test("gares proches", () => {
   const g = garesProches([["1", "Rennes", 48.1035, -1.6722], ["2", "Laval", 48.0763, -0.7614]], { lat: 48.11, lon: -1.68 }, 40000);
   assert.deepEqual(g.map((x) => x.nom), ["Rennes"]);
 });
+
+test("deux TGV accrochés : une seule ligne", () => {
+  const a: Passage[] = [[0, 0, 455, 455, 0, 1, "8602"], [1, 0, 455, 455, 0, 1, "8702"]];
+  const b: Passage[] = [[0, 4, 551, 551, 0, 1, "8602"], [1, 4, 551, 551, 0, 1, "8702"]];
+  const t = trainsDirects(S, "2026-11-28", [{ nom: "Rennes", d: 0, passages: a }], [{ nom: "Paris", d: 0, passages: b }]);
+  assert.deepEqual(t.map((x) => x.numero), ["8602/8702"]);
+});

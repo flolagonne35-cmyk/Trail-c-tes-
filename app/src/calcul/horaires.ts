@@ -74,7 +74,17 @@ export function trainsDirects(s: Services, jourIso: string,
       }
     }
   }
-  return [...res.values()].sort((x, y) => x.depart - y.depart);
+  // deux TGV accrochés l'un à l'autre (« en unités multiples ») ont deux numéros et les mêmes heures :
+  // une seule ligne, « 8602/8702 »
+  const fusion = new Map<string, TrainDirect>();
+  for (const t of res.values()) {
+    const cle = `${t.depart}-${t.arrivee}-${t.gareDepart}-${t.gareArrivee}`;
+    const avant = fusion.get(cle);
+    if (avant) {
+      if (!avant.numero.split("/").includes(t.numero)) avant.numero = [avant.numero, t.numero].sort().join("/");
+    } else fusion.set(cle, { ...t });
+  }
+  return [...fusion.values()].sort((x, y) => x.depart - y.depart);
 }
 
 /** « 7 h 05 » */
