@@ -11,7 +11,9 @@ export const LISSAGE_M = 30;
 export type Altitudes = (lat: number[], lon: number[], onProgres?: Progression) => Promise<(number | null)[]>;
 
 export async function analyserGpx(texte: string, options: { altitudes?: Altitudes | null; onProgres?: Progression;
-                                                               nom?: string } = {}): Promise<Parcours> {
+                                                               nom?: string;
+                                                               /** pas des altitudes demandées à l'IGN (m) : 10 par défaut ; 50 pour un aperçu rapide */
+                                                               pasIgn?: number } = {}): Promise<Parcours> {
   const trace = lireGpx(texte, options.nom);
   const lat0 = trace.lat.reduce((a, b) => a + b, 0) / trace.lat.length;
   const lon0 = trace.lon.reduce((a, b) => a + b, 0) / trace.lon.length;
@@ -37,8 +39,14 @@ export async function analyserGpx(texte: string, options: { altitudes?: Altitude
   const altitudes = options.altitudes === undefined ? altitudesIgn : options.altitudes;
   if (altitudes) {
     try {
-      const pts = r.x.map((px, i) => proj.latlon(px, r.y[i]));
-      const zIgn = await altitudes(pts.map((p) => p.lat), pts.map((p) => p.lon), options.onProgres);
+      // un point sur k (k = pasIgn / 10 m) est demandé à l'IGN, les autres sont interpolés
+      const k = Math.max(1, Math.round((options.pasIgn ?? PAS_M) / PAS_M));
+      const indices = r.d.map((_, i) => i).filter((i) => i % k === 0 || i === r.d.length - 1);
+      const pts = indices.map((i) => proj.latlon(r.x[i], r.y[i]));
+      const zPeu = await altitudes(pts.map((p) => p.lat), pts.map((p) => p.lon), options.onProgres);
+      const dPeu = indices.map((i) => r.d[i]);
+      const zPlein = boucher(dPeu, zPeu);
+      const zIgn = k === 1 ? zPeu : zPlein ? r.d.map((s) => interp(s, dPeu, zPlein)) : zPeu;
       if (zIgn.filter((v) => v === null).length / zIgn.length <= 0.05) {
         zBrut = zIgn;
         source = "IGN RGE ALTI";

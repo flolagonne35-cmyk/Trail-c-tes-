@@ -1,7 +1,7 @@
 // Onglet « Côtes » : un point de départ (ma position, une ville, une adresse), un résumé des filtres,
 // puis la carte ou la liste des côtes les plus proches (toute la France, chargée autour du départ).
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, type ScrollViewInstance, Text, useWindowDimensions, View } from "react-native";
 
 import {
@@ -125,6 +125,9 @@ function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; 
   );
 }
 
+/** Tracés dessinés au plus sur la carte : au-delà, la carte devient illisible et lente. */
+const CARTE_MAX = 300;
+
 export function HorsZone({ depart, distance, chargement }: { depart: PointDepart; distance: number; chargement: boolean }) {
   if (estInconnu(depart)) {
     return (
@@ -185,15 +188,23 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
   const couverture = useMemo(() => distanceCouverture(toutes, position), [toutes, position]);
   const horsZone = estInconnu(depart) || couverture > RAYON_COUVERTURE_M;
   // toutes les côtes qui correspondent, puis les « meilleures » selon le tri et le nombre choisis
-  const trouvees = useMemo(() => cotesProches(base, position, filtres), [base, position, filtres]);
+  // calcul différé : quand on demande des milliers de côtes, l'écran reste réactif et affiche « Calcul… »
+  const filtresCalcul = useDeferredValue(filtres);
+  const enCalcul = filtresCalcul !== filtres;
+  const trouvees = useMemo(() => cotesProches(base, position, filtresCalcul), [base, position, filtresCalcul]);
   const total = trouvees.length;
-  const cotes = useMemo(() => meilleures(trouvees, filtres), [trouvees, filtres]);
+  const cotes = useMemo(() => meilleures(trouvees, filtresCalcul), [trouvees, filtresCalcul]);
+  // retour du 24/11 (« j'ai demandé les 10 000 côtes, ça a bugué ») : la liste se déroule par 30 et la
+  // carte en trace 300 au plus ; dessiner des milliers de cartes et de tracés d'un coup bloquait la page
+  const [nbListe, setNbListe] = useState(30);
+  useEffect(() => { setNbListe(30); }, [filtresCalcul, position]);
   // aucune côte dans le rayon : on montre quand même les plus proches
   const auDela = useMemo(
     () => (cotes.length || horsZone ? [] : cotesProches(base, position, { ...filtres, rayonM: Infinity }).slice(0, 5)),
     [cotes, base, position, filtres, horsZone],
   );
   const affichees = cotes.length ? cotes : auDela;
+  const surCarte = affichees.slice(0, CARTE_MAX);
   const nbFiltres = Number(filtres.penteMin !== FILTRES_DEFAUT.penteMin || filtres.penteMax !== undefined)
     + Number(filtres.rayonM !== FILTRES_DEFAUT.rayonM) + Number(filtres.types.length !== FILTRES_DEFAUT.types.length)
     + Number(filtres.longueurMin !== undefined || filtres.longueurMax !== undefined)
@@ -227,8 +238,8 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
     <Carte hauteur={largeEcran ? 480 : 300} centre={position} position={position} legende={LEGENDE}
            rayonM={cotes.length ? filtres.rayonM : undefined}
            zoom={zoomAjuste([position, ...affichees.slice(0, 10).map((c) => ({ lat: c.lat, lon: c.lon }))], 360, 380, 11, 16)}
-           cle={`${position.lat},${position.lon},${affichees.map((c) => c.id).join("-")}`}
-           traces={affichees.map((c) => ({ id: c.id, couleur: couleurPente(c.pente_moy_pct),
+           cle={`${position.lat},${position.lon},${affichees.length},${surCarte.slice(0, 40).map((c) => c.id).join("-")}`}
+           traces={surCarte.map((c) => ({ id: c.id, couleur: couleurPente(c.pente_moy_pct),
                                            points: c.geometrie.map(([lon, lat]) => ({ lat, lon })) }))}
            marqueurs={[...affichees.slice(0, 15).map((c, i): Marqueur => ({
              id: String(c.id), position: { lat: c.lat, lon: c.lon }, texte: String(i + 1),
@@ -308,12 +319,25 @@ export function EcranCotes({ toutes, depart, localisation, filtres, setFiltres, 
                     Rien à moins de {filtres.rayonM / 1000} km avec ces filtres : voici les plus proches.
                   </Text>
                 )}
-                <View style={{ gap: 12, marginTop: 16 }}>
-                  {affichees.map((c, i) => (
+                {enCalcul && (
+                  <View style={{ flexDirection: "row", gap: 8, alignItems: "center", marginTop: 14 }}>
+                    <ActivityIndicator color={C.montee} /><Text style={S.petit}>Calcul des côtes…</Text>
+                  </View>
+                )}
+                {vue === "carte" && affichees.length > CARTE_MAX && (
+                  <Text style={[S.petit, { marginTop: 10 }]}>La carte montre les {CARTE_MAX} premières selon le tri ; la liste les contient toutes.</Text>
+                )}
+                <View style={{ gap: 12, marginTop: 16, opacity: enCalcul ? 0.5 : 1 }}>
+                  {affichees.slice(0, nbListe).map((c, i) => (
                     <LigneCote key={c.id} c={c} rang={i + 1} position={position} allurePlat={allurePlat} ici={ici}
                                adresse={c.adresse || adresses[c.id]} onPress={() => onChoisir(c, i + 1)} />
                   ))}
                 </View>
+                {affichees.length > nbListe && (
+                  <Pressable onPress={() => setNbListe(nbListe + 30)} accessibilityRole="button" style={[S.boutonClair, { marginTop: 14 }]}>
+                    <Text style={S.boutonClairTexte}>Voir 30 {mot}s de plus ({nombre(affichees.length - nbListe)} restantes)</Text>
+                  </Pressable>
+                )}
                 {vue === "carte" && <CarteHorsLigne centre={position} nom={depart.nom === "Ma position" ? "ta position" : depart.nom} />}
               </>
             )}

@@ -114,7 +114,7 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
   const horsZone = mode !== "progres" && (estInconnu(depart) || couverture > RAYON_COUVERTURE_M);
   return (
     <ScrollView style={S.ecran} contentContainerStyle={S.contenu} keyboardShouldPersistTaps="handled">
-      {mode !== "progres" && (
+      {mode !== "progres" && (mode !== "boucle" || horsZone) && (
         <View>
           <BarreDepart titre={mode === "boucle" ? "Départ et arrivée" : "Séance autour de"} depart={depart} localisation={localisation}
                        onRecherche={onRecherche} onLocaliser={onLocaliser} />
@@ -131,7 +131,8 @@ export function EcranEntrainement({ mode, toutes, depart, localisation, onRecher
       ) : mode === "boucle" ? (
         <>
           <VueBoucle key={demandeSortie?.n ?? 0} preset={demandeSortie ?? undefined} toutes={toutes} position={position}
-                     nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele} />
+                     nomDepart={depart.nom} allurePlat={allurePlat} onChoisir={onChoisir} modele={modele}
+                     depart={depart} localisation={localisation} onRecherche={onRecherche} onLocaliser={onLocaliser} />
           {onSecurite && (
             <Pressable onPress={onSecurite} accessibilityRole="button" style={[S.ligne, { marginTop: 28 }]}>
               <View style={{ flex: 1 }}>

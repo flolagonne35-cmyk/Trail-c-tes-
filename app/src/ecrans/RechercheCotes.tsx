@@ -10,6 +10,7 @@ import { Pressable, Text, View } from "react-native";
 import { cotesProches, TRIS, TRIS_PROPOSES, type Cote, type Filtres, type Sol, type TypeVoie } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
 import { nombre, Segments } from "../composants/communs.tsx";
+import { ChampNombre } from "../composants/Champs.tsx";
 import { indiceDe, Plage } from "../composants/Plage.tsx";
 import { C, OMBRE, RUBRIQUES, S } from "../theme.ts";
 
@@ -176,6 +177,11 @@ export function RechercheCotes({ filtres, toutes, position, mot, ici, onValider 
                raccourcis={[{ nom: "2 km", bas: 0, haut: 2 }, { nom: "5 km", bas: 0, haut: 5 },
                             { nom: "10 km", bas: 0, haut: 10 }, { nom: "25 km", bas: 0, haut: 25 }]}
                aide="À vol d'oiseau. 2 km : en footing depuis chez toi ; 10 km et plus : en voiture ou à vélo." />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Text style={S.petit}>Ou écris la distance :</Text>
+            <ChampNombre valeur={f.rayonM / 1000} onChange={(v) => v && v > 0 && setF({ ...f, rayonM: Math.min(100, v) * 1000 })}
+                         unite="km (100 au plus)" etiquette="Rayon de recherche des côtes en km" />
+          </View>
         </Bloc>
         <Bloc>
         <Plage accent={accent} etiquette={mot === "descente" ? "Pente moyenne (en descente)" : "Pente moyenne"} valeurs={ECH_PENTE}

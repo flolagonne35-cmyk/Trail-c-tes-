@@ -24,6 +24,12 @@ import { pointsEauAutour } from "../pointsEau.ts";
 import { grapheAutour } from "../reseauZones.ts";
 import { C, OMBRE, RUBRIQUES, S } from "../theme.ts";
 import { Repli } from "./RechercheCotes.tsx";
+import { BarreDepart, type Localisation, type PointDepart } from "../composants/BarreDepart.tsx";
+import { adresseDe } from "../calcul/geoservices.ts";
+import { analyserGpx } from "../calcul/parcours.ts";
+import type { Parcours } from "../calcul/profil.ts";
+import { ProfilParcours } from "../composants/graphiques.tsx";
+import { exporterPdf, pageHtml, profilSvg, tableau } from "../pdf.ts";
 
 /** Combien de parcours proposer : 3 pour choisir vite, 10 pour varier ses sorties. */
 const NOMBRES: [string, string][] = [["3", "3"], ["5", "5"], ["10", "10"]];
@@ -66,10 +72,19 @@ function exporter(b: Boucle, i: number, eau: EauSurParcours[]) {
   return partagerFichier(`boucle-${i + 1}.gpx`, ecrireGpx(nom, pointsBoucle(b), reperes));
 }
 
-export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, modele, preset }: {
+export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, modele, preset, depart, localisation, onRecherche, onLocaliser }: {
   toutes: Cote[]; position: Position; nomDepart: string; allurePlat: number; onChoisir: (c: CoteProche, rang: number) => void;
   modele: Modele | null; preset?: { km: number; relief: "plat" | "vallonne" | "cotes"; dplus_m?: number };
+  depart: PointDepart; localisation: Localisation; onRecherche: () => void; onLocaliser: () => void;
 }) {
+  // adresse exacte du départ (géocodage inverse IGN), affichée et reprise dans le PDF
+  const [adresseDepart, setAdresseDepart] = useState<string | null>(null);
+  useEffect(() => {
+    let actif = true;
+    setAdresseDepart(null);
+    adresseDe(position).then((a) => { if (actif) setAdresseDepart(a); });
+    return () => { actif = false; };
+  }, [position.lat, position.lon]); // eslint-disable-line react-hooks/exhaustive-deps
   // une sortie du plan d'entraînement arrive avec sa distance et son relief
   const [objectif, setObjectif] = useState<"duree" | "distance">(preset ? "distance" : "duree");
   const [heures, setHeures] = useState(1.25);
@@ -140,6 +155,32 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
     pointsEauAutour(trace).then((p) => { if (actif) setEau(eauSurParcours(p, trace)); });
     return () => { actif = false; };
   }, [cleBoucle]); // eslint-disable-line react-hooks/exhaustive-deps
+  // profil d'altitude de la boucle affichée (altitudes IGN tous les 50 m, montées décrites)
+  const [profil, setProfil] = useState<Parcours | null | undefined>(undefined);
+  useEffect(() => {
+    if (!b) return;
+    let actif = true;
+    setProfil(undefined);
+    analyserGpx(ecrireGpx("Boucle", pointsBoucle(b)), { pasIgn: 50, nom: "Boucle" })
+      .then((p) => { if (actif) setProfil(p); }).catch(() => { if (actif) setProfil(null); });
+    return () => { actif = false; };
+  }, [cleBoucle]); // eslint-disable-line react-hooks/exhaustive-deps
+  const montees = profil ? profil.segments.filter((x) => x.type === "montée") : [];
+  const exporterBouclePdf = () => {
+    if (!b) return;
+    const corps = `<div class="chiffres"><div>Distance<b>${nombre(b.distance_m / 1000, 1)} km</b></div><div>D+<b>${nombre(profil?.dplus_m ?? b.dplus_m)} m</b></div>`
+      + `<div>Durée estimée<b>≈ ${dureeLisible(minutes)}</b></div>${profil ? `<div>Altitude<b>${profil.alt_min_m} à ${profil.alt_max_m} m</b></div>` : ""}</div>`
+      + `<h2>Départ et arrivée</h2><p>${adresseDepart ?? nomDepart} (${position.lat.toFixed(5)}, ${position.lon.toFixed(5)})</p>`
+      + (profil ? `<h2>Profil d'altitude</h2>${profilSvg(profil.profil.d_km, profil.profil.z_m)}` : "")
+      + (profil?.segments.length ? `<h2>Le parcours, section par section</h2>${tableau(["Km", "Section", "Distance", "Pente moy.", "Altitude", "D+ / D−"],
+          profil.segments.map((x) => [`${nombre(x.km_debut, 1)} → ${nombre(x.km_fin, 1)}`, x.type, `${nombre(x.distance_km, 2)} km`,
+                                      `${nombre(x.pente_moy_pct, 1)} %`, `${x.alt_debut_m} → ${x.alt_fin_m} m`, `+${x.dplus_m} / −${x.dmoins_m} m`]))}` : "")
+      + (b.cotes.length ? `<h2>Côtes</h2>${tableau(["N°", "Longueur", "Pente", "D+"], b.cotes.map((c, i) => [i + 1, `${nombre(c.longueur_m)} m`, `${nombre(c.pente_moy_pct, 1)} %`, `+${nombre(c.dplus_m)} m`]))}` : "")
+      + (eau?.length ? `<h2>Points d'eau</h2>${tableau(["Km", "Point d'eau"], eau.map((e) => [nombre(e.km, 1), libelleEau(e)]))}` : "")
+      + `<p class="pied">Réseau BD TOPO et altitudes RGE ALTI de l'IGN ; points d'eau © contributeurs OpenStreetMap (ODbL). Le GPX de la boucle s'exporte à part pour la montre.</p>`;
+    exporterPdf(pageHtml(`Boucle de ${nombre(b.distance_m / 1000, 1)} km depuis ${nomDepart}`, `${b.cotes.length ? `${b.cotes.length} côte(s) · ` : ""}${Math.round((1 - b.partRoute) * 100)} % de chemins`, corps),
+                `boucle-${choix + 1}.pdf`);
+  };
   // temps : allure du plat sur la distance, + 1 min par 10 m de D+ (règle des « km-effort » : 100 m de D+ ≈ 1 km)
   const minutes = b ? (b.distance_m / 1000 + b.dplus_m / 100) * allureMinKm : 0;
 
@@ -156,8 +197,9 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
         </Pressable>
       ) : (<>
       <Etape n={1} titre="D'où pars-tu ?">
-        <Text style={S.texte}>{nomDepart}</Text>
-        <Text style={S.petit}>Départ et arrivée au même endroit (ta porte, ta voiture). Pour partir d'ailleurs, cherche un lieu dans la barre de recherche en haut d'Explorer.</Text>
+        <BarreDepart titre="Départ et arrivée" depart={depart} localisation={localisation} onRecherche={onRecherche} onLocaliser={onLocaliser} />
+        {adresseDepart && <Text style={[S.texte, { fontWeight: "600" }]}>📍 {adresseDepart}</Text>}
+        <Text style={S.petit}>Touche la barre pour écrire une ville, un code postal ou une adresse précise (ta porte, un parking), ou le bouton de position. Départ et arrivée au même endroit.</Text>
       </Etape>
       <Etape n={2} titre="Combien de temps, ou combien de km ?">
         <Segments options={[["duree", "Une durée"], ["distance", "Une distance"]]} valeur={objectif} onChange={setObjectif} />
@@ -259,6 +301,24 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
                  ]} />
           <Tuiles valeurs={[["Distance", `${nombre(b.distance_m / 1000, 1)} km`], ["D+", `${nombre(b.dplus_m)} m`],
                             ["Durée*", `≈ ${dureeLisible(minutes)}`]]} />
+          <View style={[S.carte, { marginTop: 0, gap: 10 }]}>
+            <Text style={S.fort}>Profil d'altitude</Text>
+            {profil === undefined && <View style={{ flexDirection: "row", gap: 8 }}><ActivityIndicator color={C.encre} /><Text style={S.petit}>Altitudes IGN du tracé…</Text></View>}
+            {profil === null && <Text style={S.petit}>Profil indisponible sans connexion (les altitudes viennent de l'IGN).</Text>}
+            {profil && (
+              <>
+                <ProfilParcours parcours={profil} />
+                <Text style={S.petit}>De {profil.alt_min_m} à {profil.alt_max_m} m d'altitude · +{nombre(profil.dplus_m)} m / −{nombre(profil.dmoins_m)} m (altitudes IGN, lissées).</Text>
+                {montees.length > 0 && <Text style={[S.fort, { fontSize: 15, marginTop: 4 }]}>Les montées</Text>}
+                {montees.map((m) => (
+                  <Text key={m.n} style={S.petit}>
+                    <Text style={{ fontWeight: "700", color: C.encre }}>km {nombre(m.km_debut, 1)} : {nombre(m.distance_km, m.distance_km < 1 ? 2 : 1)} km à {nombre(m.pente_moy_pct, 1)} %</Text>
+                    {" "}de {m.alt_debut_m} à {m.alt_fin_m} m (+{nombre(m.dplus_m)} m){m.pente_max_pct >= 15 ? `, passages à ${Math.round(m.pente_max_pct)} %` : ""}
+                  </Text>
+                ))}
+              </>
+            )}
+          </View>
           {Math.abs(b.ecartDistance) > 0.1 && (
             <Text style={S.petit}>
               {b.ecartDistance < 0 ? "Un peu plus courte" : "Un peu plus longue"} que demandé : c'est la plus proche avec ces côtes.
@@ -314,6 +374,9 @@ export function VueBoucle({ toutes, position, nomDepart, allurePlat, onChoisir, 
           </View>
           <Pressable onPress={() => exporter(b, choix, eau ?? [])} accessibilityRole="button" style={S.bouton}>
             <Text style={S.boutonTexte}>Envoyer à ma montre (GPX)</Text>
+          </Pressable>
+          <Pressable onPress={exporterBouclePdf} accessibilityRole="button" style={S.boutonClair}>
+            <Text style={S.boutonClairTexte}>Fiche PDF (profil, sections, côtes, points d'eau)</Text>
           </Pressable>
           <Text style={S.petit}>
             * À {Math.floor(allureMinKm)}:{String(Math.round((allureMinKm % 1) * 60)).padStart(2, "0")} /km sur le plat, 100 m de D+ comptant

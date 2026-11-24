@@ -1,7 +1,7 @@
 // Écran « Détail d'une côte » : chiffres, profil, pente tous les 50 m, itinéraire et export GPX.
 
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 
 import { dureeMontee, kmLisibles, murDe, NOMS_TRAFIC, type CoteProche } from "../calcul/cotes.ts";
 import type { Position } from "../calcul/geo.ts";
@@ -14,16 +14,12 @@ import { Ajusteur, EnTete, nombre, Tuiles } from "../composants/communs.tsx";
 import { BarresPentes, ProfilCote } from "../composants/graphiques.tsx";
 import { Carte, couleurPente } from "../composants/Carte.tsx";
 import { centreDe, zoomAjuste } from "../calcul/tuiles.ts";
+import { YAller } from "../composants/YAller.tsx";
 import { partagerFichier } from "../fichiers.ts";
 import { C, S } from "../theme.ts";
 
 const SEUIL_RAIDE = 12;
 
-function urlItineraire(lat: number, lon: number) {
-  if (Platform.OS === "ios") return `maps://?daddr=${lat},${lon}&dirflg=w`;
-  if (Platform.OS === "android") return `geo:${lat},${lon}?q=${lat},${lon}`;
-  return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=%3B${lat}%2C${lon}`;
-}
 
 function MesPassages({ passages, dplus }: { passages: PassageDate[]; dplus: number }) {
   const chrono = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -64,12 +60,16 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour,
 }) {
   const pied = { lat: cote.lat, lon: cote.lon };
   const trace = cote.geometrie.length ? cote.geometrie.map(([lon, lat]) => ({ lat, lon })) : [pied];
+  const sommet = trace[trace.length - 1];
   const [adresse, setAdresse] = useState<string | null | undefined>(cote.adresse || undefined);
+  const [adresseFin, setAdresseFin] = useState<string | null | undefined>(undefined);
+  const z = cote.profil.z;
   const [trajets, setTrajets] = useState<TempsTrajet[]>(() => tempsTrajets(depart, pied, allurePlat));
   const [calcul, setCalcul] = useState(true);
   useEffect(() => {
     let actif = true;
     if (!cote.adresse) adresseDe(pied).then((a) => actif && setAdresse(a));
+    adresseDe(sommet).then((a) => actif && setAdresseFin(a));
     Promise.all([itineraire(depart, pied, "car"), itineraire(depart, pied, "pedestrian")])
       .then(([voiture, pieton]) => { if (actif) setTrajets(tempsTrajets(depart, pied, allurePlat, voiture, pieton)); })
       .finally(() => actif && setCalcul(false));
@@ -124,12 +124,23 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour,
                ]} />
       </View>
 
-      <View style={[S.carte, { gap: 6 }]}>
-        <Text style={[S.surtitre, { fontSize: 12 }]}>{descente ? "Départ, en haut" : "Départ, au pied"}</Text>
-        <Text style={S.fort} selectable>
-          {adresse === undefined ? "Recherche de l'adresse…" : adresse ?? "Adresse introuvable"}
-        </Text>
-        <Text style={S.petit} selectable>GPS : {cote.lat.toFixed(5)}, {cote.lon.toFixed(5)}</Text>
+      {/* retour du 24/11 : « j'ai du mal à savoir où je dois me rendre » : départ et arrivée, chacun avec
+          sa rue, son altitude et ses coordonnées, et la lettre de la carte */}
+      <View style={[S.carte, { gap: 12 }]}>
+        {[["D", C.descente, descente ? "Départ, en haut" : "Départ, au pied", adresse, trace[0], z[0]],
+          ["A", C.encre, descente ? "Arrivée, en bas" : "Arrivée, au sommet", adresseFin, sommet, z[z.length - 1]]].map(([lettre, couleur, titre, adr, p, alt]) => (
+          <View key={lettre as string} style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: couleur as string, alignItems: "center", justifyContent: "center" }}>
+              <Text style={{ color: C.blanc, fontWeight: "900" }}>{lettre as string}</Text>
+            </View>
+            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+              <Text style={[S.surtitre, { fontSize: 12 }]}>{titre as string}{typeof alt === "number" ? ` · ${nombre(Math.round(alt))} m d'altitude` : ""}</Text>
+              <Text style={S.fort} selectable>{adr === undefined ? "Recherche de l'adresse…" : (adr as string | null) ?? "Adresse introuvable"}</Text>
+              <Text style={S.petit} selectable>GPS : {(p as { lat: number }).lat.toFixed(5)}, {(p as { lon: number }).lon.toFixed(5)}</Text>
+            </View>
+          </View>
+        ))}
+        <YAller destination={pied} libelle={descente ? "Aller au départ (en haut)" : "Aller au pied de la côte"} />
         <Text style={[S.surtitre, { fontSize: 12, marginTop: 8 }]}>Pour y aller depuis {nomDepart}</Text>
         {trajets.map((t) => (
           <View key={t.mode} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 }}>
@@ -177,10 +188,6 @@ export function EcranDetail({ cote, rang, allurePlat, depart, nomDepart, retour,
       </View>
 
       <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-        <Pressable onPress={() => Linking.openURL(urlItineraire(cote.lat, cote.lon))} accessibilityRole="link"
-                   style={[S.bouton, { flex: 1 }]}>
-          <Text style={S.boutonTexte}>Y aller</Text>
-        </Pressable>
         <Pressable onPress={exporter} accessibilityRole="button" style={[S.boutonClair, { flex: 1 }]}>
           <Text style={S.boutonClairTexte}>Export GPX</Text>
         </Pressable>
