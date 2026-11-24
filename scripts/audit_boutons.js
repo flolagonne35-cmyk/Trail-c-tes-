@@ -37,7 +37,7 @@ const ECRANS = {
   "Détail d'une côte": async (p) => { await ECRANS["Explorer · Montées"](p); await p.getByRole("button", { name: /^Côte 1 :/ }).click(); },
   "Ma course · Trouver": async (p) => { await p.getByRole("tab", { name: "Ma course" }).click(); await p.waitForTimeout(800); },
   "Ma course · Fiche": async (p) => {
-    await ECRANS["Ma course · Trouver"](p); await p.getByRole("radio", { name: "Toute la France" }).click();
+    await ECRANS["Ma course · Trouver"](p); await p.getByRole("button", { name: "Toute la France" }).click();
     await p.getByRole("button", { name: /Ouvrir la fiche/ }).first().click(); await attendre(p, 1500);
   },
   "Ma course · Mes courses": async (p) => { await ECRANS["Ma course · Trouver"](p); await p.getByRole("button", { name: /^Mes courses de l'année/ }).click(); },
