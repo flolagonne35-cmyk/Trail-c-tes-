@@ -1,0 +1,49 @@
+name: Prix des trains (données ouvertes SNCF)
+
+# Tarifs TGV INOUI, OUIGO et Intercités et gares de voyageurs (SNCF Voyageurs, ODbL), sans clé.
+# La SNCF les met à jour environ une fois par an : un passage par mois suffit.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/tarifs_train.py"
+      - ".github/workflows/trains.yml"
+  schedule:
+    - cron: "41 4 3 * *" # le 3 de chaque mois, 4 h 41 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  trains:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python scripts/tarifs_train.py
+      - name: Résumé
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY" || true
+          import json
+          r = json.load(open("resultats/trains/rapport.json"))
+          print(f"## Trains : {r['statut']}, {r.get('gares')} gares, {r.get('trajets')} trajets, {r.get('taille_ko')} Ko")
+          PY
+      - name: Enregistrer
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resultats/trains app/public/trains 2>/dev/null || git add resultats/trains
+          git diff --cached --quiet && exit 0
+          git commit -m "Prix des trains SNCF (run ${{ github.run_id }})"
+          for i in 1 2 3 4; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          exit 1

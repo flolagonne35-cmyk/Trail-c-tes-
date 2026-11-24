@@ -13,6 +13,8 @@ import { dureeLisible } from "../calcul/trajets.ts";
 import { coutVoiture, liens, NOMS_CARBURANT, NOMS_LOGEMENT, veille, type Carburant, type Carburants, type Gare, type Logement } from "../calcul/voyage.ts";
 import type { PointDepart } from "../composants/BarreDepart.tsx";
 import { Ajusteur, nombre, Section, Segments } from "../composants/communs.tsx";
+import { trainDirect, type OffreTrain } from "../calcul/train.ts";
+import { chargerTarifs } from "../trains.ts";
 import { autourDeLaCourse } from "../voyage.ts";
 import { C, S } from "../theme.ts";
 
@@ -41,10 +43,13 @@ export function VueVoyage({ course, depart, onRetour, entete }: {
   const [carbu, setCarbu] = useState<Carburant>("gazole");
   const [conso, setConso] = useState(6.5);
   const [personnes, setPersonnes] = useState(1);
+  // train direct (TGV INOUI, OUIGO, Intercités) : undefined = en cours, null = pas de données (hors connexion)
+  const [train, setTrain] = useState<OffreTrain | null | undefined | "aucun">(undefined);
   useEffect(() => {
     let actif = true;
     itineraire(depart.position, arrivee, "car").then((t) => { if (actif) setTrajet(t); });
     autourDeLaCourse(arrivee).then((a) => { if (actif) setAutour(a); });
+    chargerTarifs().then((t) => { if (actif) setTrain(t ? trainDirect(t, depart.position, arrivee) ?? "aucun" : null); });
     return () => { actif = false; };
   }, [course.id, depart.position.lat, depart.position.lon]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -106,7 +111,31 @@ export function VueVoyage({ course, depart, onRetour, entete }: {
           {autour === undefined ? <Text style={S.petit}>Recherche de la gare la plus proche…</Text>
             : gare ? <Text style={S.fort}>Gare la plus proche : {gare.nom}, à {kmLisibles(gare.distance_m)} du départ</Text>
             : <Text style={S.petit}>{autour === null ? "Gares indisponibles (pas de connexion)." : "Pas de gare à moins de 25 km : prévois une navette ou un covoiturage depuis la gare."}</Text>}
-          <Text style={S.petit}>Le prix du train dépend du jour de réservation : réserve tôt (les billets ouvrent environ 3 à 4 mois avant).</Text>
+          {train === undefined && <Text style={S.petit}>Recherche des trains directs…</Text>}
+          {train && train !== "aucun" && (
+            <View style={{ backgroundColor: C.descenteClair, borderRadius: 14, padding: 12, gap: 4 }}>
+              <Text style={[S.fort, { color: C.descenteFonce }]}>{train.gareDepart} → {train.gareArrivee}, sans changement</Text>
+              <Text style={[S.fort, { color: C.descenteFonce, fontSize: 18 }]}>
+                {euros(train.prixMin)} à {euros(train.prixMax)} par trajet · aller-retour {euros(train.prixMin * 2)} à {euros(train.prixMax * 2)}
+              </Text>
+              <Text style={S.petit}>
+                {train.transporteurs.join(", ")} · plein tarif 2de classe : le prix bas en réservant tôt ou en heure creuse, le haut
+                au dernier moment. Les cartes Avantage, Max Jeune et les promotions font souvent moins cher.
+              </Text>
+              <Text style={S.petit}>
+                Gare à {kmLisibles(train.accesDepart_m)} de {depart.gps ? "toi" : depart.nom.split(",")[0]} et à {kmLisibles(train.accesArrivee_m)} du
+                départ de la course (à vol d'oiseau).
+              </Text>
+            </View>
+          )}
+          {train === "aucun" && (
+            <Text style={S.petit}>
+              Pas de TGV ni d'Intercités direct entre les gares proches de chez toi et de la course : il faudra une correspondance
+              ou un TER (les prix des TER ne sont pas publiés en données ouvertes).
+            </Text>
+          )}
+          {train === null && <Text style={S.petit}>Prix des trains indisponibles sans connexion.</Text>}
+          <Text style={S.petit}>Réserve tôt : les billets ouvrent environ 3 à 4 mois avant, et les prix montent quand le train se remplit.</Text>
           <Lien texte="Horaires et prix sur SNCF Connect" url={l.train} />
         </View>
       </Section>
@@ -136,7 +165,8 @@ export function VueVoyage({ course, depart, onRetour, entete }: {
         </View>
       </Section>
       <Text style={[S.petit, { marginTop: 14 }]}>
-        Itinéraire IGN (Géoplateforme) · prix des carburants : flux officiel du ministère de l'Économie (Licence Ouverte) · liens sans affiliation.
+        Itinéraire IGN (Géoplateforme) · prix des carburants : flux officiel du ministère de l'Économie (Licence Ouverte) · prix des
+        trains : SNCF Voyageurs, données ouvertes (ODbL) · liens sans affiliation.
       </Text>
     </ScrollView>
   );
