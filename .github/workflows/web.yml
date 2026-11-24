@@ -8,6 +8,9 @@ name: Appli web en ligne (Cloudflare Pages)
 
 on:
   workflow_dispatch:
+  # chaque jour : horaires SNCF du jour (ils ne sont pas enregistrés dans le dépôt)
+  schedule:
+    - cron: "23 3 * * *"
   push:
     paths:
       - "app/**"
@@ -20,7 +23,7 @@ concurrency:
 jobs:
   web:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -61,6 +64,13 @@ jobs:
           mkdir -p dist/eau
           gh release download donnees-eau -p "eau.tar.gz" -D "$RUNNER_TEMP" && tar -xzf "$RUNNER_TEMP/eau.tar.gz" -C dist/eau || echo "pas encore de points d'eau"
           rm -f dist/eau/rapport_eau.json
+      - name: Horaires des trains SNCF (GTFS, ODbL), un fichier par gare
+        continue-on-error: true
+        run: |
+          pip install requests >/dev/null
+          python3 ../scripts/horaires_train.py --sortie dist/trains/horaires > "$RUNNER_TEMP/horaires.json"
+          head -c 4000 "$RUNNER_TEMP/horaires.json"
+          echo "fichiers publiés : $(find dist -type f | wc -l) (limite Cloudflare Pages : 20 000)"
       - name: Publier sur Cloudflare Pages
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: |
