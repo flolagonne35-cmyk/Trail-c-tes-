@@ -105,7 +105,7 @@ export function ChoixResultats({ f, setF, total, mot }: { f: Filtres; setF: (f: 
                    accessibilityLabel={`Ordre : ${sens}. Inverser`}
                    style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 12,
                             borderRadius: 18, backgroundColor: C.sable }}>
-          <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{croissant ? "↑" : "↓"}</Text>
+          <Text style={{ fontSize: 15, fontWeight: "800", color: C.encre }}>{croissant ? "↓" : "↑"}</Text>
           <Text style={{ fontSize: 13, fontWeight: "700", color: C.encre }}>{croissant ? "Croissant" : "Décroissant"}</Text>
         </Pressable>
       </View>

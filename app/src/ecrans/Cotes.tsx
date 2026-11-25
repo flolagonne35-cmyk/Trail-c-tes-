@@ -119,7 +119,8 @@ function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; 
               </Pressable>
               <Pressable onPress={() => inverser(k)} accessibilityRole="button" accessibilityLabel={`${nom} : ${t.croissant ? TRIS[k].croissant : TRIS[k].decroissant}. Inverser`}
                          style={{ minHeight: 40, paddingHorizontal: 10, justifyContent: "center", backgroundColor: "rgba(255,255,255,0.14)" }}>
-                <Text style={{ fontSize: 15, fontWeight: "900", color: C.fond }}>{t.croissant ? "↑" : "↓"}</Text>
+                {/* retour du 25/11 : flèche vers le haut = le plus grand d'abord (plus fort, plus long, plus raide, plus loin) */}
+                <Text style={{ fontSize: 13, fontWeight: "800", color: C.fond }}>{t.croissant ? "↓" : "↑"} {(t.croissant ? TRIS[k].croissant : TRIS[k].decroissant).replace(/^(la |le )/, "")}</Text>
               </Pressable>
             </View>
           );
@@ -127,7 +128,7 @@ function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; 
       </View>
       <Text style={S.petit}>
         {tris.length === 1 ? `${TRIS[tris[0].cle].nom} : ${tris[0].croissant ? TRIS[tris[0].cle].croissant : TRIS[tris[0].cle].decroissant}. Touche un autre critère pour l'ajouter.`
-          : `${tris.map((t) => `${TRIS[t.cle].nom.toLowerCase()} ${t.croissant ? "↑" : "↓"}`).join(" + ")} : les côtes les mieux classées sur tous ces critères à la fois passent devant. Touche un critère choisi pour le retirer, sa flèche pour inverser.`}
+          : `${tris.map((t) => `${TRIS[t.cle].nom.toLowerCase()} ${t.croissant ? "↓" : "↑"}`).join(" + ")} : les côtes les mieux classées sur tous ces critères à la fois passent devant. Touche un critère choisi pour le retirer, sa flèche pour inverser.`}
       </Text>
       {total > 3 && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
