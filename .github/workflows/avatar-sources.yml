@@ -1,0 +1,49 @@
+name: "Avatar : bibliothèque MakeHuman (CC0)"
+
+# Télécharge le pack « makehuman_system_assets » (licence CC0 : vêtements, chaussures, coiffures, sourcils,
+# cils, textures de peau) et range les éléments utiles dans la release « avatar-sources ». Le script
+# scripts/avatar_tenues.py les convertit ensuite pour l'appli (lancé à la main, une fois).
+# Source : https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/avatar-sources.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Téléchargement du pack (267 Mo)
+        run: |
+          for u in https://files.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip \
+                   https://files2.makehumancommunity.org/asset_packs/makehuman_system_assets/makehuman_system_assets_cc0.zip; do
+            curl -fsSL --retry 3 -o pack.zip "$u" && break
+          done
+          unzip -q pack.zip -d pack
+          find pack -maxdepth 3 -type d | head -50
+      - name: Inventaire et archive des éléments utiles
+        run: |
+          cd pack
+          RACINE=$(dirname "$(find . -type d -name clothes | head -1)")
+          echo "racine : $RACINE"
+          cd "$RACINE"
+          ls
+          find . -name "*.mhclo" | sort > ../../inventaire.txt
+          find . -path "./skins/*" -name "*.png" | sort >> ../../inventaire.txt
+          tar -czf ../../avatar-sources.tar.gz clothes hair eyebrows eyelashes skins 2>/dev/null || tar -czf ../../avatar-sources.tar.gz .
+          cd ../..
+          ls -la avatar-sources.tar.gz
+          head -200 inventaire.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: Release « avatar-sources »
+        run: |
+          gh release view avatar-sources >/dev/null 2>&1 || gh release create avatar-sources --title "Avatar : sources MakeHuman (CC0)" --notes "Pack makehuman_system_assets (CC0), éléments utiles à l'avatar."
+          gh release upload avatar-sources avatar-sources.tar.gz inventaire.txt --clobber
