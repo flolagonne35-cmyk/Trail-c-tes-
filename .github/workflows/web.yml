@@ -46,14 +46,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p dist/cotes
-          gh release download donnees-cotes -p "cotes_*.json" -D dist/cotes || echo "pas encore de côtes par département"
+          # 25/11 : un téléchargement refusé (limite de requêtes GitHub) a publié un site SANS côtes.
+          # On réessaie, puis on arrête la publication plutôt que de mettre en ligne un site vide.
+          for i in 1 2 3 4; do
+            gh release download donnees-cotes -p "cotes_*.json" -D dist/cotes --clobber && break
+            echo "téléchargement des côtes refusé (essai $i), nouvel essai dans $((i * 60)) s"; sleep $((i * 60))
+          done
+          n=$(ls dist/cotes/cotes_*.json 2>/dev/null | wc -l)
+          echo "$n fichiers de côtes"
+          if [ "$n" -lt 300 ]; then echo "::error::Côtes incomplètes ($n fichiers) : publication annulée pour ne pas mettre en ligne un site sans côtes."; exit 1; fi
           python3 ../scripts/index_departements.py dist/cotes
       - name: Réseau des boucles par blocs (release « donnees-reseau », remplie par le workflow « Réseau des boucles (France) »)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/res" dist/reseau
-          gh release download donnees-reseau -p "reseau_*.tar.gz" -D "$RUNNER_TEMP/res" || echo "pas encore de réseau France"
+          for i in 1 2 3 4; do
+            gh release download donnees-reseau -p "reseau_*.tar.gz" -D "$RUNNER_TEMP/res" --clobber && break
+            echo "téléchargement du réseau refusé (essai $i)"; sleep $((i * 60))
+          done
+          [ "$(ls "$RUNNER_TEMP"/res/reseau_*.tar.gz 2>/dev/null | wc -l)" -gt 0 ] || { echo "::error::Réseau des boucles absent : publication annulée."; exit 1; }
           for f in "$RUNNER_TEMP"/res/reseau_*.tar.gz; do [ -e "$f" ] && tar -xzf "$f" -C dist/reseau; done
           python3 ../scripts/index_reseau_france.py dist/reseau
           echo "fichiers publiés : $(find dist -type f | wc -l) (limite Cloudflare Pages : 20 000)"
