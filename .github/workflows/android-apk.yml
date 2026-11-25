@@ -60,5 +60,6 @@ jobs:
           cp "${{ steps.v.outputs.nom }}.apk" trail-cotes.apk  # (on est déjà dans app/)
           gh release view apk >/dev/null 2>&1 || gh release create apk --target "$GITHUB_SHA" --title "Appli Android de test" \
             --notes "Sur le téléphone Android : télécharger trail-cotes.apk, l'ouvrir et autoriser l'installation depuis le navigateur."
-          gh release upload apk trail-cotes.apk --clobber
+          # réessais : la limite de requêtes GitHub peut refuser l'envoi un moment (constaté le 25/11)
+          for i in 1 2 3 4; do gh release upload apk trail-cotes.apk --clobber && break; echo "envoi refusé (essai $i)"; sleep $((i * 60)); done
           gh release edit apk --notes "Version ${{ steps.v.outputs.nom }} (commit ${GITHUB_SHA::7}). Sur le téléphone Android : télécharger trail-cotes.apk, l'ouvrir et autoriser l'installation depuis le navigateur."
