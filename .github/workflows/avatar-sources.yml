@@ -32,17 +32,15 @@ jobs:
           find pack -maxdepth 3 -type d | head -50
       - name: Inventaire et archive des éléments utiles
         run: |
-          cd pack
-          RACINE=$(dirname "$(find . -type d -name clothes | head -1)")
+          RACINE=$(dirname "$(find pack -type d -name clothes | head -1)")
           echo "racine : $RACINE"
           cd "$RACINE"
-          ls
-          find . -name "*.mhclo" | sort > ../../inventaire.txt
-          find . -path "./skins/*" -name "*.png" | sort >> ../../inventaire.txt
-          tar -czf ../../avatar-sources.tar.gz clothes hair eyebrows eyelashes skins 2>/dev/null || tar -czf ../../avatar-sources.tar.gz .
-          cd ../..
-          ls -la avatar-sources.tar.gz
-          head -200 inventaire.txt >> "$GITHUB_STEP_SUMMARY"
+          find . -name "*.mhclo" | sort > "$GITHUB_WORKSPACE/inventaire.txt"
+          find skins -maxdepth 2 | sort >> "$GITHUB_WORKSPACE/inventaire.txt"
+          # vêtements, coiffures, sourcils, cils, et les peaux « jeunes » (les autres âges ne servent pas)
+          tar -czf "$GITHUB_WORKSPACE/avatar-sources.tar.gz" clothes hair eyebrows eyelashes $(ls -d skins/young_* skins/*.mhmat 2>/dev/null)
+          ls -la "$GITHUB_WORKSPACE/avatar-sources.tar.gz"
+          head -200 "$GITHUB_WORKSPACE/inventaire.txt" >> "$GITHUB_STEP_SUMMARY"
       - name: Release « avatar-sources »
         run: |
           gh release view avatar-sources >/dev/null 2>&1 || gh release create avatar-sources --title "Avatar : sources MakeHuman (CC0)" --notes "Pack makehuman_system_assets (CC0), éléments utiles à l'avatar."
