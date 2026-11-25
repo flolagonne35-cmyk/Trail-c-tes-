@@ -82,7 +82,7 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
 }) {
   const [prenom, setPrenom] = useState(prenomInitial);
   const [c, setC] = useState<Corps>(corpsInitial);
-  const [pose, setPose] = useState<Pose>("course");
+  const [pose, setPose] = useState<Pose>("debout");
   const maj = (p: Partial<Corps>) => setC({ ...c, ...p });
   const { width } = useWindowDimensions();
   const large = width >= 900;
@@ -96,7 +96,7 @@ export function EditeurCoureur({ prenomInitial, corpsInitial, achats, titre, act
       </View>
       {/* en course pour voir la tenue en mouvement ; debout pour bien voir la silhouette */}
       <View style={{ position: "absolute", right: 12, bottom: 10, width: 200 }}>
-        <Segments options={[["course", "En course"], ["debout", "Debout"]] as [Pose, string][]} valeur={pose} onChange={setPose} />
+        <Segments options={[["debout", "Debout"], ["course", "En course"]] as [Pose, string][]} valeur={pose} onChange={setPose} />
       </View>
     </View>
   );
