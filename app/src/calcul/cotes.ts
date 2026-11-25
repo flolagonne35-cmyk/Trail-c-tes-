@@ -44,7 +44,10 @@ export type Filtres = {
   eviterPassant?: boolean;
   // présentation des résultats : ordre, et combien en montrer (absent = toutes)
   tri?: CleTri; croissant?: boolean; nombre?: number;
+  /** plusieurs critères à la fois (retour du 25/11 : « on ne peut pas choisir 2 filtres ») */
+  tris?: Tri[];
 };
+export type Tri = { cle: CleTri; croissant: boolean };
 
 /** Sol de la côte : goudronné (route, piste) ou non (terre, gravier, herbe…), d'après BD TOPO et OSM. */
 export type Sol = "goudronne" | "terre";
@@ -82,10 +85,30 @@ const VALEUR_TRI: Record<CleTri, (c: CoteProche) => number> = {
   longueur: (c) => c.longueur_m, dplus: (c) => c.dplus_m,
 };
 
-/** « Meilleures » au sens du tri choisi : les plus proches par défaut. */
+/** Critères de tri choisis (un seul par défaut : la distance, la plus proche d'abord). */
+export function trisDe(f: Pick<Filtres, "tri" | "croissant" | "tris">): Tri[] {
+  if (f.tris?.length) return f.tris;
+  const cle = f.tri ?? "distance";
+  return [{ cle, croissant: f.croissant ?? cle === "distance" }];
+}
+
 export function meilleures(cotes: CoteProche[], f: Filtres): CoteProche[] {
-  const triees = trierCotes(cotes, f.tri ?? "distance", f.croissant ?? (f.tri ?? "distance") === "distance");
+  const t = trisDe(f);
+  const triees = t.length === 1 ? trierCotes(cotes, t[0].cle, t[0].croissant) : trierPlusieurs(cotes, t);
   return f.nombre ? triees.slice(0, f.nombre) : triees;
+}
+
+/**
+ * Tri sur plusieurs critères : chaque côte est classée sur chacun (dans son sens), puis par la moyenne de
+ * ses rangs. « Pente ↓ + Longueur ↓ » met devant les côtes à la fois raides et longues, sans qu'une
+ * seule très raide mais très courte écrase tout. À égalité, la plus proche d'abord.
+ */
+export function trierPlusieurs(cotes: CoteProche[], tris: Tri[]): CoteProche[] {
+  const rang = new Map<CoteProche, number>(cotes.map((c) => [c, 0]));
+  for (const t of tris) {
+    trierCotes(cotes, t.cle, t.croissant).forEach((c, i) => rang.set(c, rang.get(c)! + i));
+  }
+  return [...cotes].sort((a, b) => rang.get(a)! - rang.get(b)! || a.distance_m - b.distance_m);
 }
 
 /** Trie les côtes ; à égalité, la plus proche d'abord. */

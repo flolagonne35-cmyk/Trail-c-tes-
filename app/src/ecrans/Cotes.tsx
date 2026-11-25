@@ -6,8 +6,8 @@ import { ActivityIndicator, Pressable, ScrollView, type ScrollViewInstance, Text
 
 import {
   cotesProches, distanceCouverture, distanceDe, enDescente, kmLisibles, meilleures, murDe, NOMS_TRAFIC, RAYON_COUVERTURE_M,
-  resumeFiltres, TRIS, TRIS_PROPOSES,
-  type Cote, type CoteProche, type Filtres, type Sens,
+  resumeFiltres, TRIS, TRIS_PROPOSES, trisDe,
+  type CleTri, type Cote, type CoteProche, type Filtres, type Sens,
 } from "../calcul/cotes.ts";
 import { eauPresDesCotes, type PointEau } from "../calcul/eau.ts";
 import type { Position } from "../calcul/geo.ts";
@@ -87,8 +87,7 @@ function LigneCote({ c, rang, position, allurePlat, onPress, adresse, ici }: {
  * changer sous ses yeux, sans panneau à rouvrir.
  */
 function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; total: number }) {
-  const cle = f.tri ?? "distance";
-  const croissant = f.croissant ?? cle === "distance";
+  const tris = trisDe(f);
   const nb = String(f.nombre ?? 0);
   const puce = (actif: boolean, texte: string, onPress: () => void, label?: string) => (
     <Pressable key={texte} onPress={onPress} accessibilityRole="tab" aria-selected={actif} accessibilityLabel={label ?? texte}
@@ -97,23 +96,39 @@ function BarreTri({ f, setF, total }: { f: Filtres; setF: (f: Filtres) => void; 
       <Text style={{ fontSize: 14, fontWeight: "700", color: actif ? C.fond : C.encre }}>{texte}</Text>
     </Pressable>
   );
+  // toucher un critère l'ajoute (ou le retire) ; sa flèche inverse son sens
+  const basculer = (k: CleTri) => {
+    const deja = tris.find((t) => t.cle === k);
+    const suivants = deja ? tris.filter((t) => t.cle !== k) : [...tris.filter((t) => !(tris.length === 1 && t.cle === "distance")), { cle: k, croissant: k === "distance" }];
+    setF({ ...f, tris: suivants.length ? suivants : [{ cle: "distance", croissant: true }], tri: undefined, croissant: undefined });
+  };
+  const inverser = (k: CleTri) => setF({ ...f, tris: tris.map((t) => (t.cle === k ? { ...t, croissant: !t.croissant } : t)), tri: undefined, croissant: undefined });
   return (
     <View style={{ marginTop: 22, gap: 10 }}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={[S.fort, { flex: 1 }]} accessibilityRole="header">Trier par</Text>
-        <Pressable onPress={() => setF({ ...f, tri: cle, croissant: !croissant })} accessibilityRole="button"
-                   accessibilityLabel={`Ordre : ${croissant ? TRIS[cle].croissant : TRIS[cle].decroissant}. Inverser`}
-                   style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 12,
-                            borderRadius: 20, backgroundColor: C.sable }}>
-          <Text style={{ fontSize: 14, fontWeight: "700", color: C.encre }}>
-            {croissant ? TRIS[cle].croissant : TRIS[cle].decroissant} ⇅
-          </Text>
-        </Pressable>
-      </View>
+      <Text style={S.fort} accessibilityRole="header">Trier par</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {TRIS_PROPOSES.map((k) => puce(k === cle, k === "distance" ? "Le plus près" : TRIS[k].nom,
-                                       () => setF({ ...f, tri: k, croissant: k === "distance" })))}
+        {TRIS_PROPOSES.map((k) => {
+          const t = tris.find((x) => x.cle === k);
+          const nom = k === "distance" ? "Le plus près" : TRIS[k].nom;
+          if (!t) return puce(false, nom, () => basculer(k), `Trier aussi par ${nom}`);
+          return (
+            <View key={k} style={{ flexDirection: "row", borderRadius: 20, backgroundColor: C.encre, overflow: "hidden" }}>
+              <Pressable onPress={() => basculer(k)} accessibilityRole="tab" aria-selected accessibilityLabel={`${nom} : retirer ce critère`}
+                         style={{ minHeight: 40, paddingLeft: 14, paddingRight: 6, justifyContent: "center" }}>
+                <Text style={{ fontSize: 14, fontWeight: "700", color: C.fond }}>{nom}</Text>
+              </Pressable>
+              <Pressable onPress={() => inverser(k)} accessibilityRole="button" accessibilityLabel={`${nom} : ${t.croissant ? TRIS[k].croissant : TRIS[k].decroissant}. Inverser`}
+                         style={{ minHeight: 40, paddingHorizontal: 10, justifyContent: "center", backgroundColor: "rgba(255,255,255,0.14)" }}>
+                <Text style={{ fontSize: 15, fontWeight: "900", color: C.fond }}>{t.croissant ? "↑" : "↓"}</Text>
+              </Pressable>
+            </View>
+          );
+        })}
       </View>
+      <Text style={S.petit}>
+        {tris.length === 1 ? `${TRIS[tris[0].cle].nom} : ${tris[0].croissant ? TRIS[tris[0].cle].croissant : TRIS[tris[0].cle].decroissant}. Touche un autre critère pour l'ajouter.`
+          : `${tris.map((t) => `${TRIS[t.cle].nom.toLowerCase()} ${t.croissant ? "↑" : "↓"}`).join(" + ")} : les côtes les mieux classées sur tous ces critères à la fois passent devant. Touche un critère choisi pour le retirer, sa flèche pour inverser.`}
+      </Text>
       {total > 3 && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <Text style={[S.petit, { color: C.encre }]}>Afficher</Text>

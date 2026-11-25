@@ -101,7 +101,7 @@ export function ChoixResultats({ f, setF, total, mot }: { f: Filtres; setF: (f: 
     <View style={{ gap: 10 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Text style={[S.fort, { flex: 1 }]}>Trier par</Text>
-        <Pressable onPress={() => setF({ ...f, tri: cle, croissant: !croissant })} accessibilityRole="button"
+        <Pressable onPress={() => setF({ ...f, tri: cle, croissant: !croissant, tris: undefined })} accessibilityRole="button"
                    accessibilityLabel={`Ordre : ${sens}. Inverser`}
                    style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 12,
                             borderRadius: 18, backgroundColor: C.sable }}>
@@ -113,7 +113,7 @@ export function ChoixResultats({ f, setF, total, mot }: { f: Filtres; setF: (f: 
         {TRIS_PROPOSES.map((k) => {
           const actif = k === cle;
           return (
-            <Pressable key={k} onPress={() => setF({ ...f, tri: k, croissant: k === "distance" })} accessibilityRole="tab"
+            <Pressable key={k} onPress={() => setF({ ...f, tri: k, croissant: k === "distance", tris: undefined })} accessibilityRole="tab"
                        aria-selected={actif}
                        style={{ minHeight: 36, paddingHorizontal: 12, borderRadius: 18, justifyContent: "center",
                                 backgroundColor: actif ? C.encre : C.blanc, borderWidth: 1, borderColor: actif ? C.encre : C.sable }}>

@@ -11,3 +11,13 @@ test("côtes au profil impossible écartées (altitudes fausses au-dessus de l'e
   assert.ok(!cotePlausible({ ...ok, profil: { d: [0, 400], z: [-800, 46] } }));
   assert.ok(!cotePlausible({ ...ok, pente_max_pct: 75 }));
 });
+
+test("tri sur plusieurs critères : raides ET longues devant", async () => {
+  const { meilleures } = await import("./cotes.ts");
+  const c = (id: number, pente: number, longueur: number) => ({ id, pente_moy_pct: pente, longueur_m: longueur, distance_m: id, dplus_m: 0, pente_max_pct: pente } as never);
+  const cotes = [c(1, 20, 100), c(2, 8, 1600), c(3, 15, 1800), c(4, 5, 300)];
+  const seule = meilleures(cotes, { tris: [{ cle: "pente", croissant: false }] } as never).map((x: { id: number }) => x.id);
+  assert.deepEqual(seule, [1, 3, 2, 4]);
+  const deux = meilleures(cotes, { tris: [{ cle: "pente", croissant: false }, { cle: "longueur", croissant: false }] } as never).map((x: { id: number }) => x.id);
+  assert.equal(deux[0], 3); // 2e en pente, 1re en longueur : la meilleure des deux à la fois
+});
