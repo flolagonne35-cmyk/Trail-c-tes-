@@ -16,6 +16,7 @@ RESSOURCE_DEFAUT = "ign_rge_alti_wld"
 
 
 NODATA_IGN = -99999.0  # valeur renvoyée par le service hors couverture
+ALTITUDE_MIN_PLAUSIBLE = -500.0
 
 
 RAYON_TERRE = 6_371_000.0
@@ -162,7 +163,10 @@ def altitudes_ign(lat: np.ndarray, lon: np.ndarray, ressource: str, taille_lot: 
         for debut in debuts:
             lot(debut)
 
-    nodata = z <= NODATA_IGN + 1
+    # « pas de donnée » : la valeur officielle (−99 999) et toute altitude impossible en France (sous
+    # −500 m ; le point le plus bas, en Camargue, est vers −10 m). Constaté le 25/11 au-dessus de l'eau
+    # (Arzal, Arzon) : des valeurs très négatives autres que −99 999, qui faussaient pente et D+.
+    nodata = (z <= NODATA_IGN + 1) | (z < ALTITUDE_MIN_PLAUSIBLE)
     stats.points_nodata = int(nodata.sum())
     z[nodata] = np.nan
     stats.duree_s = round(time.monotonic() - t0, 1)

@@ -8,7 +8,7 @@
 import { Platform } from "react-native";
 
 import { emprisesProches, type IndexDepartements } from "./calcul/departements.ts";
-import type { Cote } from "./calcul/cotes.ts";
+import { cotePlausible, type Cote } from "./calcul/cotes.ts";
 import type { Position } from "./calcul/geo.ts";
 
 const BASE = Platform.OS === "web" ? "/cotes/" : "https://trail-cotes.pages.dev/cotes/";
@@ -37,7 +37,8 @@ export async function cotesAutour(p: Position): Promise<{ cotes: Cote[]; emprise
   const deps = emprisesProches(idx, p, RAYON_KM);
   const listes = await Promise.all(deps.flatMap((d) => idx.departements[d].fichiers.map((f) => {
     if (!fichiers.has(f)) {
-      const lu = lireJson<{ cotes: Cote[] }>(f).then((x) => x?.cotes ?? []);
+      // les côtes au profil impossible (altitudes fausses au-dessus de l'eau) sont écartées dès le chargement
+      const lu = lireJson<{ cotes: Cote[] }>(f).then((x) => (x?.cotes ?? []).filter(cotePlausible));
       lu.then((c) => { if (!c.length) fichiers.delete(f); });
       fichiers.set(f, lu);
     }

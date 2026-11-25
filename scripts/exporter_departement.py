@@ -77,8 +77,17 @@ def alleger_cote(c: dict) -> dict:
             "geometrie": alleger(c["geometrie"], 30)}
 
 
+def plausible(c: dict) -> bool:
+    """Côte physiquement possible (même règle que app/src/calcul/cotes.ts, coteplausible) : pente moyenne
+    ≤ 40 %, passage le plus raide ≤ 60 %, D+ ≤ la moitié de la longueur, altitudes au-dessus de −500 m."""
+    z = (c.get("profil") or {}).get("z") or []
+    return (c["pente_moy_pct"] <= 40 and c["pente_max_pct"] <= 60 and c["dplus_m"] <= 0.5 * c["longueur_m"]
+            and (not z or min(z) > -500))
+
+
 def exporter(dep: str, base: Path, sortie: Path) -> dict:
     cotes, zone = depuis_base(base, numero(dep) * 1_000_000 + 1)
+    cotes = [c for c in cotes if plausible(c)]
     cotes = [alleger_cote(c) for c in cotes]
     sortie.mkdir(parents=True, exist_ok=True)
     emprise = zone["emprise"] if zone else None

@@ -185,3 +185,15 @@ export function resumeFiltres(f: Filtres): string {
           ...(f.eviterPassant ? ["sans route passante"] : [])]
     .join(" · ");
 }
+
+/**
+ * Côte physiquement possible (retour du 25/11 : « 170 m à 33 122 % » au bord de la mer, des altitudes
+ * fausses au-dessus de l'eau). Même règle que scripts/exporter_departement.py : pente moyenne ≤ 40 %,
+ * passage le plus raide ≤ 60 %, D+ au plus la moitié de la longueur, aucune altitude sous −500 m.
+ */
+export function cotePlausible(c: Pick<Cote, "pente_moy_pct" | "pente_max_pct" | "dplus_m" | "longueur_m" | "profil">): boolean {
+  const z = c.profil?.z ?? [];
+  let min = Infinity;
+  for (const v of z) if (v < min) min = v;
+  return c.pente_moy_pct <= 40 && c.pente_max_pct <= 60 && c.dplus_m <= 0.5 * c.longueur_m && (!z.length || min > -500);
+}
