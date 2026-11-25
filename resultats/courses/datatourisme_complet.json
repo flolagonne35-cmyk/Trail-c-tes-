@@ -1,14 +1,14 @@
 {
- "courses_datatourisme": 352,
- "url": "https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261124-034500/datatourisme.nt.zip",
- "taille_mo": 1922,
+ "courses_datatourisme": 360,
+ "url": "https://static.data.gouv.fr/resources/datatourisme-la-plateforme-nationale-des-donnees-touristiques/20261125-034503/datatourisme.nt.zip",
+ "taille_mo": 1926,
  "statut": "ok",
- "trouvees": 351,
- "noeuds": 7563,
- "completees": 111,
- "avec_prix": 91,
- "avec_reservation": 46,
- "avec_dates_inscription": 190,
+ "trouvees": 360,
+ "noeuds": 7760,
+ "completees": 115,
+ "avec_prix": 94,
+ "avec_reservation": 47,
+ "avec_dates_inscription": 194,
  "predicats": [
   "acceptedPaymentMethod",
   "accessTips",
@@ -414,7 +414,7 @@
     "6"
    ],
    "sourceChecksum": [
-    "54a4c8cce84c168f31d6dfcd99e9def9"
+    "a84ff31ac95d4c04605790191974dacc"
    ],
    "hasBookingContact": [
     {}
@@ -1064,7 +1064,7 @@
     "28"
    ],
    "sourceChecksum": [
-    "de6d04c0f9a9cf3801415d42c21d03f5"
+    "318a4ec02a4b7daabc26db6bef1ab59c"
    ],
    "creationDate": [
     "2018-09-18"
